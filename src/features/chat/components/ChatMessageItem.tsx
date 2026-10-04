@@ -12,7 +12,12 @@ interface ChatMessageItemProps {
   onRetry?: (message: ChatMessage) => void;
 }
 
-export function ChatMessageItem({
+/**
+ * One conversation row. Memoized (P1-03): while a stream is active only the row whose
+ * `message` object changes re-renders, once per animation frame; the props from the parent
+ * (`onInspectCitation`, `onRetry`) are stable callbacks.
+ */
+export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   onInspectCitation,
   onRetry,
@@ -134,4 +139,4 @@ export function ChatMessageItem({
       </div>
     </div>
   );
-}
+});

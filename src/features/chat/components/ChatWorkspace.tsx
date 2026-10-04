@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DocumentListModal } from '@/src/features/documents/components/DocumentListModal';
 import { useDocuments } from '@/src/features/documents/hooks/useDocuments';
 import { PdfFactCheckViewer } from '@/src/features/factcheck/components/PdfFactCheckViewer';
@@ -46,6 +46,8 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
     }
   }, [activeChatId, transcript, replaceMessages]);
 
+  // Switching chat (or starting a new one) aborts the running stream: `cancel()` stops it now,
+  // and `replaceMessages()` aborts too, so a stream can never write into another conversation.
   const handleSelectChat = (chatId: string) => {
     chat.cancel();
     if (chatId === activeChatId && transcript) {
@@ -60,10 +62,13 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
     chat.replaceMessages([]);
   };
 
-  const handleInspectCitation = (citation: CitationReference) => {
-    const conversationCitations = chat.messages.flatMap((m) => m.citations ?? []);
-    pdfViewer.inspectCitation(citation, conversationCitations);
-  };
+  // Stable callback: memoized message rows do not re-render when the conversation changes.
+  const { inspectCitation } = pdfViewer;
+  const { getConversationCitations } = chat;
+  const handleInspectCitation = useCallback(
+    (citation: CitationReference) => inspectCitation(citation, getConversationCitations()),
+    [inspectCitation, getConversationCitations]
+  );
 
   const handleSend = (query: string) => {
     void chat.send(query);
@@ -103,7 +108,8 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           loadError={history.chatLoadError}
           onRetryLoad={() => void history.reloadChat()}
           onInspectCitation={handleInspectCitation}
-          onRetry={chat.retry}
+          // ADR 0003: no new send during a stream, so "Riprova" is hidden until it ends.
+          onRetry={chat.isStreaming ? undefined : chat.retry}
           endRef={endRef}
           onScroll={onScroll}
           emptyState={
@@ -112,7 +118,12 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         />
 
         <div className="shrink-0 bg-white border-t border-slate-100 pt-3">
-          <ChatComposer onSendMessage={handleSend} onCancelStream={chat.cancel} isStreaming={chat.isStreaming} />
+          <ChatComposer
+            onSendMessage={handleSend}
+            onCancelStream={chat.cancel}
+            isStreaming={chat.isStreaming}
+            disabled={history.isChatLoading}
+          />
         </div>
       </main>
 

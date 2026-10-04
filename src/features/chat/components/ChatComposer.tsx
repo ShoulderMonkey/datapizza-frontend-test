@@ -38,6 +38,8 @@ export function ChatComposer({
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
+    // ADR 0003: no new send while a stream is active (the Stop button replaces Send).
+    if (isStreaming || disabled) return;
     const trimmed = query.trim();
 
     if (!trimmed) {

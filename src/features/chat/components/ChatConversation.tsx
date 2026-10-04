@@ -11,7 +11,8 @@ interface ChatConversationProps {
   loadError: string | null;
   onRetryLoad: () => void;
   onInspectCitation: (citation: CitationReference) => void;
-  onRetry: (message: ChatMessage) => void;
+  /** Undefined while a stream is active (ADR 0003): the rows hide their retry buttons. */
+  onRetry?: (message: ChatMessage) => void;
   endRef: RefObject<HTMLDivElement | null>;
   onScroll: (e: UIEvent<HTMLElement>) => void;
   /** Rendered when there are no messages. */

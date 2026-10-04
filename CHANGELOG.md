@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T016, P1-03)
+- `src/features/chat/lib/chatStreamReducer.ts`: reducer puro con azioni tipizzate (`start`, `delta`, `citations`, `error`, `abort`, `done`, `reset`).
+- ADR 0003 (`docs/adr/0003-invio-durante-stream.md`): invio disabilitato durante lo stream.
+- Test: `tests/unit/chatStreamReducer.test.ts`, `tests/integration/ChatWorkspace.batching.test.tsx` (500 chunk in un tick: 1 render, limite 5; controllo negativo 61 render), `tests/integration/ChatWorkspace.abort.test.tsx` (Stop, unmount, cambio chat, invio disabilitato).
+
+### Changed (T016, P1-03)
+- `useChatStream` usa `useReducer` e applica i `delta` con batching `requestAnimationFrame` (fallback `setTimeout` 16 ms).
+- `ChatMessageItem` avvolto in `React.memo`.
+- Composer disabilitato durante lo stream e durante il caricamento di una chat; "Riprova" nascosto durante lo stream.
+- Lo stream viene abortito anche al cambio di chat (oltre a Stop e unmount); il messaggio parziale resta `aborted`.
+
 ### Added (T001)
 - Harness di test: Vitest con ambiente jsdom, `@testing-library/react`, `@testing-library/jest-dom`, MSW per streaming NDJSON.
 - `playwright.config.ts` con `baseURL: http://localhost:3000` e `webServer` (`npm run dev`).

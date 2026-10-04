@@ -171,11 +171,11 @@
 - Dipendenze: P0-05, P1-01
 - Stima: M
 - Criteri di accettazione:
-  - [ ] Hook `useChatStream` con `useReducer` e azioni tipizzate (`start`, `delta`, `citations`, `error`, `abort`, `done`). Test unit del reducer puro per ogni azione.
-  - [ ] I `delta` sono accumulati e applicati con `requestAnimationFrame`. Test: 500 chunk `content` consegnati in un solo tick producono al massimo 5 render del componente messaggio (contatore di render o React Profiler), e il testo finale è identico alla concatenazione.
-  - [ ] Abort all'unmount, al cambio di chat e su Stop. Test: dopo `abort()` non arrivano più dispatch (nessun warning di update su componente smontato) e il messaggio parziale resta con stato `aborted`.
-  - [ ] ADR `docs/adr/0003-invio-durante-stream.md`: un nuovo invio durante uno stream attivo è disabilitato oppure interrompe il precedente. Test che verifica il comportamento scelto.
-- Stato: todo
+  - [x] Hook `useChatStream` con `useReducer` e azioni tipizzate (`start`, `delta`, `citations`, `error`, `abort`, `done`). Test unit del reducer puro per ogni azione. Evidenza: `src/features/chat/lib/chatStreamReducer.ts:69-104` (azioni, più `reset`), `src/features/chat/hooks/useChatStream.ts:51`; `tests/unit/chatStreamReducer.test.ts` (un test per azione).
+  - [x] I `delta` sono accumulati e applicati con `requestAnimationFrame`. Test: 500 chunk `content` consegnati in un solo tick producono al massimo 5 render del componente messaggio (contatore di render o React Profiler), e il testo finale è identico alla concatenazione. Evidenza: `tests/integration/ChatWorkspace.batching.test.tsx:33` (caso A: 500 chunk in un blocco → 1 render, limite 5); caso B `:83` (60 chunk su macrotask separati con rAF reale → 5 render, limite 10); controllo negativo `:90` (flush a ogni task → 61 render, asserito > 30). Hook: `useChatStream.ts:23-24`, `:86`.
+  - [x] Abort all'unmount, al cambio di chat e su Stop. Test: dopo `abort()` non arrivano più dispatch (nessun warning di update su componente smontato) e il messaggio parziale resta con stato `aborted`. Evidenza: `tests/integration/ChatWorkspace.abort.test.tsx:69` (Stop), `:84` (unmount), `:94` (nuova chat), `:106` (selezione chat); hook `useChatStream.ts:105,113,244`.
+  - [x] ADR `docs/adr/0003-invio-durante-stream.md`: un nuovo invio durante uno stream attivo è disabilitato oppure interrompe il precedente. Test che verifica il comportamento scelto. Evidenza: ADR creato (scelta: invio disabilitato); `tests/integration/ChatWorkspace.abort.test.tsx:127`, `tests/unit/chatStreamReducer.test.ts:28`.
+- Stato: done (T016)
 
 ### P1-04 — Mappa errori → messaggi comprensibili
 - Criterio della specifica: "UX › Errori comprensibili per l'utente finale (non solo messaggi tecnici)"; "Funzionalità minime › 2. errori (file non valido, nessun file selezionato…)".

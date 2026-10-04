@@ -166,7 +166,8 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   └── types.ts         # Document domain types
 │   │   ├── chat/
 │   │   │   ├── components/      # ChatWorkspace (133 lines), ChatComposer, ChatMessageItem, ChatConversation
-│   │   │   ├── hooks/           # useChatStream (183 lines, useState; reducer + rAF batching in P1-03), useAutoScroll
+│   │   │   ├── hooks/           # useChatStream (useReducer + rAF batching), useAutoScroll
+│   │   │   ├── lib/             # chatStreamReducer (pure reducer, no React)
 │   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
 │   │   ├── factcheck/
 │   │   │   ├── components/      # PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection
@@ -204,7 +205,7 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 
 **Feature structure** (`src/features/{auth,documents,chat,factcheck,history}/`):
 - **`components/`**: Presentazionali (ricevono `props`, chiamano `callbacks`); nessun `fetch` o import da `src/api`.
-- **`hooks/`**: Orchestrano stato, chiamano `src/api`, gestiscono effetti. Esempi: `useChatStream` (stato con `useState`; `useReducer` e batching `requestAnimationFrame` arriveranno con P1-03), `useLogin`, `useDocuments`, `useChatList`, `useChatDetail` (server state con TanStack Query, vedi sotto).
+- **`hooks/`**: Orchestrano stato, chiamano `src/api`, gestiscono effetti. Esempi: `useChatStream` (stato con `useReducer` e `chatStreamReducer`; i `delta` sono accumulati e applicati con `requestAnimationFrame`, vedi §6), `useLogin`, `useDocuments`, `useChatList`, `useChatDetail` (server state con TanStack Query, vedi sotto).
 - **`lib/` (optional)**: Funzioni pure senza React (coordinate math, session storage).
 - **`types.ts`**: Tipi della feature e re-export da `src/api/types.ts`.
 
@@ -311,27 +312,33 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
    - **Alternatives:** Flat structure by type (components, services, utils) — proven to couple unrelated files; shared/core layer — adds an extra level without clarity.
    - **See:** `docs/adr/0002-struttura-per-feature.md`.
 
-2. **Same-origin proxy with `next.config.ts` `rewrites`** (P0-03):
+2. **Stream state with `useReducer`, per-frame batching, and send disabled during a stream** (P1-03, T016):
+   - **Decision:** `useChatStream` uses `useReducer` with the pure `chatStreamReducer` (`src/features/chat/lib/chatStreamReducer.ts`; actions `start`, `delta`, `citations`, `error`, `abort`, `done`, `reset`). `content` deltas are buffered and flushed with `requestAnimationFrame` (fallback `setTimeout` 16 ms) in `src/features/chat/hooks/useChatStream.ts`; `ChatMessageItem` is wrapped in `React.memo`. The stream is aborted on Stop, on unmount and on chat switch/new chat; the partial message stays with status `aborted`.
+   - **Send during a stream:** disabled. The composer is disabled and shows "Interrompi" instead of "Invia"; "Riprova" is hidden while streaming. The rule is enforced in the reducer, the hook and the UI.
+   - **Tests:** 500 chunks delivered in one tick cause 1 render of the message component (limit 5); negative control without batching: 61 renders (`tests/integration/ChatWorkspace.batching.test.tsx`). Reducer, abort and disabled-send are covered by `tests/unit/chatStreamReducer.test.ts` and `tests/integration/ChatWorkspace.abort.test.tsx`.
+   - **See:** `docs/adr/0003-invio-durante-stream.md`.
+
+3. **Same-origin proxy with `next.config.ts` `rewrites`** (P0-03):
    - **Decision:** Use Next.js rewrites to proxy `/api/*` → `${BACKEND_URL}/api/*`.
    - **Rationale:** Starlette 0.50.0 (unpinned) returns `Access-Control-Allow-Origin: *` with credentials, which browsers reject. A same-origin proxy sidesteps CORS by making all requests appear to come from the same origin (`localhost:3000`).
    - **Trade-off:** Backend URL is fixed at build time; runtime switching requires a rebuild. Docker build arg (P0-07) enables passing `BACKEND_URL` at image build time.
    - **Alternatives:** CORS middleware on backend (out of scope), explicit route handler proxy (more verbose), static export (incompatible with rewrites).
    - **See:** `docs/adr/0001-proxy-same-origin.md`.
 
-3. **`rehype-sanitize` for XSS protection** (P0-04):
+4. **`rehype-sanitize` for XSS protection** (P0-04):
    - **Decision:** Sanitize Markdown rendering with `rehype-sanitize` after `rehype-raw` (not before, not with DOMPurify).
    - **Rationale:** Pipeline-native, doesn't require additional libraries, works on the AST before DOM insertion.
    - **Trade-off:** default schema only; no custom allowlist.
 
-4. **`react-pdf` canvas rendering** (P1-08):
+5. **`react-pdf` canvas rendering** (P1-08):
    - Native `<iframe>`/`<embed>` lack programmatic DOM overlay access. `react-pdf` (^11, su `pdfjs-dist`) renders pages to canvas, enabling pixel-accurate overlays; the worker is served locally (`lib/pdfWorker.ts`).
 
-5. **Streaming error handling and normalized ApiError** (P0-05, P1-01):
+6. **Streaming error handling and normalized ApiError** (P0-05, P1-01):
    - **Decision:** Distinguish stream errors (`type: "error"`), malformed lines (`NDJSONParseError`), HTTP errors (`ApiError.status` valued), and network errors (`ApiError.status` null, `code: 'network'`). All errors are normalized to `ApiError { status, code, userMessage, cause, detail }`.
    - **Rationale:** Users see a friendly Italian message (`userMessage`); technical details (status, response body, stack) go to `console.error(error.cause)` only. A `code` enum enables reliable error handling: `if (error.code === 'aborted')` skips showing the error message, for example.
    - **Trade-off:** Extra error normalization layer; rewarded by consistent, testable error handling across network, stream, and parse failures.
 
-6. **Explicit UX States**:
+7. **Explicit UX States**:
    Chat messages carry the states `idle`, `streaming`, `completed`, `error` and `aborted` (types in `src/features/chat/types.ts`).
 
 ---
@@ -346,7 +353,6 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
   - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `src/api/types.ts` (`Document` line 47, `UploadResponse` line 58, `ChatRecord` line 66). Request types (`LoginRequest`, `ChatRequest`) derive from `src/api/schema.d.ts`, generated with `npm run gen:api` (`openapi-typescript`). A response that does not match the expected shape (e.g. a non-array list) becomes `ApiError` with code `invalid_response` (`tests/unit/api-contract.test.ts`).
 
 - **Frontend scope (not yet implemented / planned improvements):**
-  - Streaming updates the UI on every received character (one state update per chunk, no per-frame batching). Queued renders could be batched with `requestAnimationFrame` for better performance (P1-03).
   - PDF text layer (selectable and copyable text) is not implemented.
   - Multi-page continuous scrolling is not implemented; users navigate one page at a time (P1-08).
   - Automatic scroll to the first bounding region when opening a citation is not implemented (P1-08).
@@ -370,11 +376,9 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-**Feature structure and API layer (P1-01):** Done (T012) — refactored into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client (`src/api/`). `ChatWorkspace.tsx` reduced from 559 to 133 lines; stream logic moved to `useChatStream` hook (183 lines, `useState`; `useReducer` and per-frame batching come with P1-03). All HTTP requests normalized to `ApiError`. ESLint forbids `fetch` outside `src/api/`. See ADR 0002.
+**Feature structure and API layer (P1-01):** Done (T012) — refactored into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client (`src/api/`). `ChatWorkspace.tsx` reduced from 559 to 133 lines; stream logic moved to `useChatStream` hook. All HTTP requests normalized to `ApiError`. ESLint forbids `fetch` outside `src/api/`. See ADR 0002.
 
 **API types from OpenAPI (P1-02):** Generate request types from `docs/api/openapi.json` with `openapi-typescript`; write response types by hand (OpenAPI lacks them). Add validation and remove speculative field normalization.
-
-**Stream batching with `requestAnimationFrame` (P1-03):** Accumulate `content` deltas and render once per frame instead of on every character. When 500 consecutive `content` chunks are delivered in a single tick, the message component should re-render at most 5 times instead of 500.
 
 **User-friendly error messages (P1-04):** Map backend error codes and network errors to Italian messages without exposing technical details (no status codes, no URLs, no stack traces).
 
