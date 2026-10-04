@@ -1,0 +1,32 @@
+# Frontend + backend. The backend repo is expected as a sibling directory:
+#   ../test-tecnico-frontend-engineer/backend
+# The browser only talks to http://localhost:3000; Next proxies /api/* to the
+# backend over the internal compose network (same-origin, so the user_id cookie works).
+services:
+  backend:
+    build: ../test-tecnico-frontend-engineer/backend
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../test-tecnico-frontend-engineer/backend/data:/app/data:ro
+    # Port 8000 is intentionally NOT published (avoids clashing with a backend
+    # already running on the host). To reach Swagger at http://localhost:8000/docs add:
+    # ports:
+    #   - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  frontend:
+    build:
+      context: .
+      args:
+        # Rewrites are evaluated at build time: changing this requires a rebuild.
+        BACKEND_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy

@@ -5,7 +5,7 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T007)
+## Stato attuale (aggiornato a T010)
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `components/chat/ChatWorkspace.tsx` (562 righe); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ⚠️ | `services/api-client.ts:22-42`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `services/chat-service.ts:65`, `components/chat/ChatWorkspace.tsx:211` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
-| Deliverable: Dockerfile | ❌ | assente | P0-07 |
+| Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ⚠️ | In corso (P0-08) | P0-08 |
 | Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
 
@@ -117,11 +117,11 @@
 - Dipendenze: P0-03
 - Stima: M
 - Criteri di accettazione:
-  - [ ] `docker build -t docfact-frontend .` termina con exit 0. Build multi-stage `node:22-alpine` con `npm ci` e output `standalone`, eseguito come utente non root.
-  - [ ] `BACKEND_URL` è passato come build arg o env (i `rewrites` sono valutati a build time) e documentato.
-  - [ ] `docker-compose.yml` avvia frontend e backend (`build: ../test-tecnico-frontend-engineer/backend`, percorso documentato). Con `docker compose up`, `curl -s -o /dev/null -w '%{http_code}' localhost:3000` restituisce 200 e `curl -s -X POST localhost:3000/api/auth/login -H 'Content-Type: application/json' -d '{"user_id":"t"}'` restituisce 200.
-  - [ ] Nessuna risorsa caricata da CDN a runtime (dipende da P1-08 per PDF.js; fino ad allora è un limite dichiarato nel README).
-- Stato: todo
+  - [x] `docker build -t docfact-frontend .` termina con exit 0. Build multi-stage `node:22-alpine` con `npm ci` e output `standalone`, eseguito come utente non root. → evidenza: `.claude/reports/T010/01-build.log`, `.claude/reports/T010/01-id.txt` (uid=1001(nextjs))
+  - [x] `BACKEND_URL` è passato come build arg o env (i `rewrites` sono valutati a build time) e documentato. → evidenza: `Dockerfile` (ARG + ENV nello stage builder) e sezione README "Running with Docker"
+  - [x] `docker-compose.yml` avvia frontend e backend (`build: ../test-tecnico-frontend-engineer/backend`, percorso documentato). Con `docker compose up`, curl su localhost:3000 = 200 e POST /api/auth/login = 200. → evidenza: `.claude/reports/T010/03-curl.txt`, percorso documentato nel README
+  - [x] Nessuna risorsa caricata da CDN a runtime (dipende da P1-08 per PDF.js; fino ad allora è un limite dichiarato nel README). → limite dichiarato nel README "Known Limitations"; risoluzione in P1-08
+- Stato: done (T010)
 
 ### P0-08 — README accurato con decisioni, trade-off e limiti
 - Criterio della specifica: "Deliverable attesi › Un README che spieghi come avviare il frontend… decisioni architetturali, trade-off, limiti, cose che si sarebbero fatte con più tempo".

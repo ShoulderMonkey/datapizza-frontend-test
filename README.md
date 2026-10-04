@@ -68,7 +68,36 @@ Default: `http://localhost:8000`.
 
 **How it works:** The `next.config.ts` reads `BACKEND_URL` during build and creates a same-origin proxy on `/api/*` (see section 3 for details).
 
-`next.config.ts` imposta `output: 'standalone'`. Il frontend **non ha ancora** un `Dockerfile` né un `docker-compose.yml` (P0-07, todo): il comando `docker build` non è al momento disponibile. Vedi "Known Limitations".
+### Running with Docker
+
+**Prerequisites:**
+- Docker and Docker Compose installed.
+- Backend repository as a sibling directory: `../test-tecnico-frontend-engineer/backend`.
+
+**Build and Run:**
+```bash
+# Build the frontend image
+docker build -t docfact-frontend .
+
+# Or use docker-compose to start both frontend and backend
+docker compose up --build -d
+```
+
+The application will be accessible at `http://localhost:3000`.
+
+**Configuration:**
+- `BACKEND_URL` is a build-time argument (default: `http://backend:8000`). The rewrites in `next.config.ts` are evaluated at build time and serialized into the routes manifest; changing `BACKEND_URL` requires a rebuild:
+  ```bash
+  docker build --build-arg BACKEND_URL=http://custom-backend:8000 -t docfact-frontend .
+  ```
+- Backend port 8000 is **intentionally not published** to the host (avoiding clashes with locally running backends). The frontend communicates with the backend over the internal Docker Compose network. To expose Swagger at `http://localhost:8000/docs`, uncomment the `ports` section in `docker-compose.yml`.
+- The container runs as non-root user `nextjs` (uid 1001, see `Dockerfile` line 32).
+
+**Docker Compose Details:**
+- Backend builds from `../test-tecnico-frontend-engineer/backend` (see `docker-compose.yml` line 7).
+- Frontend build args are passed via `build.args.BACKEND_URL` (line 27).
+- Backend health check (`python -c "import urllib.request; ..."`; line 16-20) ensures the frontend only starts after the backend is ready.
+- Backend data volume is mounted read-only (`../test-tecnico-frontend-engineer/backend/data:/app/data:ro`; line 11).
 
 ### Cookie Authentication
 
@@ -229,7 +258,7 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 1. **Same-origin proxy with `next.config.ts` `rewrites`** (P0-03):
    - **Decision:** Use Next.js rewrites to proxy `/api/*` → `${BACKEND_URL}/api/*`.
    - **Rationale:** Starlette 0.50.0 (unpinned) returns `Access-Control-Allow-Origin: *` with credentials, which browsers reject. A same-origin proxy sidesteps CORS by making all requests appear to come from the same origin (`localhost:3000`).
-   - **Trade-off:** Backend URL is fixed at build time; runtime switching requires a rebuild. The Docker setup (build arg `BACKEND_URL`) is planned in P0-07 but not yet implemented.
+   - **Trade-off:** Backend URL is fixed at build time; runtime switching requires a rebuild. Docker build arg (P0-07) enables passing `BACKEND_URL` at image build time.
    - **Alternatives:** CORS middleware on backend (out of scope), explicit route handler proxy (more verbose), static export (incompatible with rewrites).
    - **See:** `docs/adr/0001-proxy-same-origin.md`.
 
@@ -262,11 +291,14 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 - **Frontend scope (not yet implemented / todo):**
   - Streaming renders on every received chunk (one state update per chunk, no per-frame batching). See P1-03.
   - `chat_id` is still sent in the body of `POST /api/chat/` (`services/chat-service.ts`). See P1-02.
-  - The PDF.js worker and cMaps are loaded from a CDN (`components/pdf/PdfFactCheckViewer.tsx`), not bundled locally. See P1-08.
-  - Docker deployment (`Dockerfile`, `docker-compose.yml` for frontend) is not yet implemented. See P0-07 in `docs/ROADMAP.md`.
+  - The PDF.js worker and cMaps are loaded from a CDN at runtime (`components/pdf/PdfFactCheckViewer.tsx:98,103`), not bundled locally. The Docker image is therefore not fully offline-capable. See P1-08.
   - PDF text layer (selectable, copyable text) is not implemented. See P1-08.
   - Multi-page continuous scroll is not implemented; users navigate page-by-page. See P1-08.
   - Bounding-box scroll-to (automatic scroll to the first region when opening a citation) is not implemented. See P1-08.
+
+- **Minor issues (low severity):**
+  - `/favicon.ico` returns 404 (no favicon in the project).
+  - Requests to `/api/...` without trailing slash (e.g., `/api/documents` instead of `/api/documents/`) receive a 307 redirect with an absolute backend URL (`http://backend:8000/...`), which is unreachable from the browser. The application always uses the trailing slash, so this does not affect normal operation.
 
 - **Validation details:**
   - Client `user_id` validation is more restrictive than the backend: only ASCII `[a-zA-Z0-9_-]` (max 100 chars), vs backend `str.isalnum()` which accepts Unicode. The backend is lenient; the client enforces stricter rules.

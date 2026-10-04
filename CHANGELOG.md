@@ -59,6 +59,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 - `components/settings/BackendConfigModal.tsx` (modal di configurazione del backend).
 - Ogni `fetch()` nei componenti (grep: 0).
 
+### Added (T010)
+- `Dockerfile`: Multi-stage build (deps, builder, runner) on `node:22-alpine`; `npm ci` in deps stage, `next build` with `output: 'standalone'` in builder, non-root user `nextjs` (uid 1001, gid 1001) in runner. `ARG BACKEND_URL=http://backend:8000` set in builder stage before `npm run build` (rewrites evaluated at build time). `EXPOSE 3000`, `CMD ["node", "server.js"]`.
+- `.dockerignore`: Excludes `node_modules`, `.next`, `.git`, `.claude`, tests, e2e, `docs`, `.env*` (except `.env.example`), `.tsbuildinfo`, and Dockerfile/Compose files themselves.
+- `docker-compose.yml`: Services `backend` (builds from `../test-tecnico-frontend-engineer/backend`, Python health check, port 8000 internal only) and `frontend` (builds with `BACKEND_URL` build arg, port 3000:3000, depends_on backend healthy). Backend data volume mounted read-only.
+
+### Changed (T010)
+- `package-lock.json`: Regenerated with `npm install --package-lock-only --ignore-scripts` inside `node:22-alpine` to fix missing optional peer deps (`@emnapi/*`) required by `npm ci` on Linux. No version changes, only new entries for Linux-specific optional dependencies and peer flag adjustments.
+
 ---
 
 ## Note versioning
