@@ -11,6 +11,10 @@ import { ChatComposer } from './ChatComposer';
 import { PdfFactCheckViewer } from '../pdf/PdfFactCheckViewer';
 import { DocumentListModal } from '../documents/DocumentListModal';
 import { BackendConfigModal } from '../settings/BackendConfigModal';
+import { NDJSONParseError, NDJSON_PARSE_ERROR_MESSAGE } from '@/utils/ndjson';
+
+const STREAM_ERROR_MESSAGE =
+  'La generazione della risposta si è interrotta. Il testo parziale è stato conservato: puoi riprovare.';
 import {
   FileText,
   PanelLeft,
@@ -198,6 +202,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
       }));
 
     let accumulatedContent = '';
+    let streamFailed = false;
     const collectedCitations: CitationReference[] = [];
 
     try {
@@ -232,7 +237,10 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
             );
           }
         } else if (chunk.type === 'error') {
-          const errMsg = chunk.error || chunk.message || 'Errore generato dal chatbot.';
+          // Backend detail only in the console; the user sees a friendly message.
+          console.error('Chat stream error chunk:', chunk.message);
+          streamFailed = true;
+          const errMsg = STREAM_ERROR_MESSAGE;
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
@@ -246,11 +254,12 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
                 : msg
             )
           );
+          break;
         }
       }
 
-      // Finalize message as completed
-      setMessages((prev) =>
+      // Finalize message as completed (unless an error chunk already set status 'error')
+      if (!streamFailed) setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId
             ? {
@@ -283,7 +292,9 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
       } else {
         console.error('Chat streaming failed:', err);
         const errorText =
-          (err as Error)?.message || 'La risposta si è interrotta. Puoi riprovare.';
+          err instanceof NDJSONParseError
+            ? NDJSON_PARSE_ERROR_MESSAGE
+            : (err as Error)?.message || 'La risposta si è interrotta. Puoi riprovare.';
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId

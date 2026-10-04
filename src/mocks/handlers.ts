@@ -23,6 +23,9 @@ export const handlers = [
       'ao"}\n{"type":"content","delta":"!"}\n',
     ])
   ),
+  // History and documents list called on ChatWorkspace mount (wildcard host: absolute or relative URLs).
+  http.get('*/api/chat/', () => HttpResponse.json([])),
+  http.get('*/api/documents/', () => HttpResponse.json([])),
   // Login: wildcard prefix matches both absolute (http://localhost:8000) and relative (/api) URLs.
   http.post('*/api/auth/login', async ({ request }) => {
     const body = (await request.json()) as { user_id?: string };

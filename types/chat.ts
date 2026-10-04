@@ -57,4 +57,4 @@ export interface ChatRequest {
 export type StreamChunk =
   | { type: 'content'; delta: string }
   | { type: 'citations'; references: CitationReference[] }
-  | { type: 'error'; error?: string; message?: string; detail?: string };
+  | { type: 'error'; message: string } // BE:src/routes/chat.py:209;

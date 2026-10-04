@@ -25,6 +25,8 @@ export function ChatMessageItem({
 
   return (
     <div
+      data-status={message.status}
+      data-role={message.role}
       className={`group w-full py-4 sm:py-5 px-3 sm:px-6 transition-colors ${
         isUser ? 'bg-transparent' : 'bg-slate-50/70 border-y border-slate-100'
       }`}
@@ -83,7 +85,7 @@ export function ChatMessageItem({
 
           {/* Error Banner */}
           {isError && (
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
+            <div role="alert" className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold text-red-800">Risposta interrotta da un errore</p>
