@@ -6,7 +6,6 @@ import {
   MessageSquare,
   Plus,
   Files,
-  Settings,
   LogOut,
   RefreshCw,
   FolderOpen,
@@ -15,7 +14,6 @@ import {
   PanelLeft,
   AlertCircle,
 } from 'lucide-react';
-import { getApiBaseUrl } from '@/config/api';
 
 interface ChatSidebarProps {
   chats: ChatSummary[];
@@ -26,7 +24,6 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onRefreshChats: () => void;
   onOpenDocuments: () => void;
-  onOpenSettings: () => void;
   onLogout: () => void;
   userId: string;
   isOpen: boolean;
@@ -43,7 +40,6 @@ export function ChatSidebar({
   onNewChat,
   onRefreshChats,
   onOpenDocuments,
-  onOpenSettings,
   onLogout,
   userId,
   isOpen,
@@ -239,20 +235,6 @@ export function ChatSidebar({
             </button>
           </div>
 
-          {/* Backend Info & Settings Trigger */}
-          <button
-            onClick={onOpenSettings}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors cursor-pointer"
-            title="Configura URL Backend"
-          >
-            <span className="flex items-center gap-1.5">
-              <Settings className="w-3.5 h-3.5 text-slate-400" />
-              <span>Backend API</span>
-            </span>
-            <span className="font-mono text-[10px] text-slate-500 truncate max-w-[100px]">
-              {getApiBaseUrl().replace(/^https?:\/\//, '')}
-            </span>
-          </button>
         </div>
       </aside>
     </>

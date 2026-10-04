@@ -1,5 +1,3 @@
-import { getApiBaseUrl } from '@/config/api';
-
 export class ApiClientError extends Error {
   statusCode?: number;
   details?: unknown;
@@ -41,12 +39,19 @@ function extractErrorMessage(body: unknown, status: number): string {
   return `Richiesta fallita con codice ${status}`;
 }
 
+/**
+ * All backend calls go through the same-origin proxy (`rewrites` in next.config.ts),
+ * so URLs are always relative and start with `/api/`.
+ */
+export function toApiUrl(endpoint: string): string {
+  return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+}
+
 export async function request<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const baseUrl = getApiBaseUrl();
-  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = toApiUrl(endpoint);
 
   const headers = new Headers(options.headers || {});
   if (!headers.has('Accept')) {
@@ -57,7 +62,7 @@ export async function request<T = unknown>(
     const response = await fetch(url, {
       ...options,
       headers,
-      credentials: 'include', // Sends & receives the mock auth cookie
+      credentials: 'same-origin', // same-origin proxy: the user_id cookie is first-party
     });
 
     if (!response.ok) {
@@ -94,7 +99,7 @@ export async function request<T = unknown>(
       throw err;
     }
 
-    const networkMsg = `Impossibile raggiungere il backend su ${baseUrl}. Verifica che il server sia avviato e raggiungibile.`;
+    const networkMsg = `Impossibile raggiungere il backend. Verifica che il server sia avviato e raggiungibile.`;
     throw new ApiClientError(networkMsg, {
       details: err,
       isNetworkError: true,
@@ -110,13 +115,12 @@ export async function rawRequest(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const baseUrl = getApiBaseUrl();
-  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = toApiUrl(endpoint);
 
   try {
     const response = await fetch(url, {
       ...options,
-      credentials: 'include',
+      credentials: 'same-origin',
     });
 
     if (!response.ok) {
@@ -146,7 +150,7 @@ export async function rawRequest(
       throw err;
     }
 
-    const networkMsg = `Connessione non riuscita verso ${baseUrl}${endpoint}. Controlla la connessione al server.`;
+    const networkMsg = `Connessione non riuscita verso ${endpoint}. Controlla la connessione al server.`;
     throw new ApiClientError(networkMsg, {
       details: err,
       isNetworkError: true,

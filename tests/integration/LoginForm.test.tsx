@@ -16,7 +16,7 @@ describe('LoginForm 422 mapping', () => {
     );
     const onSuccess = vi.fn();
     const user = userEvent.setup();
-    render(<LoginForm onLoginSuccess={onSuccess} onOpenBackendConfig={() => {}} />);
+    render(<LoginForm onLoginSuccess={onSuccess} />);
 
     await user.click(screen.getByRole('button', { name: /accedi all/i }));
 
@@ -34,7 +34,7 @@ describe('LoginForm 422 mapping', () => {
   it('blocks a 101-char user_id client-side with a length message', async () => {
     const user = userEvent.setup();
     const onSuccess = vi.fn();
-    render(<LoginForm onLoginSuccess={onSuccess} onOpenBackendConfig={() => {}} />);
+    render(<LoginForm onLoginSuccess={onSuccess} />);
     const input = screen.getByLabelText('User ID');
     await user.clear(input);
     await user.click(input);
@@ -47,7 +47,7 @@ describe('LoginForm 422 mapping', () => {
   it('accepts a 100-char user_id and calls onLoginSuccess', async () => {
     const user = userEvent.setup();
     const onSuccess = vi.fn();
-    render(<LoginForm onLoginSuccess={onSuccess} onOpenBackendConfig={() => {}} />);
+    render(<LoginForm onLoginSuccess={onSuccess} />);
     const input = screen.getByLabelText('User ID');
     await user.clear(input);
     await user.click(input);

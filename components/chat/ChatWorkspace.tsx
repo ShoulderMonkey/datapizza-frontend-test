@@ -10,7 +10,6 @@ import { ChatMessageItem } from './ChatMessageItem';
 import { ChatComposer } from './ChatComposer';
 import { PdfFactCheckViewer } from '../pdf/PdfFactCheckViewer';
 import { DocumentListModal } from '../documents/DocumentListModal';
-import { BackendConfigModal } from '../settings/BackendConfigModal';
 import { NDJSONParseError, NDJSON_PARSE_ERROR_MESSAGE } from '@/utils/ndjson';
 
 const STREAM_ERROR_MESSAGE =
@@ -32,7 +31,6 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
   // Navigation & Modals
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Active Fact-Checking PDF Viewer state
   const [activePdfViewer, setActivePdfViewer] = useState<{
@@ -378,7 +376,6 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         onNewChat={handleNewChat}
         onRefreshChats={loadChatHistory}
         onOpenDocuments={() => setIsDocumentsOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
         onLogout={onLogout}
         userId={userId}
         isOpen={isSidebarOpen}
@@ -556,16 +553,6 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           loadDocumentCount();
         }}
         onOpenPdfViewer={handleOpenPdfDirectly}
-      />
-
-      {/* Backend Settings Modal */}
-      <BackendConfigModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onConfigChanged={() => {
-          loadChatHistory();
-          loadDocumentCount();
-        }}
       />
     </div>
   );

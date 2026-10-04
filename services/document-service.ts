@@ -1,6 +1,5 @@
 import { rawRequest, request } from './api-client';
 import { DocumentItem, DocumentUploadResponse } from '@/types/document';
-import { getApiBaseUrl } from '@/config/api';
 
 export const documentService = {
   /**
@@ -74,9 +73,8 @@ export const documentService = {
    * Generates a direct URL to the document file endpoint.
    */
   getDocumentFileUrl(documentId: string): string {
-    const baseUrl = getApiBaseUrl();
     const encodedId = encodeURIComponent(documentId);
-    return `${baseUrl}/api/documents/${encodedId}/file`;
+    return `/api/documents/${encodedId}/file`;
   },
 };
 

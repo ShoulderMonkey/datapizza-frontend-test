@@ -2,18 +2,15 @@
 
 import React, { useState } from 'react';
 import { authService, validateUserId } from '@/services/auth-service';
-import { getApiBaseUrl } from '@/config/api';
 import {
   Lock,
   ArrowRight,
   AlertCircle,
-  Server,
   FileCheck2,
 } from 'lucide-react';
 
 interface LoginFormProps {
   onLoginSuccess: (userId: string) => void;
-  onOpenBackendConfig: () => void;
 }
 
 const PRESET_USERS = [
@@ -22,7 +19,7 @@ const PRESET_USERS = [
   { id: 'eval_candidate', label: 'eval_candidate' },
 ];
 
-export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProps) {
+export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [userId, setUserId] = useState('test_user');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -86,15 +83,6 @@ export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProp
               <Lock className="w-4 h-4 text-indigo-400" />
               <span>Autenticazione Sessione</span>
             </div>
-            <button
-              type="button"
-              onClick={onOpenBackendConfig}
-              className="text-[11px] text-slate-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer transition-colors"
-              title="Configura URL backend"
-            >
-              <Server className="w-3.5 h-3.5" />
-              <span className="font-mono truncate max-w-[120px]">{getApiBaseUrl()}</span>
-            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -160,14 +148,6 @@ export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProp
                 <div className="flex-1">
                   <p className="font-semibold text-red-200">Errore durante il login</p>
                   <p className="mt-0.5 text-red-300/90">{serverError}</p>
-                  <button
-                    type="button"
-                    onClick={onOpenBackendConfig}
-                    className="mt-2 text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
-                  >
-                    <span>Verifica configurazione API backend</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             )}
