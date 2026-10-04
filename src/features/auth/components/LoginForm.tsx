@@ -11,6 +11,8 @@ import {
 
 interface LoginFormProps {
   onLoginSuccess: (userId: string) => void;
+  /** Informational message (e.g. session expired) shown above the form. */
+  notice?: string | null;
 }
 
 const PRESET_USERS = [
@@ -19,7 +21,7 @@ const PRESET_USERS = [
   { id: 'eval_candidate', label: 'eval_candidate' },
 ];
 
-export function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export function LoginForm({ onLoginSuccess, notice }: LoginFormProps) {
   const [userId, setUserId] = useState('test_user');
   const { isLoading, validationError, serverError, clearErrors, login } = useLogin(onLoginSuccess);
 
@@ -106,6 +108,13 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
                 ))}
               </div>
             </div>
+
+            {notice && (
+              <div role="alert" className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <span>{notice}</span>
+              </div>
+            )}
 
             {/* Validation Error */}
             {validationError && (

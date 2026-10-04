@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T018, P1-05)
+- `src/api/session.ts`: handler 401 centralizzato (`setUnauthorizedHandler`, `notifyUnauthorized`, `resetUnauthorizedGuard`); messaggio `session_expired` ("Sessione scaduta, accedi di nuovo") in `src/api/errorMessages.ts`.
+- Test: `tests/integration/session-401.test.tsx`, `src/test/memoryStorage.ts`; e2e `e2e/session.spec.ts`.
+
+### Changed (T018, P1-05)
+- `useSession` ha lo stato `hydrating` e legge `localStorage` dopo il mount; `app/page.tsx` mostra un placeholder durante l'idratazione.
+- Il logout svuota anche la cache di TanStack Query. Il backend non ha un endpoint di logout: il cookie resta.
+
+### Fixed (T018, P1-05)
+- Hydration mismatch al reload da loggato.
+
 ### Added (T017, P1-04)
 - `src/api/errorMessages.ts`: mappa unica `ERROR_MESSAGES` (codice → messaggio in italiano), `messageKeyFor`, `extractRejectedFilename`; `toUserMessage` e `logError` in `src/api/errors.ts`.
 - Test: `tests/unit/errorMessages.test.ts`, `tests/integration/error-messages-ui.test.tsx`, aggiornato `tests/unit/api-errors.test.ts`; e2e `e2e/upload-errors.spec.ts` (upload di un PDF non ammesso).

@@ -26,6 +26,7 @@ export {
   type ErrorContext,
   type ErrorMessageKey,
 } from './errorMessages';
+export { notifyUnauthorized, resetUnauthorizedGuard, setUnauthorizedHandler } from './session';
 export { NDJSONParseError, parseNDJSONStream } from './ndjson';
 export { authService, validateUserId, USER_ID_MAX_LENGTH, USER_ID_INVALID_MESSAGE } from './auth';
 export { documentService, isPdfFile } from './documents';

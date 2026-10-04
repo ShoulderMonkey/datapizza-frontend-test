@@ -195,11 +195,11 @@
 - Dipendenze: P1-01
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Qualsiasi 401 da `src/api/` riporta alla schermata di login con il messaggio "Sessione scaduta, accedi di nuovo" (test integration con MSW).
-  - [ ] Nessun accesso a `localStorage` durante il render. e2e: la console della pagina non contiene errori di idratazione al reload da loggato.
-  - [ ] e2e: dopo `context.clearCookies()` e un'azione (apertura documenti), l'utente vede il login, non un errore generico.
-  - [ ] Logout: lo stato utente e la cache di query vengono svuotati. Il README documenta che il backend non espone un endpoint di logout e che il cookie resta finché non viene sovrascritto.
-- Stato: todo
+  - [x] Qualsiasi 401 da `src/api/` riporta alla schermata di login con il messaggio "Sessione scaduta, accedi di nuovo" (test integration con MSW).
+  - [x] Nessun accesso a `localStorage` durante il render. e2e: la console della pagina non contiene errori di idratazione al reload da loggato.
+  - [x] e2e: dopo `context.clearCookies()` e un'azione (apertura documenti), l'utente vede il login, non un errore generico.
+  - [x] Logout: lo stato utente e la cache di query vengono svuotati. Il README documenta che il backend non espone un endpoint di logout e che il cookie resta finché non viene sovrascritto.
+- Stato: done (T018)
 
 ### P1-06 — Server state con TanStack Query: documenti e storico
 - Criterio della specifica: "UX › Stati di loading chiari (… caricamento storico)"; "Funzionalità minime › 2. lista documenti" e "› 5. Lista delle chat"; "Qualità › stato globale vs locale".

@@ -126,10 +126,12 @@ The application will be accessible at `http://localhost:3000`.
 
 ### Cookie Authentication
 
-The backend sets a `user_id` cookie on `POST /api/auth/login`. The frontend:
-- Does **not** store or simulate tokens; il cookie `user_id` è gestito dal browser. Lo `user_id` in chiaro è comunque salvato anche in `localStorage` (chiave `docfact_auth_user_id`, `src/features/auth/lib/session-storage.ts`) per ripristinare l'interfaccia.
-- Uses `credentials: 'same-origin'` in all requests (see `src/api/client.ts`).
-- Relies on the browser to manage the session cookie automatically on subsequent calls (`/api/documents/`, `/api/chat/`, etc.).
+Il backend imposta il cookie `user_id` su `POST /api/auth/login`: HttpOnly, SameSite=lax, senza `Max-Age` (cookie di sessione del browser, `docs/AUDIT.md` §2). Il frontend:
+- Non salva né simula token; il cookie `user_id` è gestito dal browser e inviato con `credentials: 'same-origin'` (`src/api/client.ts`).
+- Salva lo `user_id` in `localStorage` (chiave `docfact_auth_user_id`, `src/features/auth/lib/session-storage.ts`) solo come convenienza UI. `useSession` (`src/features/auth/hooks/useSession.ts`) parte sempre in stato `hydrating` e legge lo storage in un `useEffect`, dopo il mount: nessun accesso a `localStorage` durante il render, quindi nessun hydration mismatch. Finché lo stato è `hydrating`, `app/page.tsx` mostra un placeholder `role="status"`.
+- Gestisce il 401 in un punto solo: `src/api/session.ts` (`setUnauthorizedHandler`, `notifyUnauthorized`). Il client chiama `notifyUnauthorized()` per ogni 401 tranne `/api/auth/login` (`src/api/client.ts`); più 401 concorrenti producono una sola notifica. L'handler registrato da `useSession` svuota lo storage, porta lo stato ad `anonymous` e mostra "Sessione scaduta, accedi di nuovo" (`session_expired` in `src/api/errorMessages.ts`) nella schermata di login.
+- Logout: svuota lo stato utente, lo `user_id` salvato e la cache di TanStack Query (`queryClient.clear()` in `app/page.tsx`). Il backend non espone un endpoint di logout, quindi il cookie `user_id` non viene cancellato: resta finché non viene sovrascritto da un nuovo login o scade con la sessione del browser. Questo è un limite del backend.
+- Test: `tests/integration/session-401.test.tsx` (MSW) ed e2e `e2e/session.spec.ts` (reload da loggato senza errori di idratazione; `clearCookies()` + apertura documenti riporta al login).
 
 The proxy ensures all requests appear same-origin to the browser, allowing secure cookie handling without CORS complications.
 
@@ -385,7 +387,7 @@ This section tracks planned improvements aligned with the evaluation criteria an
 
 **User-friendly error messages (P1-04):** Map backend error codes and network errors to Italian messages without exposing technical details (no status codes, no URLs, no stack traces).
 
-**Session and 401 handling (P1-05):** Redirect to login on any 401; prevent hydration mismatches by deferring `localStorage` access.
+**Session and 401 handling (P1-05):** Done (T018) — redirect to login on any 401 and `localStorage` read after mount (see Cookie Authentication).
 
 **Chat history model (P1-07):** Formalize the backend's Q/A model (one chat = one pair) and align the UI (no multi-turn state in backend, local only).
 

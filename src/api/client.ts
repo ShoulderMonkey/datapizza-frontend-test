@@ -1,4 +1,5 @@
 import { ERROR_MESSAGES } from './errorMessages';
+import { notifyUnauthorized } from './session';
 import { apiErrorFromHttp, createApiError, toApiError } from './errors';
 
 /**
@@ -54,6 +55,10 @@ async function send(endpoint: string, options: RequestOptions, defaultAccept: st
 
   if (!response.ok) {
     const body = await readBody(response);
+    // The login endpoint never answers 401; any other 401 means the cookie session is gone.
+    if (response.status === 401 && toApiUrl(endpoint).split('?')[0] !== '/api/auth/login') {
+      notifyUnauthorized();
+    }
     throw apiErrorFromHttp({ status: response.status, body, endpoint });
   }
   return response;

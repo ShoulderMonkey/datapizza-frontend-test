@@ -18,6 +18,7 @@ export const ERROR_MESSAGES = {
   aborted: "Generazione interrotta dall'utente.",
   // Auth
   unauthorized: 'Sessione non autenticata o scaduta. Effettua il login.',
+  session_expired: 'Sessione scaduta, accedi di nuovo',
   login_invalid: `User ID non valido: usa solo lettere, numeri, - e _ (max ${USER_ID_MAX_LENGTH_FOR_MESSAGES} caratteri).`,
   // Chat
   chat_not_found: 'La conversazione richiesta non esiste più.',
