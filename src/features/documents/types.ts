@@ -1,1 +1,1 @@
-export type { DocumentItem, DocumentUploadResponse, AsyncStatus } from '@/src/api';
+export type { Document, UploadResponse, AsyncStatus } from '@/src/api';

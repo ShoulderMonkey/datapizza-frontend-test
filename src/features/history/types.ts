@@ -1,1 +1,1 @@
-export type { ChatSummary, ChatTranscript, AsyncStatus } from '@/src/api';
+export type { ChatRecord, ChatTranscript, AsyncStatus } from '@/src/api';

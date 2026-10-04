@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { documentService, getUserMessage } from '@/src/api';
-import type { AsyncStatus, DocumentItem } from '../types';
+import type { AsyncStatus, Document } from '../types';
 
 const LIST_FALLBACK_MESSAGE = 'Non è stato possibile caricare la lista documenti.';
 
@@ -11,7 +11,7 @@ const LIST_FALLBACK_MESSAGE = 'Non è stato possibile caricare la lista document
  * Responses that arrive after unmount or after a newer request are ignored.
  */
 export function useDocuments({ enabled = true }: { enabled?: boolean } = {}) {
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [status, setStatus] = useState<AsyncStatus>(enabled ? 'loading' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);

@@ -77,6 +77,9 @@ npm run test
 
 # End-to-end tests (requires running backend)
 npm run e2e
+
+# Regenerate API request types from docs/api/openapi.json
+npm run gen:api
 ```
 
 ---
@@ -345,10 +348,9 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
   - **`page_count` is a mock**: all documents report exactly 5 pages, regardless of the actual PDF page count (`BE:src/dependencies.py:25`).
   - **`text_quote` is a placeholder**: citations always include the same hardcoded phrase (`BE:src/routes/chat.py:194`), not a real excerpt from the document. This is by design for the test; highlighting specific text in the PDF is therefore not meaningful.
   - **Each chat = one Q/A pair**: the backend creates a new chat record on every `POST /api/chat/` request. The frontend can send a `history` field, but the backend ignores it (not persisted). Multi-turn conversation is managed locally only.
-  - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `src/api/types.ts` and `src/features/*/types.ts` (no schema validation against OpenAPI).
+  - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `src/api/types.ts` (`Document` line 47, `UploadResponse` line 58, `ChatRecord` line 66). Request types (`LoginRequest`, `ChatRequest`) derive from `src/api/schema.d.ts`, generated with `npm run gen:api` (`openapi-typescript`). A response that does not match the expected shape (e.g. a non-array list) becomes `ApiError` with code `invalid_response` (`tests/unit/api-contract.test.ts`).
 
 - **Frontend scope (not yet implemented / planned improvements):**
-  - The `POST /api/chat/` request sends `chat_id` in the body (`src/api/chat.ts`), but the backend OpenAPI schema does not document this field. The backend likely ignores it (P1-02).
   - Streaming updates the UI on every received character (one state update per chunk, no per-frame batching). Queued renders could be batched with `requestAnimationFrame` for better performance (P1-03).
   - The PDF.js worker and cMaps are loaded from CDN at runtime (`src/features/factcheck/hooks/usePdfDocument.ts` lines 58 and 63 load from `cdnjs.cloudflare.com` and `cdn.jsdelivr.net`). Bundling these locally would allow fully offline operation in Docker (P1-08).
   - PDF text layer (selectable and copyable text) is not implemented (P1-08).

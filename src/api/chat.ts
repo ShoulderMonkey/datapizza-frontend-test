@@ -1,9 +1,9 @@
 import { request, requestStream } from './client';
-import { toApiError } from './errors';
+import { ApiError, createApiError, toApiError } from './errors';
 import { parseNDJSONStream } from './ndjson';
 import type {
+  ChatRecord,
   ChatRequest,
-  ChatSummary,
   ChatTranscript,
   ChatTranscriptMessage,
   CitationReference,
@@ -13,30 +13,20 @@ import type {
 const CHAT_ENDPOINT = '/api/chat/';
 
 export const chatService = {
-  /** GET /api/chat/ */
-  async listChats(): Promise<ChatSummary[]> {
+  /** GET /api/chat/: bare array of chat records (docs/AUDIT.md §2). */
+  async listChats(): Promise<ChatRecord[]> {
     const data = await request<unknown>(CHAT_ENDPOINT, { method: 'GET' });
-
-    // Speculative shapes kept until P1-02 (the backend returns a bare array, docs/AUDIT.md §2).
-    if (Array.isArray(data)) {
-      return data.map(normalizeChatSummary);
-    }
-    if (data && typeof data === 'object') {
-      const obj = data as Record<string, unknown>;
-      if (Array.isArray(obj.chats)) return obj.chats.map(normalizeChatSummary);
-      if (Array.isArray(obj.items)) return obj.items.map(normalizeChatSummary);
-      if (Array.isArray(obj.sessions)) return obj.sessions.map(normalizeChatSummary);
-    }
-    return [];
+    if (!Array.isArray(data)) throw invalidResponse();
+    return data.map(asChatRecord);
   },
 
-  /** GET /api/chat/{id}, normalized into a transcript of user/assistant messages. */
+  /** GET /api/chat/{id}, converted into a transcript of user/assistant messages. */
   async getChat(chatId: string): Promise<ChatTranscript> {
     const data = await request<unknown>(`${CHAT_ENDPOINT}${encodeURIComponent(chatId)}`, {
       method: 'GET',
       errorMessages: { not_found: 'La conversazione richiesta non esiste più.' },
     });
-    return normalizeChatDetail(data, chatId);
+    return toTranscript(asChatRecord(data));
   },
 
   /**
@@ -48,19 +38,16 @@ export const chatService = {
    * they are an application error the caller renders.
    */
   async *streamQuery(payload: ChatRequest, signal?: AbortSignal): AsyncGenerator<StreamChunk, void, unknown> {
-    const body: Record<string, unknown> = { query: payload.query };
+    const body: ChatRequest = { query: payload.query };
     if (payload.history && payload.history.length > 0) {
       body.history = payload.history;
-    }
-    if (payload.chat_id) {
-      body.chat_id = payload.chat_id;
     }
 
     const stream = await requestStream(CHAT_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/x-ndjson, application/json, text/event-stream',
+        Accept: 'application/x-ndjson',
       },
       body: JSON.stringify(body),
       signal,
@@ -78,93 +65,43 @@ export const chatService = {
   },
 };
 
-function normalizeChatSummary(item: unknown): ChatSummary {
-  if (!item || typeof item !== 'object') {
-    return { id: String(item ?? ''), title: 'Conversazione' };
-  }
-  const obj = item as Record<string, unknown>;
-  const id = String(obj.id ?? obj.chat_id ?? obj.session_id ?? '');
-  const title =
-    (obj.title as string) ||
-    (obj.query as string) ||
-    (obj.preview as string) ||
-    (obj.first_message as string) ||
-    `Chat ${id.slice(0, 8)}`;
-  const createdAt = obj.created_at ? String(obj.created_at) : undefined;
-  const messageCount = typeof obj.message_count === 'number' ? obj.message_count : undefined;
+function invalidResponse(): ApiError {
+  return createApiError('invalid_response', { endpoint: CHAT_ENDPOINT });
+}
 
+/** Narrows an unknown JSON value to ChatRecord; anything else is an `invalid_response` error. */
+function asChatRecord(data: unknown): ChatRecord {
+  if (!data || typeof data !== 'object') throw invalidResponse();
+  const obj = data as Record<string, unknown>;
+  if (
+    typeof obj.id !== 'string' ||
+    typeof obj.query !== 'string' ||
+    typeof obj.response !== 'string' ||
+    typeof obj.created_at !== 'string'
+  ) {
+    throw invalidResponse();
+  }
   return {
-    ...obj,
-    id,
-    title,
-    created_at: createdAt,
-    message_count: messageCount,
+    id: obj.id,
+    user_id: typeof obj.user_id === 'string' ? obj.user_id : '',
+    created_at: obj.created_at,
+    query: obj.query,
+    response: obj.response,
+    citations: Array.isArray(obj.citations) ? (obj.citations as CitationReference[]) : undefined,
   };
 }
 
-function citationsOf(obj: Record<string, unknown>): CitationReference[] | undefined {
-  if (Array.isArray(obj.citations)) return obj.citations as CitationReference[];
-  if (Array.isArray(obj.references)) return obj.references as CitationReference[];
-  return undefined;
-}
-
-function normalizeChatDetail(data: unknown, fallbackId: string): ChatTranscript {
-  if (!data || typeof data !== 'object') {
-    return { id: fallbackId, title: 'Conversazione', messages: [] };
-  }
-
-  const obj = data as Record<string, unknown>;
-  const id = String(obj.id ?? obj.chat_id ?? fallbackId);
-  const title = String(obj.title ?? obj.query ?? `Chat ${id.slice(0, 8)}`);
-
-  const rawMessages: unknown[] = Array.isArray(obj.messages)
-    ? obj.messages
-    : Array.isArray(obj.history)
-    ? obj.history
-    : [];
-
-  const messages: ChatTranscriptMessage[] = [];
-
-  // Real backend shape: one chat = one Q/A pair at the root (docs/AUDIT.md §2).
-  if (rawMessages.length === 0 && typeof obj.query === 'string' && typeof obj.response === 'string') {
-    const createdAt = obj.created_at ? String(obj.created_at) : undefined;
-    messages.push({ id: `${id}-msg-0`, role: 'user', content: obj.query, created_at: createdAt });
-    messages.push({
-      id: `${id}-msg-1`,
+/** One chat record (one Q/A pair) becomes two messages. */
+function toTranscript(record: ChatRecord): ChatTranscript {
+  const messages: ChatTranscriptMessage[] = [
+    { id: `${record.id}-msg-0`, role: 'user', content: record.query, created_at: record.created_at },
+    {
+      id: `${record.id}-msg-1`,
       role: 'assistant',
-      content: obj.response,
-      citations: citationsOf(obj),
-      created_at: createdAt,
-    });
-  }
-
-  for (let i = 0; i < rawMessages.length; i++) {
-    const raw = rawMessages[i];
-    if (!raw || typeof raw !== 'object') continue;
-    const msgObj = raw as Record<string, unknown>;
-    const createdAt = msgObj.created_at ? String(msgObj.created_at) : undefined;
-
-    // { query, response } pairs (one backend chat record) become two messages.
-    if (typeof msgObj.query === 'string' && typeof msgObj.response === 'string') {
-      messages.push({ id: `${id}-msg-${i * 2}`, role: 'user', content: msgObj.query, created_at: createdAt });
-      messages.push({
-        id: `${id}-msg-${i * 2 + 1}`,
-        role: 'assistant',
-        content: msgObj.response,
-        citations: citationsOf(msgObj),
-        created_at: createdAt,
-      });
-      continue;
-    }
-
-    messages.push({
-      id: String(msgObj.id ?? `${id}-msg-${i}`),
-      role: msgObj.role === 'user' ? 'user' : 'assistant',
-      content: String(msgObj.content ?? msgObj.text ?? msgObj.message ?? ''),
-      citations: citationsOf(msgObj),
-      created_at: createdAt,
-    });
-  }
-
-  return { id, title, messages };
+      content: record.response,
+      citations: record.citations,
+      created_at: record.created_at,
+    },
+  ];
+  return { id: record.id, title: record.query, messages };
 }

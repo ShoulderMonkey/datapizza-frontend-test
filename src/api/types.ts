@@ -2,23 +2,21 @@
  * Wire types of the backend API (requests, responses, stream chunks).
  *
  * docs/api/openapi.json does not describe response bodies (docs/AUDIT.md Assunzione 2):
- * response shapes come from docs/AUDIT.md §2. They are kept as they were before P1-01;
- * P1-02 replaces them with OpenAPI-generated request types and exact response types.
+ * request types derive from the generated `schema.d.ts` (`npm run gen:api`), response shapes
+ * are written by hand from docs/AUDIT.md §2.
  *
  * This module belongs to the API layer and must not import from src/features/**.
  */
 
+import type { components } from './schema';
+
 // --- Auth -------------------------------------------------------------------
 
-export interface LoginRequest {
-  user_id: string;
-}
+export type LoginRequest = components['schemas']['LoginRequest'];
 
+/** POST /api/auth/login: BE:src/routes/auth.py:42 (docs/AUDIT.md §2). */
 export interface LoginResponse {
-  status?: string;
-  message?: string;
-  user_id?: string;
-  [key: string]: unknown;
+  user_id: string;
 }
 
 // --- Citations / bounding boxes ---------------------------------------------
@@ -45,59 +43,33 @@ export interface CitationReference {
 
 // --- Documents --------------------------------------------------------------
 
-export interface DocumentItem {
+/** Element of GET /api/documents/ and of `UploadResponse.documents` (docs/AUDIT.md §2). */
+export interface Document {
   id: string;
-  document_id?: string;
   filename: string;
-  created_at?: string;
-  upload_date?: string;
-  size_bytes?: number;
-  size?: number | string;
-  page_count?: number;
-  status?: string;
-  [key: string]: unknown;
+  content_type: string;
+  upload_date: string;
+  status: string;
+  page_count: number;
+  file_hash: string;
 }
 
-export interface DocumentUploadResponse {
-  uploaded?: DocumentItem[];
-  documents?: DocumentItem[];
-  message?: string;
-  status?: string;
-  [key: string]: unknown;
+/** POST /api/documents/ (docs/AUDIT.md §2). */
+export interface UploadResponse {
+  message: string;
+  documents: Document[];
 }
 
 // --- Chat -------------------------------------------------------------------
 
-export interface ChatSummary {
+/** One stored chat = one Q/A pair; element of GET /api/chat/ (bare array) and GET /api/chat/{id}. */
+export interface ChatRecord {
   id: string;
-  chat_id?: string;
-  title?: string;
-  query?: string;
-  created_at?: string;
-  updated_at?: string;
-  message_count?: number;
-  preview?: string;
-  [key: string]: unknown;
-}
-
-export interface ChatDetail {
-  id: string;
-  chat_id?: string;
-  title?: string;
-  messages: Array<{
-    id?: string;
-    role: string;
-    content?: string;
-    query?: string;
-    response?: string;
-    text?: string;
-    created_at?: string;
-    citations?: CitationReference[];
-    references?: CitationReference[];
-    [key: string]: unknown;
-  }>;
-  created_at?: string;
-  [key: string]: unknown;
+  user_id: string;
+  created_at: string;
+  query: string;
+  response: string;
+  citations?: CitationReference[];
 }
 
 /** One message of a stored conversation, normalized by `chatService.getChat`. */
@@ -115,17 +87,11 @@ export interface ChatTranscript {
   messages: ChatTranscriptMessage[];
 }
 
-export interface ChatHistoryEntry {
-  role: string;
-  content: string;
-}
+/** Element of `ChatRequest.history` (the backend ignores `history`, docs/AUDIT.md §2). */
+export type ChatHistoryEntry = { role: string; content: string };
 
-export interface ChatRequest {
-  query: string;
-  history?: ChatHistoryEntry[];
-  /** Not part of the backend schema (docs/AUDIT.md §2): removed by P1-02. */
-  chat_id?: string;
-}
+/** Body of POST /api/chat/: generated from OpenAPI (docs/AUDIT.md §2). */
+export type ChatRequest = components['schemas']['ChatRequest'];
 
 /** NDJSON chunks of POST /api/chat/ (discriminated union on `type`). */
 export type StreamChunk =

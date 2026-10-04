@@ -1,6 +1,6 @@
 import { request, requestRaw } from './client';
 import { createApiError } from './errors';
-import type { DocumentItem, DocumentUploadResponse } from './types';
+import type { Document, UploadResponse } from './types';
 
 export function isPdfFile(file: File): boolean {
   return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -8,24 +8,12 @@ export function isPdfFile(file: File): boolean {
 
 export const documentService = {
   /** GET /api/documents/ */
-  async listDocuments(): Promise<DocumentItem[]> {
-    const data = await request<unknown>('/api/documents/', { method: 'GET' });
-
-    // Speculative shapes kept until P1-02 (the backend returns a bare array, docs/AUDIT.md §2).
-    if (Array.isArray(data)) {
-      return data.map(normalizeDocumentItem);
-    }
-    if (data && typeof data === 'object') {
-      const obj = data as Record<string, unknown>;
-      if (Array.isArray(obj.documents)) return obj.documents.map(normalizeDocumentItem);
-      if (Array.isArray(obj.files)) return obj.files.map(normalizeDocumentItem);
-      if (Array.isArray(obj.items)) return obj.items.map(normalizeDocumentItem);
-    }
-    return [];
+  async listDocuments(): Promise<Document[]> {
+    return request<Document[]>('/api/documents/', { method: 'GET' });
   },
 
   /** POST /api/documents/ as multipart/form-data with field name `files`. */
-  async uploadDocuments(files: File[]): Promise<DocumentUploadResponse> {
+  async uploadDocuments(files: File[]): Promise<UploadResponse> {
     if (!files || files.length === 0) {
       throw createApiError('client_validation', {
         userMessage: 'Nessun file selezionato per il caricamento.',
@@ -46,7 +34,7 @@ export const documentService = {
       formData.append('files', file);
     }
 
-    return request<DocumentUploadResponse>('/api/documents/', {
+    return request<UploadResponse>('/api/documents/', {
       method: 'POST',
       body: formData,
       errorMessages: {
@@ -72,25 +60,3 @@ export const documentService = {
     return `/api/documents/${encodeURIComponent(documentId)}/file`;
   },
 };
-
-function normalizeDocumentItem(item: unknown): DocumentItem {
-  if (!item || typeof item !== 'object') {
-    return { id: String(item ?? ''), filename: 'Sconosciuto' };
-  }
-  const obj = item as Record<string, unknown>;
-  const id = String(obj.id ?? obj.document_id ?? obj.doc_id ?? '');
-  const filename = String(obj.filename ?? obj.name ?? obj.file_name ?? `Documento ${id}`);
-  const createdAt = obj.created_at ? String(obj.created_at) : obj.upload_date ? String(obj.upload_date) : undefined;
-  const sizeBytes = typeof obj.size_bytes === 'number' ? obj.size_bytes : typeof obj.size === 'number' ? obj.size : undefined;
-  const pageCount = typeof obj.page_count === 'number' ? obj.page_count : typeof obj.pages === 'number' ? obj.pages : undefined;
-
-  return {
-    ...obj,
-    id,
-    document_id: id,
-    filename,
-    created_at: createdAt,
-    size_bytes: sizeBytes,
-    page_count: pageCount,
-  };
-}

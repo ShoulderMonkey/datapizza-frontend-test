@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { chatService, getUserMessage } from '@/src/api';
-import type { AsyncStatus, ChatSummary, ChatTranscript } from '../types';
+import type { AsyncStatus, ChatRecord, ChatTranscript } from '../types';
 
 const CHAT_LOAD_FALLBACK_MESSAGE = 'Impossibile caricare i messaggi della conversazione.';
 
@@ -12,7 +12,7 @@ const CHAT_LOAD_FALLBACK_MESSAGE = 'Impossibile caricare i messaggi della conver
  * are exposed in `chatLoadError`.
  */
 export function useChatHistory() {
-  const [chats, setChats] = useState<ChatSummary[]>([]);
+  const [chats, setChats] = useState<ChatRecord[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatStatus, setChatStatus] = useState<AsyncStatus>('idle');
   const [chatLoadError, setChatLoadError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ export function useChatHistory() {
   }, []);
 
   const activeChatTitle = activeChatId
-    ? chats.find((c) => c.id === activeChatId)?.title || 'Conversazione'
+    ? chats.find((c) => c.id === activeChatId)?.query || 'Conversazione'
     : 'Nuova sessione';
 
   return {

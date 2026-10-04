@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { ChatSummary } from '../types';
+import type { ChatRecord } from '../types';
 import {
   MessageSquare,
   Plus,
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 interface ChatSidebarProps {
-  chats: ChatSummary[];
+  chats: ChatRecord[];
   activeChatId: string | null;
   isLoading: boolean;
   error: string | null;
@@ -196,12 +196,9 @@ export function ChatSidebar({
                     }`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate leading-snug">{chat.title}</p>
+                    <p className="truncate leading-snug">{chat.query}</p>
                     <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
                       <span>{chat.created_at ? new Date(chat.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Sessione'}</span>
-                      {typeof chat.message_count === 'number' && (
-                        <span>{chat.message_count} msg</span>
-                      )}
                     </div>
                   </div>
                 </button>

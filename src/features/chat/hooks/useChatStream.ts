@@ -115,7 +115,6 @@ export function useChatStream({ chatId = null, onStreamEnd }: UseChatStreamOptio
         {
           query: queryText,
           history: history.length > 0 ? history : undefined,
-          chat_id: optionsRef.current.chatId || undefined,
         },
         controller.signal
       );

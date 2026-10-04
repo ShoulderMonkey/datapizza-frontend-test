@@ -23,7 +23,7 @@
 | 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
-| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `src/api/chat.ts:55-56`, `src/features/chat/hooks/useChatStream.ts:118` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
+| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ⚠️ todo | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
 | Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
@@ -159,11 +159,11 @@
 - Dipendenze: P1-01
 - Stima: M
 - Criteri di accettazione:
-  - [ ] Script `gen:api` (`openapi-typescript docs/api/openapi.json -o src/api/schema.d.ts`); i tipi di request (`LoginRequest`, `ChatRequest`) derivano da `schema.d.ts`.
-  - [ ] I tipi di risposta sono scritti a mano da `docs/AUDIT.md` §2: `Document`, `UploadResponse`, `ChatRecord {id, user_id, created_at, query, response, citations?}`. Nessuna index signature `[key: string]: unknown`.
-  - [ ] I normalizzatori speculativi sono rimossi (grep `obj.sessions`, `obj.items`, `obj.files`, `obj.chats`: 0).
-  - [ ] Test: il body di `POST /api/chat/` contiene solo le chiavi `query` ed eventualmente `history` (niente `chat_id`). L'header `Accept` è `application/x-ndjson`.
-- Stato: todo
+  - [x] Script `gen:api` (`openapi-typescript docs/api/openapi.json -o src/api/schema.d.ts`); i tipi di request (`LoginRequest`, `ChatRequest`) derivano da `schema.d.ts`.
+  - [x] I tipi di risposta sono scritti a mano da `docs/AUDIT.md` §2: `Document`, `UploadResponse`, `ChatRecord {id, user_id, created_at, query, response, citations?}`. Nessuna index signature `[key: string]: unknown`.
+  - [x] I normalizzatori speculativi sono rimossi (grep `obj.sessions`, `obj.items`, `obj.files`, `obj.chats`: 0).
+  - [x] Test: il body di `POST /api/chat/` contiene solo le chiavi `query` ed eventualmente `history` (niente `chat_id`). L'header `Accept` è `application/x-ndjson`.
+- Stato: done (T013)
 
 ### P1-03 — Hook di stream con `useReducer` e batching per frame
 - Criterio della specifica: "Gestione dello streaming › Aggiornamento incrementale della UI"; "Obiettivo › come vengono gestiti stato, streaming e concorrenza".

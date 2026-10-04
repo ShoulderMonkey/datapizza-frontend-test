@@ -100,6 +100,18 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 - Directories: `components/`, `services/`, `types/`, `utils/` (consolidati in `src/features/` e `src/api/`).
 - Files: `services/api-client.ts`, `services/auth-service.ts`, `services/chat-service.ts`, `services/document-service.ts`, `types/api.ts`, `types/auth.ts`, `types/chat.ts`, `types/citation.ts`, `types/document.ts`, `utils/ndjson.ts`, `utils/coordinates.ts`. Tutti i componenti `components/{auth,documents,chat,pdf}/` e `utils/sanitize.ts` rimossi (già rimosso in T003).
 
+### Added (T013)
+- Script `gen:api` (`openapi-typescript docs/api/openapi.json -o src/api/schema.d.ts`), file generato `src/api/schema.d.ts` e devDependency `openapi-typescript` (P1-02).
+- `tests/unit/api-contract.test.ts`: il body di `POST /api/chat/` contiene solo `query`/`history`, header `Accept: application/x-ndjson`, `invalid_response` per `listChats`/`getChat`, `listDocuments` come array nudo (P1-02).
+
+### Changed (T013)
+- `LoginRequest` e `ChatRequest` derivano da `schema.d.ts`; `Document`, `UploadResponse`, `ChatRecord` riflettono le risposte reali (`docs/AUDIT.md` §2) in `src/api/types.ts` (P1-02).
+- Le liste sono array nudi; una risposta non conforme produce `ApiError` con codice `invalid_response`; la richiesta chat invia `Accept: application/x-ndjson` (P1-02).
+- `tests/unit/api-client.test.ts`: mock con forme reali.
+
+### Removed (T013)
+- Normalizzatori speculativi (`obj.sessions`, `obj.items`, `obj.files`, `obj.chats`), invio di `chat_id` nel body, tipi `ChatSummary`, `DocumentItem`, `DocumentUploadResponse` e index signature `[key: string]: unknown` (P1-02).
+
 ---
 
 ## Note versioning

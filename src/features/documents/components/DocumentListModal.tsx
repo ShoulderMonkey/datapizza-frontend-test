@@ -141,7 +141,7 @@ export function DocumentListModal({
               ) : (
                 <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
                   {documents.map((doc) => {
-                    const docId = doc.id || doc.document_id || '';
+                    const docId = doc.id;
                     return (
                       <div
                         key={docId}
@@ -158,7 +158,6 @@ export function DocumentListModal({
                             <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                               <span className="font-mono text-slate-400">ID: {docId.slice(0, 10)}...</span>
                               {doc.page_count && <span>• {doc.page_count} pag.</span>}
-                              {doc.size_bytes && <span>• {(doc.size_bytes / 1024).toFixed(1)} KB</span>}
                             </div>
                           </div>
                         </div>
