@@ -1,7 +1,0 @@
-{
-  "name": "DocFact Chat & Citations",
-  "description": "Document-grounded NDJSON streaming chat with PDF fact-checking and bounding region visualization.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-
