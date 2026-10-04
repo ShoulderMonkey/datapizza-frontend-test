@@ -31,6 +31,20 @@ interface ChatSidebarProps {
   documentCount?: number;
 }
 
+/**
+ * Date of a history entry (`created_at`). Day and time, so that two questions asked on the same
+ * day are distinguishable and the newest-first order is visible (ADR 0004).
+ */
+function formatEntryDate(createdAt: string): string {
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return 'Sessione';
+  return date.toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * Sidebar with the chat history. Each entry is one stored backend chat, i.e. one question/answer
+ * pair (ADR 0004): title = `query`, date = `created_at`. The selected entry has `aria-current`.
+ */
 export function ChatSidebar({
   chats,
   activeChatId,
@@ -184,6 +198,8 @@ export function ChatSidebar({
                   key={chat.id}
                   type="button"
                   onClick={() => onSelectChat(chat.id)}
+                  aria-current={isActive ? 'true' : undefined}
+                  data-testid="history-entry"
                   className={`w-full text-left p-2.5 rounded-xl text-xs transition-all flex items-start gap-2.5 cursor-pointer ${
                     isActive
                       ? 'bg-indigo-600/25 border border-indigo-500/50 text-white font-medium shadow-2xs'
@@ -198,7 +214,11 @@ export function ChatSidebar({
                   <div className="min-w-0 flex-1">
                     <p className="truncate leading-snug">{chat.query}</p>
                     <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
-                      <span>{chat.created_at ? new Date(chat.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Sessione'}</span>
+                      {chat.created_at ? (
+                        <time dateTime={chat.created_at}>{formatEntryDate(chat.created_at)}</time>
+                      ) : (
+                        <span>Sessione</span>
+                      )}
                     </div>
                   </div>
                 </button>

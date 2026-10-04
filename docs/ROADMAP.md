@@ -23,7 +23,7 @@
 | 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
-| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ⚠️ todo | P0-03, P0-05, P0-06, P1-02, P1-07 |
+| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ✅ done (T019) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
 | Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
@@ -219,12 +219,12 @@
 - Dipendenze: P1-02, P1-06
 - Stima: M
 - Criteri di accettazione:
-  - [ ] ADR `docs/adr/0004-modello-storico.md`: una chat del backend è una coppia Q/A (`BE:src/dependencies.py:39-57`). La UI la presenta come voce di storico (titolo = `query`, data = `created_at`). La conversazione multi-turno è solo locale e il campo `history` viene inviato senza promettere effetti (il backend lo ignora).
-  - [ ] e2e: invio di 2 domande → la sidebar mostra 2 nuove voci, la più recente in alto.
-  - [ ] e2e: selezione di una voce → sono visibili domanda, risposta renderizzata e "Documenti correlati" con le citazioni salvate, e da lì il PDF si apre.
-  - [ ] Una nuova domanda mentre è selezionata una voce dello storico non modifica quella voce e crea una nuova voce.
-- Nota (T012): anticipata la conversione della coppia `{query, response, citations}` di `GET /api/chat/{id}` in due messaggi (user + assistant) tramite `normalizeChatDetail` in `src/api/chat.ts:128-139`. Restano aperti ADR 0004, e2e e i criteri sopra.
-- Stato: todo
+  - [x] ADR `docs/adr/0004-modello-storico.md`: una chat del backend è una coppia Q/A (`BE:src/dependencies.py:39-57`). La UI la presenta come voce di storico (titolo = `query`, data = `created_at`). La conversazione multi-turno è solo locale e il campo `history` viene inviato senza promettere effetti (il backend lo ignora).
+  - [x] e2e: invio di 2 domande → la sidebar mostra 2 nuove voci, la più recente in alto.
+  - [x] e2e: selezione di una voce → sono visibili domanda, risposta renderizzata e "Documenti correlati" con le citazioni salvate, e da lì il PDF si apre.
+  - [x] Una nuova domanda mentre è selezionata una voce dello storico non modifica quella voce e crea una nuova voce.
+- Nota (T012): anticipata la conversione della coppia `{query, response, citations}` di `GET /api/chat/{id}` in due messaggi (user + assistant) tramite `normalizeChatDetail` in `src/api/chat.ts:128-139`. Chiusi in T019: ADR 0004 (`docs/adr/0004-modello-storico.md`), `e2e/history.spec.ts` (3 e2e; `npx playwright test` 9/9 ×2), `tests/integration/history-model.test.tsx`; gate typecheck/lint/test exit 0 (27 file, 210 test).
+- Stato: done (T019)
 
 ### P1-08 — Viewer PDF affidabile: react-pdf, worker locale, scroll alla regione
 - Criterio della specifica: "Funzionalità minime › 4. mostrare visivamente le bounding regions sul PDF"; "UX › Layout efficace per … fact-checking/bounding box".

@@ -300,6 +300,9 @@ Tables are wrapped in a horizontally scrolling container for mobile usability.
 ### Chat History Consistency
 Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the same `ChatMessageItem` and `MarkdownRenderer` components (`src/features/chat/components/`). This ensures visual and functional consistency across new and historical conversations, using the same Markdown pipeline and sanitization.
 
+### Chat History Model (P1-07)
+Una chat del backend è una sola coppia domanda/risposta, quindi ogni voce dello storico ha titolo = `query` e data = `created_at` (con ora), ordinate dalla più recente (`src/features/history/components/ChatSidebar.tsx`); la voce selezionata ha `aria-current`. Selezionare una voce mostra domanda, risposta e "Documenti correlati" con le citazioni salvate. Una nuova domanda (o Riprova) con una voce selezionata avvia una nuova sessione locale: la selezione viene annullata, la voce non cambia e a fine stream compare una nuova voce in cima, non selezionata. Una nota (`HistoryEntryNotice.tsx`) lo spiega sopra il composer. La conversazione multi-turno esiste solo nel client; `history` viene inviato ma il backend lo ignora. Vedi `docs/adr/0004-modello-storico.md`.
+
 ### Server State with TanStack Query
 Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`, `useChatDetail`). Le query key sono condivise in `src/features/queryKeys.ts`, quindi badge e modale dei documenti leggono la stessa cache. Un upload riuscito invalida `queryKeys.documents.all` (`useDocumentUpload.ts`); a fine stream la lista chat viene ricaricata (`onStreamEnd` in `ChatWorkspace.tsx`). Lo storico e ordinato per `created_at` decrescente. La sidebar mostra loading (`role="status"`), errore e pulsante "Riprova". `QueryProvider` (`src/components/providers/QueryProvider.tsx`) crea un `QueryClient` per montaggio con retry massimo 1, nessun retry sugli errori 4xx e `refetchOnWindowFocus: false`. La modale documenti non mostra `page_count`, perche il backend lo restituisce come mock fisso a 5 (limite del backend, `docs/AUDIT.md` §2). Il backend pagina le liste con `limit` 1–100 (default 20) in ordine crescente; per non perdere le chat più recenti il client scarica tutte le pagine con `fetchAllPages` (`src/api/pagination.ts`: `limit=100`, `offset` crescente, stop alla prima pagina incompleta, tetto di 50 pagine), usato da `listChats` e `listDocuments`.
 
@@ -389,7 +392,7 @@ This section tracks planned improvements aligned with the evaluation criteria an
 
 **Session and 401 handling (P1-05):** Done (T018) — redirect to login on any 401 and `localStorage` read after mount (see Cookie Authentication).
 
-**Chat history model (P1-07):** Formalize the backend's Q/A model (one chat = one pair) and align the UI (no multi-turn state in backend, local only).
+**Chat history model (P1-07):** Done (T019) — one chat = one Q/A pair, new questions never modify a selected entry. See ADR 0004.
 
 **Side-by-side layout (P1-09):** Show conversation and PDF viewer side by side on ≥1024 px; modal on smaller screens.
 

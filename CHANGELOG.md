@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T019, P1-07)
+- ADR 0004 (`docs/adr/0004-modello-storico.md`): una chat del backend è una coppia domanda/risposta; multi-turno solo locale.
+- `src/features/history/components/HistoryEntryNotice.tsx`: nota mostrata mentre è aperta una voce dello storico.
+- `aria-current` e `data-testid="history-entry"` sulle voci della sidebar.
+- Test: `tests/integration/history-model.test.tsx`; e2e `e2e/history.spec.ts`.
+
+### Changed (T019, P1-07)
+- Invio e Riprova con una voce selezionata avviano una nuova sessione locale: la selezione è annullata, la voce resta invariata e a fine stream compare una nuova voce in cima.
+- Il cambio di voce svuota subito la conversazione.
+- La data della voce nella sidebar include l'ora.
+
 ### Added (T018, P1-05)
 - `src/api/session.ts`: handler 401 centralizzato (`setUnauthorizedHandler`, `notifyUnauthorized`, `resetUnauthorizedGuard`); messaggio `session_expired` ("Sessione scaduta, accedi di nuovo") in `src/api/errorMessages.ts`.
 - Test: `tests/integration/session-401.test.tsx`, `src/test/memoryStorage.ts`; e2e `e2e/session.spec.ts`.
