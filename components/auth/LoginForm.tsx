@@ -112,11 +112,13 @@ export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProp
                   if (serverError) setServerError(null);
                 }}
                 disabled={isLoading}
+                aria-invalid={validationError || serverError ? true : undefined}
+                aria-describedby={validationError ? 'user_id_error' : undefined}
                 placeholder="es. test_user"
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all font-mono"
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                Caratteri ammessi: alfanumerici, trattino (<code className="text-slate-400">-</code>) e underscore (<code className="text-slate-400">_</code>).
+                Caratteri ammessi: lettere e numeri ASCII, max 100, trattino (<code className="text-slate-400">-</code>) e underscore (<code className="text-slate-400">_</code>).
               </p>
             </div>
 
@@ -145,7 +147,7 @@ export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProp
 
             {/* Validation Error */}
             {validationError && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-2 animate-in fade-in duration-150">
+              <div id="user_id_error" role="alert" className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-2 animate-in fade-in duration-150">
                 <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
                 <span>{validationError}</span>
               </div>
@@ -153,7 +155,7 @@ export function LoginForm({ onLoginSuccess, onOpenBackendConfig }: LoginFormProp
 
             {/* Server Error */}
             {serverError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-start gap-2 animate-in fade-in duration-150">
+              <div role="alert" className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-start gap-2 animate-in fade-in duration-150">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-semibold text-red-200">Errore durante il login</p>
