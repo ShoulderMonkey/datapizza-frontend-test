@@ -17,13 +17,13 @@
 | 3. Streaming NDJSON incrementale | ⚠️ | `utils/ndjson.ts` ✅; un render per carattere in `components/chat/ChatWorkspace.tsx:216-223` | P1-03 |
 | 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `utils/ndjson.ts:5-34` (NDJSONParseError, parseLine con try-catch); `components/chat/ChatWorkspace.tsx:247` (status: 'error' non sovrascritto da completed) | P0-05 |
 | 3. Interruzione pulita | ✅ | `components/chat/ChatWorkspace.tsx:114-127` | — |
-| 3. Markdown + HTML inline sicuro | ✅ | `components/chat/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
-| 4. Documenti correlati (filename, pagina, quote) | ✅ | `components/chat/RelatedDocumentsSection.tsx:41,75-86` | — |
-| 4. Bounding box sul PDF | ⚠️ | `components/pdf/BoundingBoxOverlay.tsx` ✅; worker CDN `components/pdf/PdfFactCheckViewer.tsx:98`; niente scroll alla regione | P1-08, P1-09 |
-| 5. Storico chat lista + dettaglio | ⚠️ | `components/chat/ChatWorkspace.tsx:365-366` (loading fisso a false); `services/chat-service.ts:110-176` | P1-06, P1-07 |
-| Qualità: struttura / TS / separazione API-UI | ⚠️ | `components/chat/ChatWorkspace.tsx` (562 righe); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ⚠️ | `services/api-client.ts:22-42`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
-| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `services/chat-service.ts:65`, `components/chat/ChatWorkspace.tsx:211` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
+| 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
+| 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx` | — |
+| 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker CDN `src/features/factcheck/hooks/usePdfDocument.ts:58`; niente scroll alla regione | P1-08, P1-09 |
+| 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
+| Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
+| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
+| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `src/api/chat.ts:55-56`, `src/features/chat/hooks/useChatStream.ts:118` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
 | Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
@@ -146,12 +146,12 @@
 - Dipendenze: P0-02, P0-03
 - Stima: L
 - Criteri di accettazione:
-  - [ ] Esistono `src/features/{auth,documents,chat,factcheck,history}/` con `components/`, `hooks/` e `types.ts`, più `src/components/ui/` e `src/api/`.
-  - [ ] `src/api/` espone un client tipizzato. Gli errori sono normalizzati in `ApiError { status, code, userMessage, cause }`, con test unit per rete, 4xx con `detail` stringa, 422 con `detail[]` e abort.
-  - [ ] Una regola ESLint (`no-restricted-globals` o `no-restricted-syntax` su `fetch`) fa fallire `npm run lint` se `fetch` compare fuori da `src/api/`.
-  - [ ] `components/chat/ChatWorkspace.tsx` (o il suo successore) non supera 200 righe; la logica di stream vive in un hook.
-  - [ ] ADR `docs/adr/0002-struttura-per-feature.md`.
-- Stato: todo
+  - [x] Esistono `src/features/{auth,documents,chat,factcheck,history}/` con `components/`, `hooks/` e `types.ts`, più `src/components/ui/` e `src/api/`. Evidenza: `.claude/state/evidence-T012.json` orchestrator_checks (src/features/* presenti, components/ services/ types/ utils/ rimossi).
+  - [x] `src/api/` espone un client tipizzato. Gli errori sono normalizzati in `ApiError { status, code, userMessage, cause }`, con test unit per rete, 4xx con `detail` stringa, 422 con `detail[]` e abort. Evidenza: `.claude/state/evidence-T012.json` (src/api/errors.ts:77, test unit in tests/unit/api-errors.test.ts).
+  - [x] Una regola ESLint (`no-restricted-globals` o `no-restricted-syntax` su `fetch`) fa fallire `npm run lint` se `fetch` compare fuori da `src/api/`. Evidenza: `.claude/state/evidence-T012.json` (eslint.config.mjs:24-35, test in tests/unit/eslint-no-fetch.test.ts).
+  - [x] `components/chat/ChatWorkspace.tsx` (o il suo successore) non supera 200 righe; la logica di stream vive in un hook. Evidenza: `.claude/state/evidence-T012.json` (src/features/chat/components/ChatWorkspace.tsx:133 righe, useChatStream:183 righe).
+  - [x] ADR `docs/adr/0002-struttura-per-feature.md`. Evidenza: file creato (docs/adr/0002-struttura-per-feature.md).
+- Stato: done (T012)
 
 ### P1-02 — Tipi API da OpenAPI e risposte allineate al backend reale
 - Criterio della specifica: "Utilizzo del backend › Capacità di leggere e capire la documentazione in Swagger" e "Uso coerente di HTTP methods, headers, body".
@@ -223,6 +223,7 @@
   - [ ] e2e: invio di 2 domande → la sidebar mostra 2 nuove voci, la più recente in alto.
   - [ ] e2e: selezione di una voce → sono visibili domanda, risposta renderizzata e "Documenti correlati" con le citazioni salvate, e da lì il PDF si apre.
   - [ ] Una nuova domanda mentre è selezionata una voce dello storico non modifica quella voce e crea una nuova voce.
+- Nota (T012): anticipata la conversione della coppia `{query, response, citations}` di `GET /api/chat/{id}` in due messaggi (user + assistant) tramite `normalizeChatDetail` in `src/api/chat.ts:128-139`. Restano aperti ADR 0004, e2e e i criteri sopra.
 - Stato: todo
 
 ### P1-08 — Viewer PDF affidabile: react-pdf, worker locale, scroll alla regione

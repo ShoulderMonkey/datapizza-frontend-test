@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { http } from 'msw';
 import { server } from '@/src/mocks/server';
 import { ndjsonResponse } from '@/src/mocks/ndjson';
-import { ChatWorkspace } from '@/components/chat/ChatWorkspace';
+import { ChatWorkspace } from '@/src/features/chat/components/ChatWorkspace';
 
 const content = (d: string) => JSON.stringify({ type: 'content', delta: d }) + '\n';
 

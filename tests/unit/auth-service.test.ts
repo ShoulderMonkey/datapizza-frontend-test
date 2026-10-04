@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateUserId, USER_ID_MAX_LENGTH } from '@/services/auth-service';
+import { validateUserId, USER_ID_MAX_LENGTH } from '@/src/api';
 
 describe('validateUserId', () => {
   it.each(['', '   '])('rejects empty input %j', (v) => {

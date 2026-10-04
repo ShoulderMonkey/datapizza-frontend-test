@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/src/mocks/server';
 import { loginValidationErrorBody } from '@/src/mocks/handlers';
-import { LoginForm } from '@/components/auth/LoginForm';
+import { LoginForm } from '@/src/features/auth/components/LoginForm';
 
 describe('LoginForm 422 mapping', () => {
   it('shows an Italian message, not the Pydantic msg, on 422', async () => {

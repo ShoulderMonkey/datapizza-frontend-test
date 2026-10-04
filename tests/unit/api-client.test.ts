@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { authService } from '@/services/auth-service';
-import { documentService } from '@/services/document-service';
-import { chatService } from '@/services/chat-service';
+import { authService } from '@/src/api';
+import { documentService } from '@/src/api';
+import { chatService } from '@/src/api';
 
 type FetchArgs = [input: RequestInfo | URL, init?: RequestInit];
 

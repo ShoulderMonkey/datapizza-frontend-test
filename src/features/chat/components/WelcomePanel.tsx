@@ -1,0 +1,67 @@
+'use client';
+
+import React from 'react';
+import { CheckCircle, FileText, Layers, Sparkles } from 'lucide-react';
+
+export const SUGGESTED_QUESTION = 'Quali sono i punti principali trattati nei documenti caricati?';
+
+interface WelcomePanelProps {
+  onOpenDocuments: () => void;
+  onAskQuestion: (question: string) => void;
+}
+
+/** Empty state of a new conversation. */
+export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelProps) {
+  return (
+    <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4 text-center select-none">
+      <div className="inline-flex p-4 bg-indigo-50 text-indigo-600 rounded-3xl mb-4 shadow-sm ring-1 ring-indigo-100">
+        <Sparkles className="w-8 h-8" />
+      </div>
+      <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+        Benvenuto in DocFact Assistant
+      </h2>
+      <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+        Poni domande sui documenti PDF caricati. L&apos;assistente genera risposte verificate in streaming NDJSON con citazioni esatte e regioni visive evidenziate.
+      </p>
+
+      {/* Quick suggestions / cards */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+        <div
+          onClick={onOpenDocuments}
+          className="p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
+            <FileText className="w-4 h-4 text-indigo-500" />
+            <span>1. Carica PDF</span>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-snug">
+            Carica i documenti di test del backend tramite multipart/form-data.
+          </p>
+        </div>
+
+        <div
+          onClick={() => onAskQuestion(SUGGESTED_QUESTION)}
+          className="p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
+            <Layers className="w-4 h-4 text-indigo-500" />
+            <span>2. Fai una domanda</span>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-snug">
+            &quot;Quali sono i punti principali trattati nei documenti?&quot;
+          </p>
+        </div>
+
+        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 mb-1">
+            <CheckCircle className="w-4 h-4 text-emerald-500" />
+            <span>3. Verifica Bounding Box</span>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-snug">
+            I box in pollici <code className="bg-slate-200 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

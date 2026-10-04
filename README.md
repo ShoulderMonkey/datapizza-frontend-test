@@ -123,8 +123,8 @@ The application will be accessible at `http://localhost:3000`.
 ### Cookie Authentication
 
 The backend sets a `user_id` cookie on `POST /api/auth/login`. The frontend:
-- Does **not** store or simulate tokens; il cookie `user_id` è gestito dal browser. Lo `user_id` in chiaro è comunque salvato anche in `localStorage` (chiave `docfact_auth_user_id`, `services/auth-service.ts`) per ripristinare l'interfaccia.
-- Uses `credentials: 'same-origin'` in all requests (see `services/api-client.ts`).
+- Does **not** store or simulate tokens; il cookie `user_id` è gestito dal browser. Lo `user_id` in chiaro è comunque salvato anche in `localStorage` (chiave `docfact_auth_user_id`, `src/features/auth/lib/session-storage.ts`) per ripristinare l'interfaccia.
+- Uses `credentials: 'same-origin'` in all requests (see `src/api/client.ts`).
 - Relies on the browser to manage the session cookie automatically on subsequent calls (`/api/documents/`, `/api/chat/`, etc.).
 
 The proxy ensures all requests appear same-origin to the browser, allowing secure cookie handling without CORS complications.
@@ -133,61 +133,90 @@ The proxy ensures all requests appear same-origin to the browser, allowing secur
 
 ## 3. Architecture & Project Structure
 
-The project decouples presentation components, business logic, domain models, and API transport:
+The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples presentation components, business logic, domain models, and API transport:
 
 ```
 ├── app/
 │   ├── page.tsx                 # Root route (login or chat workspace)
 │   ├── layout.tsx               # Global layout
 │   └── globals.css              # Global styles
-├── types/
-│   ├── api.ts                   # Generic async state, errors, network types
-│   ├── auth.ts                  # Auth models and login payloads
-│   ├── document.ts              # Document and upload domain models
-│   ├── citation.ts              # Citations, RectInches, BoundingRegion types
-│   └── chat.ts                  # ChatMessage, ChatSummary, StreamChunk contracts
-├── services/
-│   ├── api-client.ts            # Central fetch wrapper (relative URLs, same-origin credentials, error normalization)
-│   ├── auth-service.ts          # Login validation (ASCII [a-zA-Z0-9_-], max 100), cookie handling
-│   ├── document-service.ts      # List documents, multipart upload (files field), blob retrieval
-│   └── chat-service.ts          # Chat history, chat details, NDJSON stream consumer
-├── utils/
-│   ├── ndjson.ts                # Robust NDJSON chunk buffer parser (handles mid-character splits, malformed lines)
-│   └── coordinates.ts           # Inch-to-pixel coordinate math (72 DPI)
-├── components/
-│   ├── auth/
-│   │   └── LoginForm.tsx        # User login, client validation, presets
-│   ├── documents/
-│   │   ├── DocumentListModal.tsx     # Document library, status, direct viewer trigger
-│   │   └── DocumentUploadDropzone.tsx # Multipart PDF uploader with drag-and-drop
-│   ├── chat/
-│   │   ├── ChatWorkspace.tsx    # Primary workspace orchestration
-│   │   ├── ChatSidebar.tsx      # Chat history, new chat, doc library shortcut, user info
-│   │   ├── ChatComposer.tsx     # Auto-resizing query input with stream abort support
-│   │   ├── ChatMessageItem.tsx  # Message renderer (user, streaming, error, retry, citations)
-│   │   ├── MarkdownRenderer.tsx # React-markdown + remark-gfm + rehype-raw + rehype-sanitize
-│   │   └── RelatedDocumentsSection.tsx # Actionable citation cards
-│   ├── pdf/
-│   │   ├── PdfFactCheckViewer.tsx    # PDF fact-checking viewer with canvas & navigation
-│   │   └── BoundingBoxOverlay.tsx    # Responsive percentage-based bounding box highlights
 ├── src/
+│   ├── api/                     # Centralized API layer (ONLY place with fetch)
+│   │   ├── client.ts            # Central fetch wrapper (relative URLs, same-origin credentials)
+│   │   ├── errors.ts            # ApiError normalization (status, code, userMessage, cause, detail)
+│   │   ├── ndjson.ts            # Robust NDJSON chunk buffer parser (handles mid-character splits, malformed lines)
+│   │   ├── types.ts             # Wire types (Document, ChatMessage, User, etc.)
+│   │   ├── auth.ts              # POST /api/auth/login
+│   │   ├── documents.ts         # GET /api/documents/, POST /api/documents/ (multipart)
+│   │   ├── chat.ts              # GET /api/chat/, POST /api/chat/ (streaming)
+│   │   └── index.ts             # Barrel exports
+│   ├── features/                # Feature-based organization
+│   │   ├── auth/
+│   │   │   ├── components/      # LoginForm (presentational)
+│   │   │   ├── hooks/           # useLogin, useSession (state orchestration)
+│   │   │   ├── lib/             # session-storage.ts (pure functions)
+│   │   │   └── types.ts         # Auth domain types + wire re-exports
+│   │   ├── documents/
+│   │   │   ├── components/      # DocumentListModal, DocumentUploadDropzone
+│   │   │   ├── hooks/           # useDocumentUpload, useDocuments
+│   │   │   └── types.ts         # Document domain types
+│   │   ├── chat/
+│   │   │   ├── components/      # ChatWorkspace (133 lines), ChatComposer, ChatMessageItem, ChatConversation
+│   │   │   ├── hooks/           # useChatStream (183 lines, useState; reducer + rAF batching in P1-03), useAutoScroll
+│   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
+│   │   ├── factcheck/
+│   │   │   ├── components/      # PdfFactCheckViewer, BoundingBoxOverlay, RelatedDocumentsSection
+│   │   │   ├── hooks/           # usePdfDocument, usePdfViewer
+│   │   │   ├── lib/             # coordinates.ts (inch-to-pixel math, 72 DPI)
+│   │   │   └── types.ts         # BoundingRegion, RectInches domain types
+│   │   └── history/
+│   │       ├── components/      # ChatSidebar (history list, new chat, user info)
+│   │       ├── hooks/           # useChatHistory
+│   │       └── types.ts         # History domain types
+│   ├── components/
+│   │   └── ui/                  # Generic, feature-agnostic components
+│   │       ├── MarkdownRenderer.tsx # React-markdown + remark-gfm + rehype-raw + rehype-sanitize (safe HTML rendering)
+│   │       └── Spinner.tsx      # Loading indicator
 │   └── mocks/                   # MSW handlers and server for testing (NDJSON streaming, auth, documents)
 ├── tests/
 │   ├── fixtures/                # Mock chat responses
 │   ├── unit/                    # Unit tests (Vitest + @testing-library/react)
+│   │   ├── api-errors.test.ts   # ApiError normalization (network, 4xx, 422, abort)
+│   │   └── eslint-no-fetch.test.ts # Verify ESLint forbids fetch outside src/api
 │   └── integration/             # Integration tests (MSW + Vitest)
-├── e2e/                         # End-to-end tests (Playwright)
-├── vitest.config.ts             # Vitest configuration (jsdom environment)
+├── e2e/                         # End-to-end tests (Playwright, requires backend)
+├── vitest.config.ts             # Vitest configuration (jsdom environment, @/* alias)
 ├── vitest.setup.ts              # Global test setup (@testing-library/jest-dom, MSW)
 ├── playwright.config.ts         # Playwright configuration
-└── next.config.ts               # Next.js configuration (same-origin proxy)
+└── next.config.ts               # Next.js configuration (same-origin proxy for /api/*)
 ```
 
 **Key structure notes:**
-- `services/api-client.ts` uses relative URLs (`/api/...`), relying on the `next.config.ts` proxy to forward to the backend.
-- `components/chat/MarkdownRenderer.tsx` uses `react-markdown` with `rehype-raw` (HTML pass-through) and `rehype-sanitize` (XSS protection).
-- Test infrastructure: Vitest + RTL for unit/integration (`npm run test`), Playwright for e2e (`npm run e2e`).
-- `utils/sanitize.ts` non esiste più (usava DOMPurify); sanitization is now handled by `rehype-sanitize` in the Markdown pipeline.
+
+**API layer** (`src/api/`):
+- **Unico `fetch`**: `client.ts:48` contiene l'unica dichiarazione `fetch` nel progetto. Verificato con ESLint `no-restricted-globals`.
+- **URL relativi**: tutte le funzioni usano `/api/...`, il proxy `next.config.ts` le invia al backend.
+- **Errori normalizzati**: tutte le risposte HTTP, i timeout e gli abort diventano `ApiError { status, code, userMessage, cause, detail }`.
+
+**Feature structure** (`src/features/{auth,documents,chat,factcheck,history}/`):
+- **`components/`**: Presentazionali (ricevono `props`, chiamano `callbacks`); nessun `fetch` o import da `src/api`.
+- **`hooks/`**: Orchestrano stato, chiamano `src/api`, gestiscono effetti. Esempi: `useChatStream` (stato con `useState`; `useReducer` e batching `requestAnimationFrame` arriveranno con P1-03), `useLogin`, `useDocuments` (oggi `useState` + `useEffect`; TanStack Query arriverà con P1-06).
+- **`lib/` (optional)**: Funzioni pure senza React (coordinate math, session storage).
+- **`types.ts`**: Tipi della feature e re-export da `src/api/types.ts`.
+
+**Generic UI** (`src/components/ui/`):
+- `MarkdownRenderer` usa `react-markdown` + `remark-gfm` + `rehype-raw` + `rehype-sanitize` (sanitization **after** raw per supportare HTML tables). Nessun DOMPurify o `dangerouslySetInnerHTML`.
+
+**Dependency graph:**
+```
+app/ → src/features/{...}/hooks → src/api/
+↓
+src/features/{...}/components ← src/components/ui/
+↓
+src/api/ (no outbound dependencies)
+```
+
+**Test infrastructure**: Vitest + RTL for unit/integration (`npm run test`), Playwright for e2e (`npm run e2e`, requires backend).
 
 ---
 
@@ -218,7 +247,7 @@ See `docs/adr/0001-proxy-same-origin.md` for detailed motivation, alternatives, 
 
 Network chunks received over `ReadableStream<Uint8Array>` do **not** reliably match line boundaries: a single chunk can split a multi-byte UTF-8 character, cut a JSON string in half, or contain multiple lines.
 
-In `utils/ndjson.ts`:
+In `src/api/ndjson.ts`:
 1. Feed bytes through `TextDecoder({ stream: true })`.
 2. Accumulate incoming text in a persistent string `buffer`.
 3. Split on newlines `/\r?\n/`.
@@ -228,7 +257,7 @@ In `utils/ndjson.ts`:
    - `{"type": "content", "delta": "<string>"}`: Appends text incrementally.
    - `{"type": "citations", "references": [...]}`: Final chunk with document citations.
    - `{"type": "error", "message": "<string>"}`: Error message displayed to the user.
-7. A malformed line (invalid JSON or missing string `type`) throws `NDJSONParseError`: `components/chat/ChatWorkspace.tsx` marks the message as `error` and shows an italian message (`NDJSON_PARSE_ERROR_MESSAGE`), keeping the partial text. Unknown `type` values are ignored (`console.debug` outside production) and the stream continues.
+7. A malformed line (invalid JSON or missing string `type`) throws `NDJSONParseError`: `src/features/chat/components/ChatWorkspace.tsx` marks the message as `error` and shows an italian message, keeping the partial text. Unknown `type` values are ignored (`console.debug` outside production) and the stream continues.
 8. Support for `AbortController`: Clicking "Interrompi" halts the stream immediately, preserves the partial answer with state `aborted`, and provides a "Riprova" (Retry) action.
 
 ### PDF Rendering & Bounding-Box Coordinate System
@@ -237,7 +266,7 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 #### Normalization & Scaling
 - In digital printing and PDF standards, **1 inch = 72 PostScript points** (`DPI = 72`).
 - When `pdfjs-dist` loads a page, `page.getViewport({ scale: 1 })` provides the natural width and height of the page in points (`pageWidthPt`, `pageHeightPt`).
-- In `utils/coordinates.ts`:
+- In `src/features/factcheck/lib/coordinates.ts`:
   ```ts
   const pageWidthInches = pageWidthPt / 72;
   const pageHeightInches = pageHeightPt / 72;
@@ -257,11 +286,11 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 
 Assistant responses may contain Markdown (lists, blockquotes, code blocks) and inline HTML elements (tables, `<strong>`, `<ul>`).
 
-In `components/chat/MarkdownRenderer.tsx`:
+In `src/components/ui/MarkdownRenderer.tsx`:
 1. `react-markdown` parses the Markdown source.
 2. `remark-gfm` adds GitHub Flavored Markdown extensions (tables, strikethrough).
 3. `rehype-raw` permits raw HTML pass-through (for `<table>`, `<strong>`, etc.).
-4. `rehype-sanitize` (with `defaultSchema`), placed after `rehype-raw`, removes script tags and dangerous attributes (`onclick`, `onerror`). Link `href` accettati solo con schema `http`, `https` o `mailto` (`SAFE_LINK` in `components/chat/MarkdownRenderer.tsx`); i test in `tests/unit/MarkdownRenderer.test.tsx` coprono `<script>`, `onerror` e `javascript:`.
+4. `rehype-sanitize` (with `defaultSchema`), placed after `rehype-raw`, removes script tags and dangerous attributes (`onclick`, `onerror`). Link `href` accettati solo con schema `http`, `https` o `mailto`; i test in `tests/unit/MarkdownRenderer.test.tsx` coprono `<script>`, `onerror` e `javascript:`.
 
 No pre-processing with DOMPurify; the sanitization pipeline is: Markdown → AST → rehype-sanitize → DOM.
 
@@ -270,34 +299,42 @@ Tables are wrapped in a horizontally scrolling container for mobile usability.
 **Security model:** the sanitizer uses the library default schema; the output is not trusted blindly. Allowlist customization can be added via `rehype-sanitize` config.
 
 ### Chat History Consistency
-Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the same `ChatMessageItem` and `MarkdownRenderer` components (`components/chat/`). This ensures visual and functional consistency across new and historical conversations, using the same Markdown pipeline and sanitization.
+Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the same `ChatMessageItem` and `MarkdownRenderer` components (`src/features/chat/components/`). This ensures visual and functional consistency across new and historical conversations, using the same Markdown pipeline and sanitization.
 
 ---
 
 ## 6. Architectural Decisions & Trade-Offs
 
-1. **Same-origin proxy with `next.config.ts` `rewrites`** (P0-03):
+1. **Feature-based project structure with centralized API layer** (P1-01):
+   - **Decision:** Organize code as `src/features/{auth,documents,chat,factcheck,history}/` with components, hooks, and types per feature; a single `src/api/` module handles all HTTP requests.
+   - **Rationale:** Decouples presentation (components), state management (hooks), domain logic, and transport (API), making features self-contained and testable. Avoids the pitfall of scattered service files and type definitions. Enforces separation of concerns via ESLint rule banning `fetch` outside `src/api/`.
+   - **Trade-off:** More directories, but better maintainability; each feature is independent and can be extended without touching others.
+   - **Alternatives:** Flat structure by type (components, services, utils) — proven to couple unrelated files; shared/core layer — adds an extra level without clarity.
+   - **See:** `docs/adr/0002-struttura-per-feature.md`.
+
+2. **Same-origin proxy with `next.config.ts` `rewrites`** (P0-03):
    - **Decision:** Use Next.js rewrites to proxy `/api/*` → `${BACKEND_URL}/api/*`.
    - **Rationale:** Starlette 0.50.0 (unpinned) returns `Access-Control-Allow-Origin: *` with credentials, which browsers reject. A same-origin proxy sidesteps CORS by making all requests appear to come from the same origin (`localhost:3000`).
    - **Trade-off:** Backend URL is fixed at build time; runtime switching requires a rebuild. Docker build arg (P0-07) enables passing `BACKEND_URL` at image build time.
    - **Alternatives:** CORS middleware on backend (out of scope), explicit route handler proxy (more verbose), static export (incompatible with rewrites).
    - **See:** `docs/adr/0001-proxy-same-origin.md`.
 
-2. **`rehype-sanitize` for XSS protection** (P0-04):
+3. **`rehype-sanitize` for XSS protection** (P0-04):
    - **Decision:** Sanitize Markdown rendering with `rehype-sanitize` after `rehype-raw` (not before, not with DOMPurify).
    - **Rationale:** Pipeline-native, doesn't require additional libraries, works on the AST before DOM insertion.
    - **Trade-off:** default schema only; no custom allowlist.
 
-3. **Direct `pdfjs-dist` Canvas Rendering**:
+4. **Direct `pdfjs-dist` Canvas Rendering**:
    - Native `<iframe>`/`<embed>` lack programmatic DOM overlay access. Canvas rendering enables pixel-accurate overlays and multi-scale zooming.
    - Dynamically imported in `useEffect` to avoid SSR hydration mismatches.
 
-4. **Streaming error handling** (P0-05):
-   - **Decision:** Distinguish stream errors (`type: "error"`), malformed lines (`NDJSONParseError`) and HTTP errors before the stream (`ApiClientError.statusCode`, `isNetworkError: false`) from network errors.
-   - **Rationale:** Users see an italian message (backend text only in `console.error`); a message in `error` is not overwritten by `completed`.
+5. **Streaming error handling and normalized ApiError** (P0-05, P1-01):
+   - **Decision:** Distinguish stream errors (`type: "error"`), malformed lines (`NDJSONParseError`), HTTP errors (`ApiError.status` valued), and network errors (`ApiError.status` null, `code: 'network'`). All errors are normalized to `ApiError { status, code, userMessage, cause, detail }`.
+   - **Rationale:** Users see a friendly Italian message (`userMessage`); technical details (status, response body, stack) go to `console.error(error.cause)` only. A `code` enum enables reliable error handling: `if (error.code === 'aborted')` skips showing the error message, for example.
+   - **Trade-off:** Extra error normalization layer; rewarded by consistent, testable error handling across network, stream, and parse failures.
 
-5. **Explicit UX States**:
-   Chat messages carry the states `idle`, `streaming`, `completed`, `error` and `aborted` (`MessageStatus` in `types/chat.ts`).
+6. **Explicit UX States**:
+   Chat messages carry the states `idle`, `streaming`, `completed`, `error` and `aborted` (types in `src/features/chat/types.ts`).
 
 ---
 
@@ -308,12 +345,12 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
   - **`page_count` is a mock**: all documents report exactly 5 pages, regardless of the actual PDF page count (`BE:src/dependencies.py:25`).
   - **`text_quote` is a placeholder**: citations always include the same hardcoded phrase (`BE:src/routes/chat.py:194`), not a real excerpt from the document. This is by design for the test; highlighting specific text in the PDF is therefore not meaningful.
   - **Each chat = one Q/A pair**: the backend creates a new chat record on every `POST /api/chat/` request. The frontend can send a `history` field, but the backend ignores it (not persisted). Multi-turn conversation is managed locally only.
-  - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `types/` (no schema validation against OpenAPI).
+  - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `src/api/types.ts` and `src/features/*/types.ts` (no schema validation against OpenAPI).
 
 - **Frontend scope (not yet implemented / planned improvements):**
-  - The `POST /api/chat/` request sends `chat_id` in the body (`services/chat-service.ts:64-65`, `components/chat/ChatWorkspace.tsx:211`), but the backend OpenAPI schema does not document this field. The backend likely ignores it (P1-02).
+  - The `POST /api/chat/` request sends `chat_id` in the body (`src/api/chat.ts`), but the backend OpenAPI schema does not document this field. The backend likely ignores it (P1-02).
   - Streaming updates the UI on every received character (one state update per chunk, no per-frame batching). Queued renders could be batched with `requestAnimationFrame` for better performance (P1-03).
-  - The PDF.js worker and cMaps are loaded from CDN at runtime (`components/pdf/PdfFactCheckViewer.tsx` lines 98 and 103 load from `cdnjs.cloudflare.com` and `cdn.jsdelivr.net`). Bundling these locally would allow fully offline operation in Docker (P1-08).
+  - The PDF.js worker and cMaps are loaded from CDN at runtime (`src/features/factcheck/hooks/usePdfDocument.ts` lines 58 and 63 load from `cdnjs.cloudflare.com` and `cdn.jsdelivr.net`). Bundling these locally would allow fully offline operation in Docker (P1-08).
   - PDF text layer (selectable and copyable text) is not implemented (P1-08).
   - Multi-page continuous scrolling is not implemented; users navigate one page at a time (P1-08).
   - Automatic scroll to the first bounding region when opening a citation is not implemented (P1-08).
@@ -334,7 +371,7 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-**Feature structure and API layer (P1-01):** Refactor into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client. Split `ChatWorkspace.tsx` (currently 562 lines) into smaller, testable units.
+**Feature structure and API layer (P1-01):** Done (T012) — refactored into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client (`src/api/`). `ChatWorkspace.tsx` reduced from 559 to 133 lines; stream logic moved to `useChatStream` hook (183 lines, `useState`; `useReducer` and per-frame batching come with P1-03). All HTTP requests normalized to `ApiError`. ESLint forbids `fetch` outside `src/api/`. See ADR 0002.
 
 **API types from OpenAPI (P1-02):** Generate request types from `docs/api/openapi.json` with `openapi-typescript`; write response types by hand (OpenAPI lacks them). Add validation and remove speculative field normalization.
 

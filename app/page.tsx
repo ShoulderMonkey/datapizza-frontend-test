@@ -1,26 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { authService } from '@/services/auth-service';
-import { LoginForm } from '@/components/auth/LoginForm';
-import { ChatWorkspace } from '@/components/chat/ChatWorkspace';
+import React from 'react';
+import { LoginForm } from '@/src/features/auth/components/LoginForm';
+import { useSession } from '@/src/features/auth/hooks/useSession';
+import { ChatWorkspace } from '@/src/features/chat/components/ChatWorkspace';
 
 export default function HomePage() {
-  const [userId, setUserId] = useState<string | null>(() => authService.getStoredUserId());
-
-  const handleLoginSuccess = (newUserId: string) => {
-    setUserId(newUserId);
-  };
-
-  const handleLogout = () => {
-    authService.logout();
-    setUserId(null);
-  };
+  const { userId, signIn, signOut } = useSession();
 
   if (!userId) {
-    return <LoginForm onLoginSuccess={handleLoginSuccess} />;
+    return <LoginForm onLoginSuccess={signIn} />;
   }
 
-  return <ChatWorkspace userId={userId} onLogout={handleLogout} />;
+  return <ChatWorkspace userId={userId} onLogout={signOut} />;
 }
-

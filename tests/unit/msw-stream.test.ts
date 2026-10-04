@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNDJSONStream } from '@/utils/ndjson';
+import { parseNDJSONStream } from '@/src/api';
 
 describe('MSW NDJSON stream handler', () => {
   it('serves a ReadableStream parsed into two content chunks', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNDJSONStream } from '@/utils/ndjson';
+import { parseNDJSONStream } from '@/src/api';
 import { streamFromChunks } from '@/src/mocks/ndjson';
 
 async function collect(stream: ReadableStream<Uint8Array>) {

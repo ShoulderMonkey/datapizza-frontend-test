@@ -78,6 +78,28 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 ### Added (T011)
 - Verifica su clone pulito: comandi `npm ci`, `npm run dev`, `docker compose up --build` eseguiti da `frontend-tester` (nodo v25.2.1) con evidenza in `.claude/reports/T011/` (exit code 0, 200 OK su GET / e POST /api/auth/login).
 
+### Added (T012)
+- Struttura per feature: `src/features/{auth,documents,chat,factcheck,history}/` con `components/`, `hooks/`, `lib/` (optional) e `types.ts` per feature. Componenti UI generici in `src/components/ui/`.
+- Livello API centralizzato: `src/api/{client,errors,ndjson,types,auth,documents,chat,index}.ts` con unico `fetch` in `client.ts:48`.
+- Normalizzazione errori: classe `ApiError` con campi `status` (number|null), `code` (enum: network|aborted|bad_request|unauthorized|forbidden|not_found|validation|server|http|invalid_response|stream_parse|client_validation|unknown), `userMessage` (italiano), `cause` (dettaglio tecnico), `detail` (body), `endpoint`. Mappa `DEFAULT_USER_MESSAGES` errori→messaggi italiano.
+- Regola ESLint: `no-restricted-globals` (fetch) + `no-restricted-properties` (window/globalThis/self.fetch) fa fallire `npm run lint` se `fetch` compare fuori da `src/api/**`. Deroghe: test, mocks, e2e, config file. Coperto da `tests/unit/eslint-no-fetch.test.ts`.
+- Test unit: `tests/unit/api-errors.test.ts` (normalizzazione di rete, 400 stringa, 422 array detail[], abort con delayed e already-aborted), `tests/unit/eslint-no-fetch.test.ts` (regola ESLint su 9 casi).
+- ADR `docs/adr/0002-struttura-per-feature.md`: decisione architetturale, contesto, alternative scartate, grafo dipendenze ammesse.
+
+### Changed (T012)
+- `src/features/chat/components/ChatWorkspace.tsx`: ridotta da 559 a 133 righe; logica di stream spostata in hook `useChatStream` (183 righe) con stato in `useState`, retry e `AbortController` (abort anche all'unmount); `useReducer` e batching per frame arriveranno con P1-03.
+- Errori HTTP, rete, stream NDJSON: tutti convertiti a `ApiError` normalizzato. UI mostra `userMessage` italiano (niente codici HTTP, URL, stack); dettagli tecnici solo in `console.error(error.cause)`.
+- Messaggi errore: messaggi italiani per upload fallito, lista fallita, chat fallita, PDF fallito; errore di rete generica; 422 con risposta form validazione; abort non mostrato.
+- Retry: rimuove il messaggio fallito dalla conversazione prima di rinviare.
+
+### Fixed (T012)
+- Riapertura di chat dallo storico mostra domanda e risposta: `GET /api/chat/{id}` restituisce una coppia `{query, response, citations}` alla radice, ora convertita da `normalizeChatDetail` in due messaggi (user + assistant) con citazioni nel secondo. Evidenza: `src/api/chat.ts:128-139`, test in `tests/unit/chat-get.test.ts`.
+- "Riprova" dopo stop non duplica più la domanda utente: il retry sostituisce la bolla utente originale ed esclude domanda e risposta fallita dalla history prima di rinviare. Evidenza: `src/features/chat/hooks/useChatStream.ts`, test in `tests/integration/ChatWorkspace.retry.test.tsx`.
+
+### Removed (T012)
+- Directories: `components/`, `services/`, `types/`, `utils/` (consolidati in `src/features/` e `src/api/`).
+- Files: `services/api-client.ts`, `services/auth-service.ts`, `services/chat-service.ts`, `services/document-service.ts`, `types/api.ts`, `types/auth.ts`, `types/chat.ts`, `types/citation.ts`, `types/document.ts`, `utils/ndjson.ts`, `utils/coordinates.ts`. Tutti i componenti `components/{auth,documents,chat,pdf}/` e `utils/sanitize.ts` rimossi (già rimosso in T003).
+
 ---
 
 ## Note versioning

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer';
+import { MarkdownRenderer } from '@/src/components/ui/MarkdownRenderer';
 import { MOCK_RESPONSE_TABLE, MOCK_RESPONSE_UL } from '../fixtures/mockChatResponses';
 
 function assertNoXss(container: HTMLElement) {
