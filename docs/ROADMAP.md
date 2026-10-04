@@ -5,28 +5,28 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (da AUDIT.md)
+## Stato attuale (aggiornato a T007)
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
-| 1. Login mock + cookie | ⚠️ | `services/api-client.ts:57-61` (cross-origin, nessun proxy) | P0-03 |
-| 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ⚠️ | `services/auth-service.ts:18` (64 contro 100) | P0-06 |
+| 1. Login mock + cookie | ✅ | `services/api-client.ts` (proxy same-origin, credentials: 'same-origin') | P0-03 |
+| 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `services/auth-service.ts:12` (USER_ID_MAX_LENGTH = 100) | P0-06 |
 | 2. Upload multiplo, stato, errori | ⚠️ | `components/documents/DocumentUploadDropzone.tsx:70-85`; messaggi backend non mappati | P1-04 |
 | 2. Lista documenti | ⚠️ | `components/documents/DocumentListModal.tsx:33-70,202` | P1-06 |
 | 3. Layout chat + Invia | ✅ | `components/chat/ChatWorkspace.tsx:359-524` | — |
 | 3. Streaming NDJSON incrementale | ⚠️ | `utils/ndjson.ts` ✅; un render per carattere in `components/chat/ChatWorkspace.tsx:216-223` | P1-03 |
-| 3. Errori di stream (`type:"error"`, righe malformate) | ❌ | `components/chat/ChatWorkspace.tsx:235-265`; `utils/ndjson.ts:48-50` | P0-05 |
+| 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `utils/ndjson.ts:5-34` (NDJSONParseError, parseLine con try-catch); `components/chat/ChatWorkspace.tsx:247` (status: 'error' non sovrascritto da completed) | P0-05 |
 | 3. Interruzione pulita | ✅ | `components/chat/ChatWorkspace.tsx:114-127` | — |
-| 3. Markdown + HTML inline sicuro | ❌ | `components/chat/MarkdownRenderer.tsx:16-23,105` (HTML escapato, `>` corrotto) | P0-04 |
+| 3. Markdown + HTML inline sicuro | ✅ | `components/chat/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `components/chat/RelatedDocumentsSection.tsx:41,75-86` | — |
 | 4. Bounding box sul PDF | ⚠️ | `components/pdf/BoundingBoxOverlay.tsx` ✅; worker CDN `components/pdf/PdfFactCheckViewer.tsx:98`; niente scroll alla regione | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ⚠️ | `components/chat/ChatWorkspace.tsx:365-366` (loading fisso a false); `services/chat-service.ts:110-176` | P1-06, P1-07 |
-| Qualità: struttura / TS / separazione API-UI | ⚠️ | `components/chat/ChatWorkspace.tsx` (562 righe); `components/settings/BackendConfigModal.tsx:53` | P1-01, P1-02, P1-11 |
+| Qualità: struttura / TS / separazione API-UI | ⚠️ | `components/chat/ChatWorkspace.tsx` (562 righe); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ⚠️ | `services/api-client.ts:22-42`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
-| Uso backend: cookie, metodi, header, body | ⚠️ | `services/chat-service.ts:64-66` (`chat_id` inesistente) | P0-03, P1-02, P1-07 |
+| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `services/chat-service.ts:65`, `components/chat/ChatWorkspace.tsx:211` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ❌ | assente | P0-07 |
-| Deliverable: README accurato | ⚠️ | `README.md:3,56` | P0-08 |
-| Harness di test / quality gate | ❌ | `package.json:5-11` (mancano `typecheck`, `test`, `e2e`) | P0-01, P0-02 |
+| Deliverable: README accurato | ⚠️ | In corso (P0-08) | P0-08 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
 
 ---
 
@@ -39,13 +39,13 @@
 - Stima: M
 - Ambito file consentito: `package.json` (solo `scripts` e `devDependencies`), `package-lock.json`, rimozione di `bun.lock`, `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`, `tests/**`, `e2e/**`, `src/test/**`, `src/mocks/**`.
 - Criteri di accettazione:
-  - [ ] Package manager npm: esiste `package-lock.json`, `bun.lock` è rimosso e `npm ci` termina con exit 0 da un clone pulito.
-  - [ ] `package.json` contiene gli script `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `test` (`vitest run`, non interattivo) ed `e2e` (`playwright test`).
-  - [ ] Vitest configurato con ambiente `jsdom`, `@testing-library/react`, `@testing-library/jest-dom` e MSW (`msw/node`), con un handler di esempio che restituisce uno stream NDJSON costruito con `ReadableStream`.
-  - [ ] Esiste almeno un test unit reale su `utils/ndjson.ts`: una riga spezzata tra due chunk produce un solo oggetto. Il test fallisce se si rimuove `buffer = lines.pop()`.
-  - [ ] `playwright.config.ts` ha `baseURL` `http://localhost:3000` e `webServer` che avvia il frontend. `npm run e2e -- --list` elenca almeno uno smoke test (pagina di login visibile).
-  - [ ] `npm run test` termina con exit 0. Se `typecheck` o `lint` falliscono per errori nel sorgente esistente, gli errori sono elencati in `issues` con `suggested_owner: "frontend-developer"` (li risolve P0-02).
-- Stato: todo
+  - [x] Package manager npm: esiste `package-lock.json`, `bun.lock` è rimosso e `npm ci` termina con exit 0 da un clone pulito.
+  - [x] `package.json` contiene gli script `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `test` (`vitest run`, non interattivo) ed `e2e` (`playwright test`).
+  - [x] Vitest configurato con ambiente `jsdom`, `@testing-library/react`, `@testing-library/jest-dom` e MSW (`msw/node`), con un handler di esempio che restituisce uno stream NDJSON costruito con `ReadableStream`.
+  - [x] Esiste almeno un test unit reale su `utils/ndjson.ts`: una riga spezzata tra due chunk produce un solo oggetto. Il test fallisce se si rimuove `buffer = lines.pop()`.
+  - [x] `playwright.config.ts` ha `baseURL` `http://localhost:3000` e `webServer` che avvia il frontend. `npm run e2e -- --list` elenca almeno uno smoke test (pagina di login visibile).
+  - [x] `npm run test` termina con exit 0. Se `typecheck` o `lint` falliscono per errori nel sorgente esistente, gli errori sono elencati in `issues` con `suggested_owner: "frontend-developer"` (li risolve P0-02).
+- Stato: done (T001)
 
 ### P0-02 — Baseline verde: typecheck e lint senza errori
 - Criterio della specifica: "Qualità del codice › Pulizia, leggibilità, uso di TypeScript". Il quality gate blocca ogni task finché non è verde.
@@ -53,11 +53,11 @@
 - Dipendenze: P0-01
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Una sola configurazione ESLint (flat `eslint.config.mjs`); `.eslintrc.json` rimosso; `eslint-config-next` alla stessa major di `next`.
-  - [ ] `npm run typecheck`, `npm run lint` e `npm run test` terminano con exit 0.
-  - [ ] Nessuna regola di lint disattivata e nessun `// @ts-ignore` / `eslint-disable` aggiunto (grep sul diff: 0 occorrenze).
-  - [ ] `next.config.ts` non contiene più `eslint.ignoreDuringBuilds: true`.
-- Stato: todo
+  - [x] Una sola configurazione ESLint (flat `eslint.config.mjs`); `.eslintrc.json` rimosso; `eslint-config-next` alla stessa major di `next`.
+  - [x] `npm run typecheck`, `npm run lint` e `npm run test` terminano con exit 0.
+  - [x] Nessuna regola di lint disattivata e nessun `// @ts-ignore` / `eslint-disable` aggiunto (grep sul diff: 0 occorrenze).
+  - [x] `next.config.ts` non contiene più `eslint.ignoreDuringBuilds: true`.
+- Stato: done (T002)
 
 ### P0-03 — Proxy same-origin `/api` per il cookie di sessione
 - Criterio della specifica: "Funzionalità minime › 1. Autenticazione mock" e "Utilizzo del backend › autenticazione via cookie". Con Starlette 0.50.0 il login cross-origin con credenziali riceve `ACAO: *` (`docs/AUDIT.md` §2).
@@ -65,13 +65,13 @@
 - Dipendenze: P0-02
 - Stima: M
 - Criteri di accettazione:
-  - [ ] `next.config.ts` definisce `rewrites` `/api/:path*` → `${BACKEND_URL}/api/:path*`, con `BACKEND_URL` di default `http://localhost:8000`.
-  - [ ] Il client chiama solo URL relativi: un test unit sul client API verifica che ogni `fetch` riceva un URL che inizia con `/api/`. Grep `localhost:8000` nei sorgenti: presente solo in `next.config.ts` e nella documentazione.
-  - [ ] Rimossi l'override runtime dell'URL (`config/api.ts`, `components/settings/BackendConfigModal.tsx`) e ogni `fetch` nei componenti (grep `fetch(` in `components/` e `app/`: 0).
-  - [ ] e2e (backend reale): login con `test_user` → `context.cookies()` contiene `user_id` per `localhost`, e la successiva `GET /api/documents/` risponde 200.
-  - [ ] e2e: durante una risposta in streaming attraverso il proxy, il testo del messaggio assistente assume almeno 5 lunghezze diverse prima della fine dello stream (prova che il proxy non bufferizza).
-  - [ ] ADR `docs/adr/0001-proxy-same-origin.md`: motivazione (CORS + cookie `SameSite=lax`), `next start`/standalone invece di static export (i `rewrites` non funzionano con `output: 'export'`), effetto su Docker.
-- Stato: todo
+  - [x] `next.config.ts` definisce `rewrites` `/api/:path*` → `${BACKEND_URL}/api/:path*`, con `BACKEND_URL` di default `http://localhost:8000`.
+  - [x] Il client chiama solo URL relativi: un test unit sul client API verifica che ogni `fetch` riceva un URL che inizia con `/api/`. Grep `localhost:8000` nei sorgenti: presente solo in `next.config.ts` e nella documentazione.
+  - [x] Rimossi l'override runtime dell'URL (`config/api.ts`, `components/settings/BackendConfigModal.tsx`) e ogni `fetch` nei componenti (grep `fetch(` in `components/` e `app/`: 0).
+  - [x] e2e (backend reale): login con `test_user` → `context.cookies()` contiene `user_id` per `localhost`, e la successiva `GET /api/documents/` risponde 200.
+  - [x] e2e: durante una risposta in streaming attraverso il proxy, il testo del messaggio assistente assume almeno 5 lunghezze diverse prima della fine dello stream (prova che il proxy non bufferizza).
+  - [x] ADR `docs/adr/0001-proxy-same-origin.md`: motivazione (CORS + cookie `SameSite=lax`), `next start`/standalone invece di static export (i `rewrites` non funzionano con `output: 'export'`), effetto su Docker.
+- Stato: done (T007)
 
 ### P0-04 — Rendering Markdown + HTML inline sicuro
 - Criterio della specifica: "Funzionalità minime › 3. Rendering delle risposte… HTML inline… gestendo la sicurezza XSS".
@@ -79,12 +79,12 @@
 - Dipendenze: P0-02
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Pipeline `react-markdown` + `remark-gfm` + `rehype-raw` + `rehype-sanitize`, con sanitize dopo raw. Nessun pre-passaggio DOMPurify sul sorgente Markdown e nessun `dangerouslySetInnerHTML` (grep: 0).
-  - [ ] Test: la risposta mock `BE:src/routes/chat.py:44-47` produce un elemento `<table>` reale con `<strong>Approvato</strong>` (query `getByRole('table')`).
-  - [ ] Test: `<ul><li><strong>Area</strong></li></ul>` produce `<ul>` e `<strong>`.
-  - [ ] Test: `<script>alert(1)</script>`, `<img src=x onerror=alert(1)>` e `<a href="javascript:alert(1)">x</a>` non lasciano nel DOM nessun `<script>`, nessun attributo `on*` e nessun `href` che inizi con `javascript:`.
-  - [ ] Test: `> citazione` produce un `<blockquote>` (regressione del bug `&gt;`), e una tabella GFM produce `<table>`.
-- Stato: todo
+  - [x] Pipeline `react-markdown` + `remark-gfm` + `rehype-raw` + `rehype-sanitize`, con sanitize dopo raw. Nessun pre-passaggio DOMPurify sul sorgente Markdown e nessun `dangerouslySetInnerHTML` (grep: 0).
+  - [x] Test: la risposta mock `BE:src/routes/chat.py:44-47` produce un elemento `<table>` reale con `<strong>Approvato</strong>` (query `getByRole('table')`).
+  - [x] Test: `<ul><li><strong>Area</strong></li></ul>` produce `<ul>` e `<strong>`.
+  - [x] Test: `<script>alert(1)</script>`, `<img src=x onerror=alert(1)>` e `<a href="javascript:alert(1)">x</a>` non lasciano nel DOM nessun `<script>`, nessun attributo `on*` e nessun `href` che inizi con `javascript:`.
+  - [x] Test: `> citazione` produce un `<blockquote>` (regressione del bug `&gt;`), e una tabella GFM produce `<table>`.
+- Stato: done (T003)
 
 ### P0-05 — Errori durante lo streaming: chunk `error` e righe malformate
 - Criterio della specifica: "Gestione dello streaming › Gestione di errori durante lo streaming (chunk di tipo `error`…)".
@@ -92,12 +92,12 @@
 - Dipendenze: P0-02
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Test integration (MSW): lo stream `content`×3 → `{"type":"error","message":"Streaming error: x"}` lascia il messaggio in stato `error`, con il testo parziale visibile e un banner con messaggio comprensibile (senza la stringa "Streaming error"). Il test fallisce se la finalizzazione sovrascrive lo stato con `completed`.
-  - [ ] Test: una riga non JSON nello stream produce uno stato di errore visibile all'utente, senza crash e senza eccezioni non gestite.
-  - [ ] Test: un chunk con `type` sconosciuto viene ignorato e lo stream prosegue.
-  - [ ] Test: una risposta HTTP 400/401/500 prima dello stream produce un errore distinto da quello di rete (`ApiError.status` valorizzato).
-  - [ ] I chunk sono una discriminated union su `type` che include `{ type: "error"; message: string }` (`BE:src/routes/chat.py:209`).
-- Stato: todo
+  - [x] Test integration (MSW): lo stream `content`×3 → `{"type":"error","message":"Streaming error: x"}` lascia il messaggio in stato `error`, con il testo parziale visibile e un banner con messaggio comprensibile (senza la stringa "Streaming error"). Il test fallisce se la finalizzazione sovrascrive lo stato con `completed`.
+  - [x] Test: una riga non JSON nello stream produce uno stato di errore visibile all'utente, senza crash e senza eccezioni non gestite.
+  - [x] Test: un chunk con `type` sconosciuto viene ignorato e lo stream prosegue.
+  - [x] Test: una risposta HTTP 400/401/500 prima dello stream produce un errore distinto da quello di rete (`ApiError.status` valorizzato).
+  - [x] I chunk sono una discriminated union su `type` che include `{ type: "error"; message: string }` (`BE:src/routes/chat.py:209`).
+- Stato: done (T005)
 
 ### P0-06 — Validazione `user_id` allineata al backend
 - Criterio della specifica: "Funzionalità minime › 1. Gestione degli errori di validazione (user_id vuoto, troppo lungo, caratteri non permessi)".
@@ -105,11 +105,11 @@
 - Dipendenze: P0-02
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Lunghezza massima **100**, come `BE:src/routes/auth.py:15`, definita come costante unica con commento sulla fonte.
-  - [ ] Test unit: `""` e `"   "` → errore vuoto; 100 caratteri → valido; 101 → errore di lunghezza; `"a b"`, `"a@b"`, `"àè"` → errore di caratteri; `"user-01_x"` → valido.
-  - [ ] Test integration: un 422 del backend su `/api/auth/login` mostra un messaggio in italiano, non il `msg` Pydantic.
-  - [ ] Il README documenta che il client accetta solo ASCII, a differenza di `isalnum()` del backend.
-- Stato: todo
+  - [x] Lunghezza massima **100**, come `BE:src/routes/auth.py:15`, definita come costante unica con commento sulla fonte.
+  - [x] Test unit: `""` e `"   "` → errore vuoto; 100 caratteri → valido; 101 → errore di lunghezza; `"a b"`, `"a@b"`, `"àè"` → errore di caratteri; `"user-01_x"` → valido.
+  - [x] Test integration: un 422 del backend su `/api/auth/login` mostra un messaggio in italiano, non il `msg` Pydantic.
+  - [x] Il README documenta che il client accetta solo ASCII, a differenza di `isalnum()` del backend.
+- Stato: done (T004)
 
 ### P0-07 — Dockerfile e docker-compose del frontend
 - Criterio della specifica: "Deliverable attesi › Dockerfile e (opzionale) docker-compose per il frontend".
@@ -267,10 +267,10 @@
 - Dipendenze: P0-02
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Rimossi da `package.json`: `@google/genai`, `motion`, `firebase-tools`, `@hookform/resolvers`, `@types/dompurify` e `dompurify` (se non più usato dopo P0-04). `npm ls <pkg>` per ciascuno: vuoto.
-  - [ ] Rimossi `metadata.json`, `images.remotePatterns` picsum, `transpilePackages: ['motion']`, il blocco `DISABLE_HMR`, `hooks/use-mobile.ts` e `lib/utils.ts` se inutilizzati. `.env.example` contiene solo `BACKEND_URL`.
-  - [ ] `npm run typecheck && npm run lint && npm run test && npm run build`: exit 0.
-- Stato: todo
+  - [x] Rimossi da `package.json`: `@google/genai`, `motion`, `firebase-tools`, `@hookform/resolvers`, `@types/dompurify` e `dompurify` (se non più usato dopo P0-04). `npm ls <pkg>` per ciascuno: vuoto.
+  - [x] Rimossi `metadata.json`, `images.remotePatterns` picsum, `transpilePackages: ['motion']`, il blocco `DISABLE_HMR`, `hooks/use-mobile.ts` e `lib/utils.ts` se inutilizzati. `.env.example` contiene solo `BACKEND_URL`.
+  - [x] `npm run typecheck && npm run lint && npm run test && npm run build`: exit 0.
+- Stato: done (T006)
 
 ---
 
