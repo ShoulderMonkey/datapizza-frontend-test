@@ -2,16 +2,42 @@
 
 Frontend application built with **React 19**, **Next.js 15 (App Router)**, and **TypeScript** for the Frontend Software Engineer Technical Test.
 
-The application implements a document-grounded chatbot interface consuming a backend REST API with **NDJSON streaming**, real-time Markdown/HTML progressive rendering, actionable citations, and a **high-fidelity PDF Fact-Checking Viewer** with normalized bounding box overlays.
+The application implements a document-grounded chatbot interface consuming a backend REST API with **NDJSON streaming**, real-time Markdown/HTML progressive rendering, actionable citations, and a PDF Fact-Checking Viewer with normalized bounding box overlays.
 
 ---
 
 ## 1. Prerequisites & Installation
 
 ### Prerequisites
-- **Node.js**: v18.17+ or v20+
-- **Package manager**: npm
-- **Running Backend**: FastAPI backend instance (defaults to `http://localhost:8000`)
+
+**Node.js**: v20.19+ or v22.13+ (recommended v22, as in the Dockerfile).  
+Versions are pinned by dependencies: `jsdom` (`^20.19.0 || ^22.13.0 || >=24.0.0`), `vitest` (`^20.0.0 || ^22.0.0 || >=24.0.0`), and `@playwright/test` (`>=20`) in `package-lock.json`.
+
+**Package manager**: npm (lockfile: `package-lock.json`).
+
+**Running Backend**: FastAPI backend instance (defaults to `http://localhost:8000`).
+
+#### Project Layout
+
+The backend and frontend are separate repositories. Before starting, clone both:
+
+```
+<workspace>/
+├── test-tecnico-frontend-engineer/       # Backend repo (see https://github.com/datapizzaorg-ai-lab/test-tecnico-frontend-engineer)
+│   ├── backend/                          # FastAPI server
+│   ├── docker-compose.yml
+│   └── README.md
+└── <this-repo>/                          # Frontend (Next.js)
+    ├── docker-compose.yml                # Orchestrates both services
+    └── README.md
+```
+
+To develop locally, start the backend first from its directory:
+```bash
+cd ../test-tecnico-frontend-engineer
+docker-compose up --build
+```
+This will expose the backend at `http://localhost:8000`. Then, in this frontend repo, run `npm run dev`.
 
 ### Installation
 ```bash
@@ -37,6 +63,8 @@ npm run build
 npm start
 ```
 
+**Note on standalone output:** Next.js is configured with `output: 'standalone'` in `next.config.ts:11` for Docker efficiency (reducing image size by excluding unnecessary files). When running `npm start`, Next.js prints a warning: `⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.` The server responds normally and the application is accessible at `http://localhost:3000`, but the recommended way to run the production build is via the `Dockerfile`, which properly copies the standalone output (`.next/standalone/`, `.next/static/`, and `public/`) and executes `node server.js`.
+
 The application will be accessible at: `http://localhost:3000`.
 
 ### Quality Gate
@@ -53,51 +81,44 @@ npm run e2e
 
 ---
 
-## 2. Backend Configuration
+## 2. Docker and Backend Configuration
 
 ### Backend URL Configuration
 
-The backend URL is configured at **build time**:
+The backend URL is configured at **build time** (at compile time, before the server runs):
 
 ```env
-# .env or .env.local (during `npm run build`)
+# .env or .env.local (used during `npm run build`)
 BACKEND_URL=http://localhost:8000
 ```
 
 Default: `http://localhost:8000`.
 
-**How it works:** The `next.config.ts` reads `BACKEND_URL` during build and creates a same-origin proxy on `/api/*` (see section 3 for details).
+**How it works:** The `next.config.ts` reads `BACKEND_URL` during build and creates a same-origin proxy on `/api/*` via Next.js `rewrites` (detailed in section 4).
 
-### Running with Docker
+### Running with Docker Compose
 
 **Prerequisites:**
 - Docker and Docker Compose installed.
-- Backend repository as a sibling directory: `../test-tecnico-frontend-engineer/backend`.
+- Backend repository as a sibling directory: `../test-tecnico-frontend-engineer/`.
 
 **Build and Run:**
 ```bash
-# Build the frontend image
-docker build -t docfact-frontend .
-
-# Or use docker-compose to start both frontend and backend
+# From the frontend directory, start both services together
 docker compose up --build -d
 ```
 
 The application will be accessible at `http://localhost:3000`.
 
-**Configuration:**
-- `BACKEND_URL` is a build-time argument (default: `http://backend:8000`). The rewrites in `next.config.ts` are evaluated at build time and serialized into the routes manifest; changing `BACKEND_URL` requires a rebuild:
+**Configuration details:**
+- `BACKEND_URL` is a build-time Docker argument (default in Dockerfile: `http://backend:8000`). To override it:
   ```bash
   docker build --build-arg BACKEND_URL=http://custom-backend:8000 -t docfact-frontend .
   ```
-- Backend port 8000 is **intentionally not published** to the host (avoiding clashes with locally running backends). The frontend communicates with the backend over the internal Docker Compose network. To expose Swagger at `http://localhost:8000/docs`, uncomment the `ports` section in `docker-compose.yml`.
-- The container runs as non-root user `nextjs` (uid 1001, see `Dockerfile` line 32).
-
-**Docker Compose Details:**
-- Backend builds from `../test-tecnico-frontend-engineer/backend` (see `docker-compose.yml` line 7).
-- Frontend build args are passed via `build.args.BACKEND_URL` (line 27).
-- Backend health check (`python -c "import urllib.request; ..."`; line 16-20) ensures the frontend only starts after the backend is ready.
-- Backend data volume is mounted read-only (`../test-tecnico-frontend-engineer/backend/data:/app/data:ro`; line 11).
+- Backend port 8000 is **intentionally not published** to the host in `docker-compose.yml`, avoiding clashes with locally running backends. The frontend communicates with the backend over the internal Docker Compose network. To expose Swagger at `http://localhost:8000/docs`, uncomment the `ports` section in `docker-compose.yml`.
+- The container runs as non-root user `nextjs` (uid 1001; `Dockerfile` line 32).
+- Backend data volume is mounted read-only (`../test-tecnico-frontend-engineer/backend/data:/app/data:ro`; `docker-compose.yml` line 11).
+- Backend health check (`python -c "import urllib.request; ..."`; `docker-compose.yml` lines 16–20) ensures the frontend starts only after the backend is ready.
 
 ### Cookie Authentication
 
@@ -227,7 +248,7 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
   const heightPercent = (height / pageHeightInches) * 100;
   ```
 - An absolute overlay container (`BoundingBoxOverlay.tsx`) sits directly on top of the rendered PDF canvas.
-- By defining rectangles using **CSS percentages** (`left: X%`, `top: Y%`, `width: W%`, `height: H%`), the bounding boxes remain **100% aligned and responsive** across arbitrary zoom levels (`0.6x` to `3.0x`), screen resize events, and window DPI changes.
+- Rectangles are defined using **CSS percentages** (`left: X%`, `top: Y%`, `width: W%`, `height: H%`), allowing the bounding boxes to scale with zoom levels (`0.6x` to `3.0x`), screen resize events, and window DPI changes.
 - **Multiple Rectangles**: The viewer renders all bounding rectangles in a citation, badges them with region indices, and displays tooltip snippets on hover.
 - **Origin Flexibility**: Top-left origin is standard for OCR extraction tools (Azure Document Intelligence, Textract). A toggle in the viewer toolbar also allows switching to bottom-left origin if raw PostScript PDF coordinates are ever emitted.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
@@ -249,7 +270,7 @@ Tables are wrapped in a horizontally scrolling container for mobile usability.
 **Security model:** the sanitizer uses the library default schema; the output is not trusted blindly. Allowlist customization can be added via `rehype-sanitize` config.
 
 ### Chat History Consistency
-Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the exact same `ChatMessageItem` and `MarkdownRenderer` components. This guarantees 100% visual and functional consistency across new and historical conversations.
+Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the same `ChatMessageItem` and `MarkdownRenderer` components (`components/chat/`). This ensures visual and functional consistency across new and historical conversations, using the same Markdown pipeline and sanitization.
 
 ---
 
@@ -282,19 +303,20 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 
 ## 7. Known Limitations
 
-- **Backend assumptions:**
-  - Documents are global (not per-user); `page_count` is a mock constant (all documents report 5 pages).
-  - Each chat is a single Q/A pair; multi-turn history is local-only and not persisted by the backend.
-  - `text_quote` in citations is a placeholder (always the same string); highlighting in the PDF text layer is not meaningful.
-  - Chat details (`GET /api/chat/{chat_id}`) returns a flat object; there's no separate endpoint for chat messages.
+- **Backend assumptions and design:**
+  - **Documents are global** (not per-user): all authenticated users see the same document library (`BE:src/routes/documents.py:120`, `docs/AUDIT.md` Assumption 10). Each user can upload their own documents, but the upload list shows all documents.
+  - **`page_count` is a mock**: all documents report exactly 5 pages, regardless of the actual PDF page count (`BE:src/dependencies.py:25`).
+  - **`text_quote` is a placeholder**: citations always include the same hardcoded phrase (`BE:src/routes/chat.py:194`), not a real excerpt from the document. This is by design for the test; highlighting specific text in the PDF is therefore not meaningful.
+  - **Each chat = one Q/A pair**: the backend creates a new chat record on every `POST /api/chat/` request. The frontend can send a `history` field, but the backend ignores it (not persisted). Multi-turn conversation is managed locally only.
+  - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `types/` (no schema validation against OpenAPI).
 
-- **Frontend scope (not yet implemented / todo):**
-  - Streaming renders on every received chunk (one state update per chunk, no per-frame batching). See P1-03.
-  - `chat_id` is still sent in the body of `POST /api/chat/` (`services/chat-service.ts`). See P1-02.
-  - The PDF.js worker and cMaps are loaded from a CDN at runtime (`components/pdf/PdfFactCheckViewer.tsx:98,103`), not bundled locally. The Docker image is therefore not fully offline-capable. See P1-08.
-  - PDF text layer (selectable, copyable text) is not implemented. See P1-08.
-  - Multi-page continuous scroll is not implemented; users navigate page-by-page. See P1-08.
-  - Bounding-box scroll-to (automatic scroll to the first region when opening a citation) is not implemented. See P1-08.
+- **Frontend scope (not yet implemented / planned improvements):**
+  - The `POST /api/chat/` request sends `chat_id` in the body (`services/chat-service.ts:64-65`, `components/chat/ChatWorkspace.tsx:211`), but the backend OpenAPI schema does not document this field. The backend likely ignores it (P1-02).
+  - Streaming updates the UI on every received character (one state update per chunk, no per-frame batching). Queued renders could be batched with `requestAnimationFrame` for better performance (P1-03).
+  - The PDF.js worker and cMaps are loaded from CDN at runtime (`components/pdf/PdfFactCheckViewer.tsx` lines 98 and 103 load from `cdnjs.cloudflare.com` and `cdn.jsdelivr.net`). Bundling these locally would allow fully offline operation in Docker (P1-08).
+  - PDF text layer (selectable and copyable text) is not implemented (P1-08).
+  - Multi-page continuous scrolling is not implemented; users navigate one page at a time (P1-08).
+  - Automatic scroll to the first bounding region when opening a citation is not implemented (P1-08).
 
 - **Minor issues (low severity):**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -306,9 +328,51 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
 
-## 8. Sviluppo con Claude Code (team di subagenti)
+---
 
-Il lavoro sul frontend è orchestrato con Claude Code: `CLAUDE.md` (regole dell'orchestratore), `.claude/agents/` (subagenti), `.claude/hooks/` (guard, quality gate, validazione output) e `docs/ROADMAP.md` (piano).
+## 8. With More Time
+
+This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
+
+**Feature structure and API layer (P1-01):** Refactor into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client. Split `ChatWorkspace.tsx` (currently 562 lines) into smaller, testable units.
+
+**API types from OpenAPI (P1-02):** Generate request types from `docs/api/openapi.json` with `openapi-typescript`; write response types by hand (OpenAPI lacks them). Add validation and remove speculative field normalization.
+
+**Stream batching with `requestAnimationFrame` (P1-03):** Accumulate `content` deltas and render once per frame instead of on every character. When 500 consecutive `content` chunks are delivered in a single tick, the message component should re-render at most 5 times instead of 500.
+
+**User-friendly error messages (P1-04):** Map backend error codes and network errors to Italian messages without exposing technical details (no status codes, no URLs, no stack traces).
+
+**Session and 401 handling (P1-05):** Redirect to login on any 401; prevent hydration mismatches by deferring `localStorage` access.
+
+**Server state with TanStack Query (P1-06):** Use `useQuery` and `useMutation` for documents and chat history with proper loading and error states (sidebar currently hardcodes `loading: false`).
+
+**Chat history model (P1-07):** Formalize the backend's Q/A model (one chat = one pair) and align the UI (no multi-turn state in backend, local only).
+
+**PDF.js worker and cMaps locally (P1-08):** Bundle PDF.js worker and cMap files instead of loading from CDN, enabling offline operation in Docker.
+
+**Side-by-side layout (P1-09):** Show conversation and PDF viewer side by side on ≥1024 px; modal on smaller screens.
+
+**Keyboard navigation (P1-10):** Make citations and buttons keyboard-accessible; test with Playwright.
+
+**Highlight bidirectional sync (P2-01):** Clicking a bounding box highlights its citation card; hovering a card highlights its boxes.
+
+**Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
+
+**Markdown stability (P2-03):** Test that streaming HTML tables never render as escaped text in snapshots.
+
+**Chat and document pagination (P2-04):** Implement `limit`/`offset` for lists with "Load more" buttons.
+
+**Upload cancellation (P2-05):** Add an abort button during multipart upload.
+
+**Accessibility and language (P2-06):** Set `<html lang="it">`; audit with axe-core for WCAG violations.
+
+**Dark mode (P2-07):** Implement color scheme toggle with 4.5:1 contrast ratio for text.
+
+---
+
+## 9. Sviluppo con Claude Code (team di subagenti)
+
+Il lavoro sul frontend è orchestrato con Claude Code: `CLAUDE.md` (regole dell'orchestratore), `.claude/agents/` (subagenti: `frontend-developer`, `frontend-test-writer`, `frontend-tester`, `documentation-writer`), `.claude/hooks/` (guard, quality gate, validazione output) e `docs/ROADMAP.md` (piano).
 
 Limiti noti degli hook:
 - `.claude/hooks/guard-orchestrator.mjs` impedisce al thread principale di modificare file fuori da `.claude/` e `CLAUDE.md`. Il controllo sui comandi **Bash** è **best-effort**: riconosce i pattern di scrittura comuni (`sed -i`, `perl -i`, `tee`, redirezioni `>`/`>>`, `cp`, `mv`, `rm`, `git apply`, `git checkout --`, `--write`, `--fix`, `npm install`), ma non ogni possibile scrittura via shell (ad esempio script eseguiti con `node -e` o `python -c`).

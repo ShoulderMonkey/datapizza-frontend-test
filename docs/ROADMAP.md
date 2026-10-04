@@ -5,7 +5,7 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T010)
+## Stato attuale (aggiornato a T011)
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -25,7 +25,7 @@
 | UX: loading, errori comprensibili, layout | ⚠️ | `services/api-client.ts:22-42`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02/P1-07 ⚠️ `services/chat-service.ts:65`, `components/chat/ChatWorkspace.tsx:211` (`chat_id` ancora inviato nel body, todo) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
-| Deliverable: README accurato | ⚠️ | In corso (P0-08) | P0-08 |
+| Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
 | Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
 
 ---
@@ -129,12 +129,12 @@
 - Dipendenze: P0-03, P0-07 (aggiornato di nuovo a ogni item concluso)
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Sezioni presenti: Avvio locale, Avvio con Docker, Architettura, Streaming NDJSON, Rendering PDF e coordinate, Decisioni e trade-off, Limiti noti, Con più tempo farei.
-  - [ ] Ogni affermazione tecnica cita un file esistente. Nessuna frase "Production-ready" e nessuna istruzione di modificare il backend.
-  - [ ] I limiti del backend sono dichiarati: documenti globali, `page_count` mock, `text_quote` placeholder, una chat = una coppia Q/A, risposte non tipizzate in OpenAPI.
-  - [ ] La sezione "Sviluppo con Claude Code", con il limite noto del controllo Bash best-effort di `.claude/hooks/guard-orchestrator.mjs`, è conservata.
-  - [ ] I comandi del README (`npm ci`, `npm run dev`, `docker compose up`) sono stati eseguiti da `frontend-tester` su un clone pulito, con evidenza in `.claude/reports/`.
-- Stato: todo
+  - [x] Sezioni presenti: Avvio locale, Avvio con Docker, Architettura, Streaming NDJSON, Rendering PDF e coordinate, Decisioni e trade-off, Limiti noti, Con più tempo farei. → evidenza: README.md titoli §1 (Prerequisites & Installation), §2 (Docker and Backend Configuration), §3 (Architecture & Project Structure), §5 (How NDJSON Streaming is Handled, PDF Rendering & Bounding-Box Coordinate System), §6 (Architectural Decisions & Trade-Offs), §7 (Known Limitations), §8 (With More Time).
+  - [x] Ogni affermazione tecnica cita un file esistente. Nessuna frase "Production-ready" e nessuna istruzione di modificare il backend. → evidenza: README.md contiene riferimenti file (grep output, `.claude/reports/T011/04-start.log`); "Production-ready" assente (grep output, exit 0).
+  - [x] I limiti del backend sono dichiarati: documenti globali, `page_count` mock, `text_quote` placeholder, una chat = una coppia Q/A, risposte non tipizzate in OpenAPI. → evidenza: README.md §7 "Backend assumptions and design" (righe 305–310).
+  - [x] La sezione "Sviluppo con Claude Code", con il limite noto del controllo Bash best-effort di `.claude/hooks/guard-orchestrator.mjs`, è conservata. → evidenza: README.md §9 "Sviluppo con Claude Code (team di subagenti)" (righe 370–377, testo italiano con limite best-effort).
+  - [x] I comandi del README (`npm ci`, `npm run dev`, `docker compose up`) sono stati eseguiti da `frontend-tester` su un clone pulito, con evidenza in `.claude/reports/`. → evidenza: `.claude/reports/T011/summary.md`, `03-dev-curl.txt` (npm run dev), `05-compose-curl.txt` (docker compose up).
+- Stato: done (T011)
 
 ---
 

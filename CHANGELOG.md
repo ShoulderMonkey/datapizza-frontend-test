@@ -67,6 +67,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 ### Changed (T010)
 - `package-lock.json`: Regenerated with `npm install --package-lock-only --ignore-scripts` inside `node:22-alpine` to fix missing optional peer deps (`@emnapi/*`) required by `npm ci` on Linux. No version changes, only new entries for Linux-specific optional dependencies and peer flag adjustments.
 
+### Changed (T011)
+- `README.md`: Prerequisiti Node corretti: versioni pinned da `jsdom`, `vitest`, `@playwright/test` in `package-lock.json`. Layout cartelle separato in "Project Layout" per chiareza su backend e frontend distinti.
+- `README.md` (P0-08): Aggiunta nota su `output: 'standalone'` (`next.config.ts:11`) e avviso di `npm start`; avvio raccomandato in produzione è il `Dockerfile`.
+- `README.md` (P0-08): Aggiunta limitazione: `POST /api/chat/` invia `chat_id` nel body ma lo schema OpenAPI non lo documenta (P1-02).
+- `README.md` (P0-08): Rimossa frase inesatta su canvas percentuali; overlay usa CSS percentuali, canvas usa pixel da pdfjs-dist.
+- `README.md` (P0-08): Ripristinato testo italiano di "Sviluppo con Claude Code (team di subagenti)" con spiegazione dei quattro subagenti e limiti best-effort degli hook.
+- `README.md` (P0-08): Riformulata P1-03 secondo criterio roadmap: "500 chunk `content` in un tick → massimo 5 render del componente".
+
+### Added (T011)
+- Verifica su clone pulito: comandi `npm ci`, `npm run dev`, `docker compose up --build` eseguiti da `frontend-tester` (nodo v25.2.1) con evidenza in `.claude/reports/T011/` (exit code 0, 200 OK su GET / e POST /api/auth/login).
+
 ---
 
 ## Note versioning
