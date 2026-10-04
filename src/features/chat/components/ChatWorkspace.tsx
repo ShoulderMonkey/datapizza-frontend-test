@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DocumentListModal } from '@/src/features/documents/components/DocumentListModal';
 import { useDocuments } from '@/src/features/documents/hooks/useDocuments';
-import { PdfFactCheckViewer } from '@/src/features/factcheck/components/PdfFactCheckViewer';
+import { FactCheckPanel } from '@/src/features/factcheck/components/FactCheckPanel';
 import { usePdfViewer } from '@/src/features/factcheck/hooks/usePdfViewer';
 import { ChatSidebar } from '@/src/features/history/components/ChatSidebar';
 import { HistoryEntryNotice } from '@/src/features/history/components/HistoryEntryNotice';
@@ -145,6 +145,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           loadError={history.chatLoadError}
           onRetryLoad={() => void history.reloadChat()}
           onInspectCitation={handleInspectCitation}
+          activeCitation={pdfViewer.target?.citation}
           // ADR 0003: no new send during a stream, so "Riprova" is hidden until it ends.
           onRetry={isStreaming ? undefined : handleRetry}
           endRef={endRef}
@@ -166,12 +167,8 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
       </main>
 
       {pdfViewer.target && (
-        <PdfFactCheckViewer
-          documentId={pdfViewer.target.documentId}
-          filename={pdfViewer.target.filename}
-          initialPage={pdfViewer.target.pageNumber}
-          citations={pdfViewer.target.allCitations}
-          activeCitation={pdfViewer.target.citation}
+        <FactCheckPanel
+          target={pdfViewer.target}
           onClose={pdfViewer.close}
           onSelectCitation={pdfViewer.selectCitation}
         />

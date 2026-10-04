@@ -8,6 +8,19 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T020, P1-09)
+- `src/features/factcheck/components/FactCheckPanel.tsx`: contenitore del viewer; a ≥ 1024 px è un pannello laterale (`role="complementary"`, `aria-label="Verifica fonti"`), sotto è un dialog a schermo intero (`role="dialog"`, `aria-modal`) con trap del Tab.
+- `src/features/factcheck/hooks/useIsDesktop.ts` (media query `min-width: 1024px`) e `isSameCitation` in `src/features/factcheck/lib/citations.ts`.
+- Test: `tests/unit/citations.test.ts`, `tests/integration/FactCheckPanel.test.tsx`; e2e `e2e/layout.spec.ts`.
+
+### Changed (T020, P1-09)
+- Il viewer PDF non è più una modale fissa: è un pannello affiancato alla conversazione (≥ 1024 px) o un drawer a schermo intero (< 1024 px); la lista citazioni sta sotto il PDF.
+- Le card citazione in `RelatedDocumentsSection.tsx` sono `<button>` con `aria-current`; la citazione attiva è evidenziata anche sul PDF (`data-active` in `BoundingBoxOverlay.tsx`).
+- All'apertura il focus va al pannello; alla chiusura torna alla card della citazione.
+
+### Fixed (T020, P1-09)
+- `Escape` non chiudeva il viewer.
+
 ### Added (T019, P1-07)
 - ADR 0004 (`docs/adr/0004-modello-storico.md`): una chat del backend è una coppia domanda/risposta; multi-turno solo locale.
 - `src/features/history/components/HistoryEntryNotice.tsx`: nota mostrata mentre è aperta una voce dello storico.

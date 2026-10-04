@@ -10,6 +10,8 @@ import { Bot, User, AlertCircle, RotateCcw, StopCircle } from 'lucide-react';
 interface ChatMessageItemProps {
   message: ChatMessage;
   onInspectCitation: (citation: CitationReference) => void;
+  /** Citation open in the PDF panel (highlighted in the list). */
+  activeCitation?: CitationReference | null;
   onRetry?: (message: ChatMessage) => void;
 }
 
@@ -21,6 +23,7 @@ interface ChatMessageItemProps {
 export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   onInspectCitation,
+  activeCitation,
   onRetry,
 }: ChatMessageItemProps) {
   const isUser = message.role === 'user';
@@ -134,6 +137,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
             <RelatedDocumentsSection
               citations={message.citations}
               onInspectCitation={onInspectCitation}
+              activeCitation={activeCitation}
             />
           )}
         </div>

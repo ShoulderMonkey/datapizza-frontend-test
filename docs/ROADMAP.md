@@ -22,7 +22,7 @@
 | 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker locale (`lib/pdfWorker.ts`) e scroll alla regione (`PdfPageView.tsx:50`) risolti da P1-08 (T015) | P1-09 |
 | 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
+| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF affiancato ≥1024 px e drawer sotto (P1-09 ✅, T020) | P1-04, P1-06, P1-10 |
 | Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ✅ done (T019) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -246,11 +246,11 @@
 - Dipendenze: P1-08
 - Stima: M
 - Criteri di accettazione:
-  - [ ] A viewport ≥ 1024 px il viewer PDF è un pannello laterale e la conversazione resta visibile e scrollabile (e2e: messaggio e PDF entrambi `toBeInViewport()`).
-  - [ ] A viewport < 1024 px il viewer è un drawer/modal a schermo intero con pulsante di chiusura.
-  - [ ] All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione (e2e da tastiera).
-  - [ ] La citazione attiva è evidenziata sia nella lista della risposta sia sul PDF.
-- Stato: todo
+  - [x] A viewport ≥ 1024 px il viewer PDF è un pannello laterale e la conversazione resta visibile e scrollabile (e2e: messaggio e PDF entrambi `toBeInViewport()`).
+  - [x] A viewport < 1024 px il viewer è un drawer/modal a schermo intero con pulsante di chiusura.
+  - [x] All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione (e2e da tastiera).
+  - [x] La citazione attiva è evidenziata sia nella lista della risposta sia sul PDF.
+- Stato: done (T020)
 
 ### P1-10 — Flusso principale navigabile da tastiera
 - Criterio della specifica: "UX e micro-interazioni"; controllo osservabile di `frontend-tester`: "il flusso principale è navigabile da tastiera".

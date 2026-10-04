@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { CitationReference } from '../types';
 import { usePdfDocument } from '../hooks/usePdfDocument';
+import { isSameCitation } from '../lib/citations';
 import { getFirstRegionPage, getPagesWithRegions } from '../lib/regions';
 
 // react-pdf touches browser-only APIs (DOMMatrix, workers): load it client-side only.
@@ -102,9 +103,9 @@ export function PdfFactCheckViewer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="flex h-full w-full flex-col bg-slate-950 animate-in fade-in duration-200">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 text-white select-none">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800 text-white select-none">
         <div className="flex items-center gap-3 min-w-0">
           <div className="p-1.5 rounded-md bg-indigo-600/30 text-indigo-400 border border-indigo-500/30">
             <FileText className="w-5 h-5" />
@@ -263,7 +264,7 @@ export function PdfFactCheckViewer({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {/* PDF Canvas Viewport Container */}
         <div
           ref={containerRef}
@@ -339,7 +340,7 @@ export function PdfFactCheckViewer({
 
         {/* Side Panel: Associated Citations for this Document */}
         {showCitationList && (
-          <div className="w-80 md:w-96 bg-slate-900 border-l border-slate-800 flex flex-col h-full text-slate-200 shrink-0">
+          <div className="h-56 bg-slate-900 border-t border-slate-800 flex flex-col text-slate-200 shrink-0">
             <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
@@ -366,11 +367,7 @@ export function PdfFactCheckViewer({
               ) : (
                 citations.map((citation, index) => {
                   const isCurrentPage = citation.page_number === currentPage;
-                  const isSelected =
-                    activeCitation &&
-                    activeCitation.document_id === citation.document_id &&
-                    activeCitation.page_number === citation.page_number &&
-                    activeCitation.text_quote === citation.text_quote;
+                  const isSelected = isSameCitation(activeCitation, citation);
 
                   const rectCount =
                     citation.bounding_regions?.reduce(
@@ -381,6 +378,7 @@ export function PdfFactCheckViewer({
                   return (
                     <div
                       key={`cit-list-${index}`}
+                      aria-current={isSelected ? 'true' : undefined}
                       onClick={() => {
                         setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);
                         onSelectCitation?.(citation);

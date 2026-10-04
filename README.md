@@ -167,13 +167,13 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   ├── hooks/           # useDocumentUpload, useDocuments
 │   │   │   └── types.ts         # Document domain types
 │   │   ├── chat/
-│   │   │   ├── components/      # ChatWorkspace (133 lines), ChatComposer, ChatMessageItem, ChatConversation
+│   │   │   ├── components/      # ChatWorkspace (184 lines), ChatComposer, ChatMessageItem, ChatConversation
 │   │   │   ├── hooks/           # useChatStream (useReducer + rAF batching), useAutoScroll
 │   │   │   ├── lib/             # chatStreamReducer (pure reducer, no React)
 │   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
 │   │   ├── factcheck/
-│   │   │   ├── components/      # PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection
-│   │   │   ├── hooks/           # usePdfDocument, usePdfViewer
+│   │   │   ├── components/      # FactCheckPanel, PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection
+│   │   │   ├── hooks/           # usePdfDocument, usePdfViewer, useIsDesktop
 │   │   │   ├── lib/             # coordinates.ts (inchesRectToPx, 72 pt/inch), pdfWorker.ts, regions.ts
 │   │   │   └── types.ts         # BoundingRegion, RectInches domain types
 │   │   └── history/
@@ -279,6 +279,7 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 - **Scroll alla regione**: aprendo una citazione la pagina mostrata è `bounding_regions[0].page_number` e la vista scorre alla prima regione (`PdfPageView.tsx:50`).
 - **Pagine con regioni**: se la citazione ha regioni su più pagine, `PdfFactCheckViewer.tsx` mostra l'elenco "Pagine con regioni" con navigazione (raggruppamento in `lib/regions.ts`).
 - **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `lib/pdfWorker.ts`, senza CDN.
+- **Layout e focus (P1-09)**: `FactCheckPanel.tsx` mostra il viewer come pannello laterale (`role="complementary"`) a ≥ 1024 px, con la conversazione ancora visibile e scrollabile (`useIsDesktop.ts`), e come dialog a schermo intero (`role="dialog"`, `aria-modal`, pulsante di chiusura) sotto. All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione. La card attiva (`aria-current` in `RelatedDocumentsSection.tsx`) e le sue regioni sul PDF (`data-active` in `BoundingBoxOverlay.tsx`) sono evidenziate. Test: `tests/integration/FactCheckPanel.test.tsx`, `e2e/layout.spec.ts`.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
 
 ### Safe Markdown and HTML Rendering
@@ -393,8 +394,6 @@ This section tracks planned improvements aligned with the evaluation criteria an
 **Session and 401 handling (P1-05):** Done (T018) — redirect to login on any 401 and `localStorage` read after mount (see Cookie Authentication).
 
 **Chat history model (P1-07):** Done (T019) — one chat = one Q/A pair, new questions never modify a selected entry. See ADR 0004.
-
-**Side-by-side layout (P1-09):** Show conversation and PDF viewer side by side on ≥1024 px; modal on smaller screens.
 
 **Keyboard navigation (P1-10):** Make citations and buttons keyboard-accessible; test with Playwright.
 

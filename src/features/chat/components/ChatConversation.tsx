@@ -11,6 +11,7 @@ interface ChatConversationProps {
   loadError: string | null;
   onRetryLoad: () => void;
   onInspectCitation: (citation: CitationReference) => void;
+  activeCitation?: CitationReference | null;
   /** Undefined while a stream is active (ADR 0003): the rows hide their retry buttons. */
   onRetry?: (message: ChatMessage) => void;
   endRef: RefObject<HTMLDivElement | null>;
@@ -26,6 +27,7 @@ export function ChatConversation({
   loadError,
   onRetryLoad,
   onInspectCitation,
+  activeCitation,
   onRetry,
   endRef,
   onScroll,
@@ -58,6 +60,7 @@ export function ChatConversation({
               key={message.id}
               message={message}
               onInspectCitation={onInspectCitation}
+              activeCitation={activeCitation}
               onRetry={onRetry}
             />
           ))}
