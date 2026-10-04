@@ -2,11 +2,10 @@
 
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { documentService, getUserMessage } from '@/src/api';
+import { documentService, logError, toUserMessage } from '@/src/api';
 import { queryKeys } from '../../queryKeys';
 import type { AsyncStatus } from '../types';
 
-const UPLOAD_FALLBACK_MESSAGE = 'Non è stato possibile caricare i documenti. Controlla i file e riprova.';
 
 /** Upload of PDFs (POST /api/documents/, multipart field `files`). */
 export function useDocumentUpload() {
@@ -33,8 +32,8 @@ export function useDocumentUpload() {
       setStatus('success');
       return true;
     } catch (err: unknown) {
-      console.error('Document upload error:', err);
-      setError(getUserMessage(err, UPLOAD_FALLBACK_MESSAGE));
+      logError('Document upload error:', err);
+      setError(toUserMessage(err, 'upload'));
       setStatus('error');
       return false;
     }

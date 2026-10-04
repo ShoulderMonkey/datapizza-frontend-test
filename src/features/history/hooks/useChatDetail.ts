@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { chatService, getUserMessage } from '@/src/api';
+import { chatService, logError, toUserMessage } from '@/src/api';
 import { queryKeys } from '../../queryKeys';
 
-const CHAT_LOAD_FALLBACK_MESSAGE = 'Impossibile caricare i messaggi della conversazione.';
 
 /**
  * Stored conversation (GET /api/chat/{id}). The query key contains the id, so the data always
@@ -19,6 +18,12 @@ export function useChatDetail(chatId: string | null) {
   });
 
   const { refetch } = query;
+
+  // Technical detail to the console only; the UI gets the mapped message.
+  const failure = query.isError ? query.error : null;
+  useEffect(() => {
+    if (failure) logError('Failed to load the conversation:', failure);
+  }, [failure]);
   const reload = useCallback(async () => {
     await refetch();
   }, [refetch]);
@@ -26,7 +31,7 @@ export function useChatDetail(chatId: string | null) {
   return {
     transcript: chatId !== null ? query.data : undefined,
     isLoading: chatId !== null && query.isLoading,
-    error: chatId !== null && query.isError ? getUserMessage(query.error, CHAT_LOAD_FALLBACK_MESSAGE) : null,
+    error: chatId !== null && query.isError ? toUserMessage(query.error, 'chat_detail') : null,
     reload,
   };
 }

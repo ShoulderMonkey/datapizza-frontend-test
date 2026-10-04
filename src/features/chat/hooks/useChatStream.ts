@@ -1,15 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { chatService, toApiError } from '@/src/api';
+import { ERROR_MESSAGES, chatService, logError, toApiError, toUserMessage } from '@/src/api';
 import { chatStreamReducer, initialChatStreamState, type ChatStreamAction } from '../lib/chatStreamReducer';
 import type { ChatHistoryEntry, ChatMessage, CitationReference } from '../types';
-
-/** Shown for a `{"type":"error"}` chunk; the backend message only goes to the console. */
-export const STREAM_ERROR_MESSAGE =
-  'La generazione della risposta si è interrotta. Il testo parziale è stato conservato: puoi riprovare.';
-
-const STREAM_FALLBACK_MESSAGE = 'La risposta si è interrotta. Puoi riprovare.';
 
 interface UseChatStreamOptions {
   /** Called when a stream ends without throwing (also after an `error` chunk). Not after an abort. */
@@ -44,7 +38,7 @@ function cancelFrame(handle: FrameHandle): void {
  * - Abort: `cancel()` (Stop), `replaceMessages()` (chat switch / new chat) and unmount.
  *   After an abort the stream loop never dispatches again: every dispatch is guarded by a
  *   generation token and the AbortSignal. The partial message keeps status `aborted`.
- * - Errors: `{"type":"error"}` chunk → status `error` with STREAM_ERROR_MESSAGE; any other
+ * - Errors: `{"type":"error"}` chunk → status `error` with the `stream_error_chunk` message; any other
  *   ApiError → status `error` with `ApiError.userMessage`. The partial text is always kept.
  */
 export function useChatStream({ onStreamEnd }: UseChatStreamOptions = {}) {
@@ -188,9 +182,9 @@ export function useChatStream({ onStreamEnd }: UseChatStreamOptions = {}) {
             }
           } else if (chunk.type === 'error') {
             // Backend detail only in the console; the user sees a friendly message.
-            console.error('Chat stream error chunk:', chunk.message);
+            logError('Chat stream error chunk:', chunk.message);
             streamFailed = true;
-            flushAndEmit({ type: 'error', error: STREAM_ERROR_MESSAGE });
+            flushAndEmit({ type: 'error', error: ERROR_MESSAGES.stream_error_chunk });
             break;
           }
         }
@@ -207,9 +201,8 @@ export function useChatStream({ onStreamEnd }: UseChatStreamOptions = {}) {
         if (apiError.code === 'aborted') {
           flushAndEmit({ type: 'abort' });
         } else {
-          console.error('Chat streaming failed:', err);
-          const errorText = apiError.code === 'unknown' ? STREAM_FALLBACK_MESSAGE : apiError.userMessage;
-          flushAndEmit({ type: 'error', error: errorText });
+          logError('Chat streaming failed:', apiError.cause ?? err);
+          flushAndEmit({ type: 'error', error: toUserMessage(apiError, 'chat_stream') });
         }
       } finally {
         // A newer stream may have started after a cancel(): leave its refs alone.

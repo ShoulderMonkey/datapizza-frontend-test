@@ -1,5 +1,6 @@
 'use client';
 
+import { ERROR_MESSAGES } from '@/src/api';
 import React from 'react';
 import { MarkdownRenderer } from '@/src/components/ui/MarkdownRenderer';
 import { RelatedDocumentsSection } from '@/src/features/factcheck/components/RelatedDocumentsSection';
@@ -92,9 +93,9 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
             <div role="alert" className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-red-800">Risposta interrotta da un errore</p>
+                <p className="font-semibold text-red-800">{ERROR_MESSAGES.stream_error_title}</p>
                 <p className="text-red-600 mt-0.5">
-                  {message.error || 'La richiesta al server è fallita o il flusso è stato interrotto.'}
+                  {message.error || ERROR_MESSAGES.stream_error_fallback}
                 </p>
                 {onRetry && (
                   <button
@@ -114,7 +115,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
             <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between gap-2 text-xs text-amber-800">
               <div className="flex items-center gap-2">
                 <StopCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Generazione interrotta dall&apos;utente.</span>
+                <span>{ERROR_MESSAGES.aborted}</span>
               </div>
               {onRetry && (
                 <button

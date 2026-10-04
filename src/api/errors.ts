@@ -1,4 +1,5 @@
-import { NDJSONParseError, NDJSON_PARSE_ERROR_MESSAGE } from './ndjson';
+import { NDJSONParseError } from './ndjson';
+import { ERROR_MESSAGES, fallbackKeyFor, message, messageFor, type ErrorContext } from './errorMessages';
 
 /**
  * Normalized error codes of the API layer.
@@ -34,24 +35,24 @@ export type ApiErrorCode =
   | 'client_validation'
   | 'unknown';
 
-/** Per-call overrides of the user-facing message, keyed by code. */
-export type ErrorMessageOverrides = Partial<Record<ApiErrorCode, string>>;
-
-/** Code → user-facing message (Italian). Technical details only go to the console. */
+/**
+ * Default message per code (generic, endpoint-agnostic). The single map lives in
+ * `errorMessages.ts`; endpoint/detail-specific texts are chosen by `messageFor`.
+ */
 export const DEFAULT_USER_MESSAGES: Readonly<Record<ApiErrorCode, string>> = {
-  network: 'Impossibile raggiungere il backend. Verifica che il server sia avviato e raggiungibile.',
-  aborted: 'Richiesta annullata.',
-  bad_request: 'La richiesta non è valida. Controlla i dati inseriti e riprova.',
-  unauthorized: 'Sessione non autenticata o scaduta. Effettua il login.',
-  forbidden: 'Accesso non autorizzato alla risorsa richiesta.',
-  not_found: 'La risorsa richiesta non è stata trovata.',
-  validation: 'I dati inviati non sono validi.',
-  server: 'Errore interno del server backend.',
-  http: 'Richiesta fallita.',
-  invalid_response: 'Il server ha restituito una risposta inattesa.',
-  stream_parse: NDJSON_PARSE_ERROR_MESSAGE,
-  client_validation: 'Dati non validi.',
-  unknown: 'Si è verificato un errore imprevisto. Riprova.',
+  network: ERROR_MESSAGES.network,
+  aborted: ERROR_MESSAGES.aborted,
+  bad_request: ERROR_MESSAGES.bad_request,
+  unauthorized: ERROR_MESSAGES.unauthorized,
+  forbidden: ERROR_MESSAGES.forbidden,
+  not_found: ERROR_MESSAGES.not_found,
+  validation: ERROR_MESSAGES.validation,
+  server: ERROR_MESSAGES.server,
+  http: ERROR_MESSAGES.http,
+  invalid_response: ERROR_MESSAGES.invalid_response,
+  stream_parse: ERROR_MESSAGES.stream_malformed,
+  client_validation: ERROR_MESSAGES.client_validation,
+  unknown: ERROR_MESSAGES.unknown,
 };
 
 export interface ApiErrorInit {
@@ -112,11 +113,8 @@ export function statusToCode(status: number): ApiErrorCode {
   return 'http';
 }
 
-function userMessageFor(code: ApiErrorCode, status: number | null, overrides?: ErrorMessageOverrides): string {
-  const override = overrides?.[code];
-  if (override) return override;
-  if (code === 'http' && status !== null) return `Richiesta fallita con codice ${status}.`;
-  return DEFAULT_USER_MESSAGES[code];
+function userMessageFor(code: ApiErrorCode, info: { endpoint?: string | null; detail?: string | null }): string {
+  return messageFor({ code, endpoint: info.endpoint, detail: info.detail });
 }
 
 /**
@@ -147,16 +145,17 @@ export function apiErrorFromHttp(params: {
   status: number;
   body: unknown;
   endpoint?: string;
-  messages?: ErrorMessageOverrides;
 }): ApiError {
   const code = statusToCode(params.status);
+  const detail = extractDetail(params.body);
+  const endpoint = params.endpoint ?? null;
   return new ApiError({
     status: params.status,
     code,
-    userMessage: userMessageFor(code, params.status, params.messages),
+    userMessage: userMessageFor(code, { endpoint, detail }),
     cause: params.body,
-    detail: extractDetail(params.body),
-    endpoint: params.endpoint ?? null,
+    detail,
+    endpoint,
   });
 }
 
@@ -168,7 +167,7 @@ export function createApiError(
   return new ApiError({
     status: null,
     code,
-    userMessage: options.userMessage ?? DEFAULT_USER_MESSAGES[code],
+    userMessage: options.userMessage ?? messageFor({ code, endpoint: options.endpoint, detail: options.detail }),
     cause: options.cause,
     detail: options.detail ?? null,
     endpoint: options.endpoint ?? null,
@@ -194,20 +193,19 @@ function hasAbortName(error: unknown): boolean {
  */
 export function toApiError(
   error: unknown,
-  options: { fallbackCode?: 'network' | 'unknown'; endpoint?: string; messages?: ErrorMessageOverrides } = {}
+  options: { fallbackCode?: 'network' | 'unknown'; endpoint?: string } = {}
 ): ApiError {
   if (error instanceof ApiError) return error;
   const endpoint = options.endpoint ?? null;
-  const messages = options.messages;
 
   if (hasAbortName(error)) {
-    return new ApiError({ status: null, code: 'aborted', userMessage: userMessageFor('aborted', null, messages), cause: error, endpoint });
+    return new ApiError({ status: null, code: 'aborted', userMessage: userMessageFor('aborted', { endpoint }), cause: error, endpoint });
   }
   if (error instanceof NDJSONParseError) {
     return new ApiError({
       status: null,
       code: 'stream_parse',
-      userMessage: userMessageFor('stream_parse', null, messages),
+      userMessage: userMessageFor('stream_parse', { endpoint }),
       cause: error,
       detail: error.line,
       endpoint,
@@ -217,7 +215,7 @@ export function toApiError(
   return new ApiError({
     status: null,
     code,
-    userMessage: userMessageFor(code, null, messages),
+    userMessage: userMessageFor(code, { endpoint }),
     cause: error,
     detail: error instanceof Error ? error.message : null,
     endpoint,
@@ -229,7 +227,17 @@ export function isAbortError(error: unknown): boolean {
   return error instanceof ApiError ? error.code === 'aborted' : hasAbortName(error);
 }
 
-/** Message to show in the UI: the ApiError `userMessage`, otherwise `fallback`. */
-export function getUserMessage(error: unknown, fallback: string): string {
-  return error instanceof ApiError ? error.userMessage : fallback;
+/**
+ * Message to show in the UI for any thrown value: the ApiError `userMessage`, except for
+ * `unknown` errors and non-ApiError values, which get the fallback of the `context`.
+ * The technical detail is logged to the console (`cause`), never returned.
+ */
+export function toUserMessage(error: unknown, context: ErrorContext): string {
+  if (error instanceof ApiError && error.code !== 'unknown') return error.userMessage;
+  return message(fallbackKeyFor(context));
+}
+
+/** Logs the technical detail of an error shown to the user (`cause` first). */
+export function logError(context: string, error: unknown): void {
+  console.error(context, error instanceof ApiError ? (error.cause ?? error) : error);
 }

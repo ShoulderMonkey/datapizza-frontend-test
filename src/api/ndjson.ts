@@ -1,11 +1,10 @@
 import type { StreamChunk } from './types';
-
-export const NDJSON_PARSE_ERROR_MESSAGE = 'Risposta del server non leggibile. Riprova.';
+import { ERROR_MESSAGES } from './errorMessages';
 
 /** Thrown when a line of the stream is not valid JSON or has no string `type`. */
 export class NDJSONParseError extends Error {
   constructor(public readonly line: string, public readonly cause?: unknown) {
-    super(NDJSON_PARSE_ERROR_MESSAGE);
+    super(ERROR_MESSAGES.stream_malformed);
     this.name = 'NDJSONParseError';
   }
 }

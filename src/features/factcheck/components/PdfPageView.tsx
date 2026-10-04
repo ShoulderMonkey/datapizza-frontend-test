@@ -1,5 +1,6 @@
 'use client';
 
+import { ERROR_MESSAGES } from '@/src/api';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Document, Page } from 'react-pdf';
 import type { CitationReference } from '../types';
@@ -65,7 +66,7 @@ export function PdfPageView({
         onLoadSuccess={(doc) => onNumPages(doc.numPages)}
         onLoadError={(err) => {
           console.error('react-pdf failed to load the document:', err);
-          onLoadError('Impossibile aprire il file PDF.');
+          onLoadError(ERROR_MESSAGES.pdf_render);
         }}
         loading={<div className="p-8 text-sm text-slate-500">Rendering del PDF...</div>}
         error={null}

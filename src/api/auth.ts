@@ -1,5 +1,6 @@
 import { request } from './client';
 import { ApiError, createApiError } from './errors';
+import { ERROR_MESSAGES, message } from './errorMessages';
 import type { LoginRequest, LoginResponse } from './types';
 
 const USER_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -11,25 +12,25 @@ const USER_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
  */
 export const USER_ID_MAX_LENGTH = 100;
 
-export const USER_ID_INVALID_MESSAGE = `User ID non valido: usa solo lettere, numeri, - e _ (max ${USER_ID_MAX_LENGTH} caratteri).`;
+export const USER_ID_INVALID_MESSAGE = ERROR_MESSAGES.login_invalid;
 
 /** Client-side mirror of the backend rule (BE:src/routes/auth.py:13-21), ASCII only. */
 export function validateUserId(userId: string): { isValid: boolean; error?: string } {
   const trimmed = userId.trim();
   if (!trimmed) {
-    return { isValid: false, error: 'Lo user_id è obbligatorio.' };
+    return { isValid: false, error: message('user_id_required') };
   }
   if (trimmed.length > USER_ID_MAX_LENGTH) {
     return {
       isValid: false,
-      error: `Lo user_id non può superare ${USER_ID_MAX_LENGTH} caratteri.`,
+      error: message('user_id_too_long'),
     };
   }
   // Più restrittivo del backend (str.isalnum accetta anche Unicode): solo ASCII.
   if (!USER_ID_REGEX.test(trimmed)) {
     return {
       isValid: false,
-      error: 'Lo user_id può contenere solo lettere (a-z), numeri, trattini (-) e underscore (_).',
+      error: message('user_id_charset'),
     };
   }
   return { isValid: true };
@@ -39,7 +40,7 @@ export const authService = {
   /**
    * POST /api/auth/login: the backend sets the `user_id` cookie (HttpOnly, SameSite=lax).
    * Throws ApiError: `client_validation` for an invalid id, `validation` (422) mapped to
-   * USER_ID_INVALID_MESSAGE, or any other ApiError of the client.
+   * the `login_invalid` message, or any other ApiError of the client.
    */
   async login(userId: string): Promise<LoginResponse> {
     const validation = validateUserId(userId);
@@ -53,7 +54,6 @@ export const authService = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        errorMessages: { validation: USER_ID_INVALID_MESSAGE },
       });
     } catch (err: unknown) {
       if (err instanceof ApiError && err.code === 'validation') {

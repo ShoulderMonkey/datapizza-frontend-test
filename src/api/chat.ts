@@ -24,7 +24,6 @@ export const chatService = {
     const data = await request<unknown>(`${CHAT_ENDPOINT}${encodeURIComponent(chatId)}`, {
       method: 'GET',
       signal,
-      errorMessages: { not_found: 'La conversazione richiesta non esiste più.' },
     });
     return toTranscript(asChatRecord(data));
   },
@@ -51,10 +50,6 @@ export const chatService = {
       },
       body: JSON.stringify(body),
       signal,
-      errorMessages: {
-        // BE:src/routes/chat.py:228-236
-        bad_request: 'La domanda è vuota o supera i 10000 caratteri consentiti.',
-      },
     });
 
     try {

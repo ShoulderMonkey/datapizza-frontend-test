@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { documentService, getUserMessage, isAbortError } from '@/src/api';
+import { documentService, isAbortError, logError, toUserMessage } from '@/src/api';
 import type { AsyncStatus } from '../types';
 
-const PDF_FALLBACK_MESSAGE = 'Impossibile caricare il file PDF dal server.';
 
 interface PdfDocumentState {
   status: AsyncStatus;
@@ -48,8 +47,8 @@ export function usePdfDocument(documentId: string, filename: string) {
         setState((prev) => ({ ...prev, status: 'success', file: blob, blobUrl }));
       } catch (err: unknown) {
         if (isCancelled || isAbortError(err)) return;
-        console.error('Failed to load PDF in fact-check viewer:', err);
-        setState((prev) => ({ ...prev, status: 'error', error: getUserMessage(err, PDF_FALLBACK_MESSAGE) }));
+        logError('Failed to load PDF in fact-check viewer:', err);
+        setState((prev) => ({ ...prev, status: 'error', error: toUserMessage(err, 'pdf') }));
       }
     }
 

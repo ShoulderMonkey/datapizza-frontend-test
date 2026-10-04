@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T017, P1-04)
+- `src/api/errorMessages.ts`: mappa unica `ERROR_MESSAGES` (codice → messaggio in italiano), `messageKeyFor`, `extractRejectedFilename`; `toUserMessage` e `logError` in `src/api/errors.ts`.
+- Test: `tests/unit/errorMessages.test.ts`, `tests/integration/error-messages-ui.test.tsx`, aggiornato `tests/unit/api-errors.test.ts`; e2e `e2e/upload-errors.spec.ts` (upload di un PDF non ammesso).
+
+### Changed (T017, P1-04)
+- Query vuota e query troppo lunga hanno messaggi distinti; l'errore HTTP generico non mostra più lo status code.
+- Gli errori di lista documenti, storico e dettaglio chat sono loggati in console (`cause`).
+
+### Removed (T017, P1-04)
+- Costanti sparse dei messaggi e override `errorMessages` (`client.ts`, `errors.ts`, `index.ts`).
+
 ### Added (T016, P1-03)
 - `src/features/chat/lib/chatStreamReducer.ts`: reducer puro con azioni tipizzate (`start`, `delta`, `citations`, `error`, `abort`, `done`, `reset`).
 - ADR 0003 (`docs/adr/0003-invio-durante-stream.md`): invio disabilitato durante lo stream.

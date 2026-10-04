@@ -9,15 +9,24 @@ export {
   apiErrorFromHttp,
   createApiError,
   extractDetail,
-  getUserMessage,
+  logError,
+  toUserMessage,
   isAbortError,
   statusToCode,
   toApiError,
   type ApiErrorCode,
   type ApiErrorInit,
-  type ErrorMessageOverrides,
 } from './errors';
-export { NDJSONParseError, NDJSON_PARSE_ERROR_MESSAGE, parseNDJSONStream } from './ndjson';
+export {
+  ERROR_MESSAGES,
+  extractRejectedFilename,
+  message,
+  messageFor,
+  messageKeyFor,
+  type ErrorContext,
+  type ErrorMessageKey,
+} from './errorMessages';
+export { NDJSONParseError, parseNDJSONStream } from './ndjson';
 export { authService, validateUserId, USER_ID_MAX_LENGTH, USER_ID_INVALID_MESSAGE } from './auth';
 export { documentService, isPdfFile } from './documents';
 export { chatService } from './chat';

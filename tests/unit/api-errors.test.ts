@@ -4,6 +4,7 @@ import { server } from '@/src/mocks/server';
 import { loginValidationErrorBody } from '@/src/mocks/handlers';
 import {
   ApiError,
+  ERROR_MESSAGES,
   NDJSONParseError,
   USER_ID_INVALID_MESSAGE,
   apiErrorFromHttp,
@@ -63,9 +64,11 @@ describe('apiErrorFromHttp', () => {
     expect(err.cause).toBe(body);
     expect(err.userMessage).toMatch(/richiesta/i);
   });
-  it('uses a status-specific message for unmapped codes and honours overrides', () => {
-    expect(apiErrorFromHttp({ status: 418, body: null }).userMessage).toContain('418');
-    expect(apiErrorFromHttp({ status: 401, body: null, messages: { unauthorized: 'custom' } }).userMessage).toBe('custom');
+  it('uses the generic http message (no numeric status) for unmapped codes, and the map text for 401', () => {
+    const teapot = apiErrorFromHttp({ status: 418, body: null }).userMessage;
+    expect(teapot).toBe(ERROR_MESSAGES.http);
+    expect(teapot).not.toMatch(/\d/);
+    expect(apiErrorFromHttp({ status: 401, body: null }).userMessage).toBe(ERROR_MESSAGES.unauthorized);
   });
 });
 
@@ -115,15 +118,14 @@ describe('request() error normalization', () => {
     expect(err.cause).toEqual(body);
   });
 
-  it('422 with detail[] -> validation, msg extracted, override message used', async () => {
+  it('422 login with detail[] -> validation, msg extracted, login_invalid message from the map', async () => {
     const body = loginValidationErrorBody('bad id!');
-    server.use(http.post('*/api/chat/', () => HttpResponse.json(body, { status: 422 })));
-    const err = (await catchError(() =>
-      request('/api/chat/', { method: 'POST', errorMessages: { validation: USER_ID_INVALID_MESSAGE } })
-    )) as ApiError;
+    server.use(http.post('*/api/auth/login', () => HttpResponse.json(body, { status: 422 })));
+    const err = (await catchError(() => request('/api/auth/login', { method: 'POST' }))) as ApiError;
     expect(err.status).toBe(422);
     expect(err.code).toBe('validation');
     expect(err.detail).toBe(body.detail[0].msg);
+    expect(err.userMessage).toBe(ERROR_MESSAGES.login_invalid);
     expect(err.userMessage).toBe(USER_ID_INVALID_MESSAGE);
   });
 

@@ -1,6 +1,7 @@
 import { request, requestRaw } from './client';
 import { fetchAllPages } from './pagination';
 import { createApiError } from './errors';
+import { message } from './errorMessages';
 import type { Document, UploadResponse } from './types';
 
 export function isPdfFile(file: File): boolean {
@@ -17,14 +18,14 @@ export const documentService = {
   async uploadDocuments(files: File[]): Promise<UploadResponse> {
     if (!files || files.length === 0) {
       throw createApiError('client_validation', {
-        userMessage: 'Nessun file selezionato per il caricamento.',
+        userMessage: message('upload_no_file'),
         endpoint: '/api/documents/',
       });
     }
     for (const file of files) {
       if (!isPdfFile(file)) {
         throw createApiError('client_validation', {
-          userMessage: `Il file "${file.name}" non è un documento PDF valido.`,
+          userMessage: message('upload_not_pdf', { filename: file.name }),
           endpoint: '/api/documents/',
         });
       }
@@ -38,11 +39,6 @@ export const documentService = {
     return request<UploadResponse>('/api/documents/', {
       method: 'POST',
       body: formData,
-      errorMessages: {
-        // BE:src/routes/documents.py:54-57: only the provided test documents are accepted.
-        bad_request: 'Uno o più file non sono tra i documenti di test riconosciuti dal backend.',
-        validation: 'Il backend non ha ricevuto alcun file. Seleziona almeno un PDF.',
-      },
     });
   },
 
@@ -51,7 +47,6 @@ export const documentService = {
     const response = await requestRaw(documentService.getDocumentFileUrl(documentId), {
       method: 'GET',
       signal,
-      errorMessages: { not_found: 'Il file PDF richiesto non è disponibile sul server.' },
     });
     return response.blob();
   },

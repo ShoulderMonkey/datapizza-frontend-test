@@ -1,4 +1,5 @@
-import { apiErrorFromHttp, createApiError, toApiError, type ErrorMessageOverrides } from './errors';
+import { ERROR_MESSAGES } from './errorMessages';
+import { apiErrorFromHttp, createApiError, toApiError } from './errors';
 
 /**
  * Typed HTTP client: the only place in the app that calls `fetch`
@@ -11,10 +12,7 @@ import { apiErrorFromHttp, createApiError, toApiError, type ErrorMessageOverride
  * Every failure is thrown as an `ApiError` (src/api/errors.ts).
  */
 
-export interface RequestOptions extends Omit<RequestInit, 'credentials'> {
-  /** Per-call user messages, keyed by ApiErrorCode (e.g. `{ validation: '...' }`). */
-  errorMessages?: ErrorMessageOverrides;
-}
+export type RequestOptions = Omit<RequestInit, 'credentials'>;
 
 export function toApiUrl(endpoint: string): string {
   return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -39,7 +37,7 @@ async function readBody(response: Response): Promise<unknown> {
  * Throws ApiError: `network` if fetch rejects, `aborted` on abort, HTTP codes for non-2xx.
  */
 async function send(endpoint: string, options: RequestOptions, defaultAccept: string): Promise<Response> {
-  const { errorMessages, ...init } = options;
+  const init = options;
   const headers = new Headers(init.headers ?? {});
   if (!headers.has('Accept')) headers.set('Accept', defaultAccept);
 
@@ -51,12 +49,12 @@ async function send(endpoint: string, options: RequestOptions, defaultAccept: st
       credentials: 'same-origin',
     });
   } catch (err: unknown) {
-    throw toApiError(err, { fallbackCode: 'network', endpoint, messages: errorMessages });
+    throw toApiError(err, { fallbackCode: 'network', endpoint });
   }
 
   if (!response.ok) {
     const body = await readBody(response);
-    throw apiErrorFromHttp({ status: response.status, body, endpoint, messages: errorMessages });
+    throw apiErrorFromHttp({ status: response.status, body, endpoint });
   }
   return response;
 }
@@ -72,9 +70,9 @@ export async function request<T = unknown>(endpoint: string, options: RequestOpt
     return (await response.text()) as unknown as T;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {
-      throw createApiError('invalid_response', { cause: err, endpoint, userMessage: options.errorMessages?.invalid_response });
+      throw createApiError('invalid_response', { cause: err, endpoint });
     }
-    throw toApiError(err, { fallbackCode: 'network', endpoint, messages: options.errorMessages });
+    throw toApiError(err, { fallbackCode: 'network', endpoint });
   }
 }
 
@@ -93,10 +91,7 @@ export async function requestStream(
 ): Promise<ReadableStream<Uint8Array>> {
   const response = await requestRaw(endpoint, options);
   if (!response.body) {
-    throw createApiError('invalid_response', {
-      endpoint,
-      userMessage: 'Il server non ha restituito un flusso di risposta.',
-    });
+    throw createApiError('invalid_response', { endpoint, userMessage: ERROR_MESSAGES.stream_no_body });
   }
   return response.body;
 }

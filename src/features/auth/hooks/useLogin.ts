@@ -1,11 +1,10 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { authService, getUserMessage, validateUserId } from '@/src/api';
+import { ERROR_MESSAGES, authService, logError, toUserMessage, validateUserId } from '@/src/api';
 import type { AsyncStatus } from '../types';
 import { storeUserId } from '../lib/session-storage';
 
-const LOGIN_FALLBACK_MESSAGE = 'Impossibile completare il login. Verifica la connessione al backend.';
 
 /**
  * Orchestrates the login: client validation, POST /api/auth/login, local persistence.
@@ -26,7 +25,7 @@ export function useLogin(onSuccess: (userId: string) => void) {
       clearErrors();
       const check = validateUserId(rawUserId);
       if (!check.isValid) {
-        setValidationError(check.error || 'User ID non valido.');
+        setValidationError(check.error || ERROR_MESSAGES.client_validation);
         return;
       }
 
@@ -38,8 +37,8 @@ export function useLogin(onSuccess: (userId: string) => void) {
         setStatus('success');
         onSuccess(userId);
       } catch (err: unknown) {
-        console.error('Login failed:', err);
-        setServerError(getUserMessage(err, LOGIN_FALLBACK_MESSAGE));
+        logError('Login failed:', err);
+        setServerError(toUserMessage(err, 'login'));
         setStatus('error');
       }
     },

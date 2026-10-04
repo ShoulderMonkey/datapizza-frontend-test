@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { chatService, getUserMessage } from '@/src/api';
+import { chatService, logError, toUserMessage } from '@/src/api';
 import { queryKeys } from '../../queryKeys';
 import type { ChatRecord } from '../types';
 
-const LIST_FALLBACK_MESSAGE = 'Non è stato possibile caricare la cronologia.';
 
 /** Newest first. Pure: returns a copy, the cached array is never mutated. */
 export function sortChatsByCreatedAtDesc(chats: ChatRecord[]): ChatRecord[] {
@@ -22,6 +21,12 @@ export function useChatList() {
   });
 
   const { refetch } = query;
+
+  // Technical detail to the console only; the UI gets the mapped message.
+  const failure = query.isError ? query.error : null;
+  useEffect(() => {
+    if (failure) logError('Failed to load the chat history:', failure);
+  }, [failure]);
   const refresh = useCallback(async () => {
     await refetch();
   }, [refetch]);
@@ -30,7 +35,7 @@ export function useChatList() {
     chats: query.data ?? [],
     isLoading: query.isFetching && query.data === undefined,
     isRefreshing: query.isFetching,
-    error: query.isError ? getUserMessage(query.error, LIST_FALLBACK_MESSAGE) : null,
+    error: query.isError ? toUserMessage(query.error, 'chat_list') : null,
     refresh,
   };
 }

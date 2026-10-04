@@ -183,11 +183,11 @@
 - Dipendenze: P1-01
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Una sola mappa `codice → messaggio` in italiano per: rete irraggiungibile, 401, 404 chat, 422 login, 400 upload "not recognized" (con il nome del file estratto), 422 upload senza file, 400 query vuota/troppo lunga, chunk `error`, riga malformata, abort.
-  - [ ] Test unit per ogni voce della mappa. Nessun messaggio mostrato contiene uno status code numerico, `detail`, uno stack o l'URL del backend.
-  - [ ] e2e: upload di un PDF non ammesso → messaggio "«nome.pdf» non è uno dei documenti di test" (o equivalente) visibile, e la lista documenti non cambia.
-  - [ ] Il dettaglio tecnico va solo in `console` (`cause`).
-- Stato: todo
+  - [x] Una sola mappa `codice → messaggio` in italiano per: rete irraggiungibile, 401, 404 chat, 422 login, 400 upload "not recognized" (con il nome del file estratto), 422 upload senza file, 400 query vuota/troppo lunga, chunk `error`, riga malformata, abort. Evidenza: `ERROR_MESSAGES` in `src/api/errorMessages.ts:15`, `messageKeyFor` (`:121`), `extractRejectedFilename` (`:104`); override `errorMessages` rimosso da `client.ts`, `errors.ts`, `index.ts`.
+  - [x] Test unit per ogni voce della mappa. Nessun messaggio mostrato contiene uno status code numerico, `detail`, uno stack o l'URL del backend. Evidenza: `tests/unit/errorMessages.test.ts` (test "covers every key" e no-leak su tutti i valori), `tests/unit/api-errors.test.ts`, `tests/integration/error-messages-ui.test.tsx`; `npm run test` exit 0 (25 file, 197 test). Eccezione esplicita: il numero 100 (limite `user_id`) in `login_invalid` e `user_id_too_long`.
+  - [x] e2e: upload di un PDF non ammesso → messaggio "«nome.pdf» non è uno dei documenti di test" (o equivalente) visibile, e la lista documenti non cambia. Evidenza: `e2e/upload-errors.spec.ts:9` (`npm run e2e`: 5 passed).
+  - [x] Il dettaglio tecnico va solo in `console` (`cause`). Evidenza: `logError` in `src/api/errors.ts:241`; `tests/integration/error-messages-ui.test.tsx` verifica che `console.error` riceva la cause.
+- Stato: done (T017)
 
 ### P1-05 — Sessione coerente con il cookie e gestione del 401
 - Criterio della specifica: "Funzionalità minime › 1. gestione del cookie lato browser"; "Utilizzo del backend › autenticazione via cookie".

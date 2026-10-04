@@ -1,5 +1,6 @@
 'use client';
 
+import { ERROR_MESSAGES } from '@/src/api';
 import React, { useState } from 'react';
 import { useDocuments } from '../hooks/useDocuments';
 import { DocumentUploadDropzone } from './DocumentUploadDropzone';
@@ -114,7 +115,7 @@ export function DocumentListModal({
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="font-semibold text-red-900">Impossibile recuperare i documenti</p>
+                    <p className="font-semibold text-red-900">{ERROR_MESSAGES.document_list_title}</p>
                     <p className="mt-0.5">{error}</p>
                     <button
                       onClick={refreshDocuments}
