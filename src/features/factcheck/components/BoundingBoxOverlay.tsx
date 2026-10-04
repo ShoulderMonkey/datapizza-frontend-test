@@ -1,26 +1,25 @@
 'use client';
 
 import React from 'react';
-import type { CitationReference, CoordinateOrigin } from '../types';
-import { inchRectToPercent } from '../lib/coordinates';
+import type { CitationReference } from '../types';
+import { inchesRectToPx } from '../lib/coordinates';
 
 interface BoundingBoxOverlayProps {
   pageNumber: number;
   pageWidthPt: number;
-  pageHeightPt: number;
+  /** Width of the rendered page in CSS px (page width in pt x zoom scale). */
+  renderedWidthPx: number;
   citations: CitationReference[];
   activeCitation?: CitationReference | null;
-  origin?: CoordinateOrigin;
   onSelectCitation?: (citation: CitationReference) => void;
 }
 
 export function BoundingBoxOverlay({
   pageNumber,
   pageWidthPt,
-  pageHeightPt,
+  renderedWidthPx,
   citations,
   activeCitation,
-  origin = 'top-left',
   onSelectCitation,
 }: BoundingBoxOverlayProps) {
   // Collect all bounding regions for this specific page
@@ -72,22 +71,19 @@ export function BoundingBoxOverlay({
       data-testid="bounding-box-overlay"
     >
       {pageRegions.map((item, index) => {
-        const percent = inchRectToPercent(
-          item.rectInches,
-          pageWidthPt,
-          pageHeightPt,
-          origin
-        );
+        const px = inchesRectToPx(item.rectInches, pageWidthPt, renderedWidthPx);
 
         return (
           <div
             key={`bbox-${pageNumber}-${index}`}
             style={{
-              left: `${percent.left}%`,
-              top: `${percent.top}%`,
-              width: `${percent.width}%`,
-              height: `${percent.height}%`,
+              left: px.left,
+              top: px.top,
+              width: px.width,
+              height: px.height,
             }}
+            data-testid="bbox"
+            data-active={item.isActive ? 'true' : 'false'}
             onClick={(e) => {
               e.stopPropagation();
               onSelectCitation?.(item.citation);

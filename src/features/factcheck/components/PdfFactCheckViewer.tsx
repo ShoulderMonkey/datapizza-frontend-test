@@ -1,9 +1,16 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import type { CitationReference, CoordinateOrigin } from '../types';
+import React, { useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+import type { CitationReference } from '../types';
 import { usePdfDocument } from '../hooks/usePdfDocument';
-import { BoundingBoxOverlay } from './BoundingBoxOverlay';
+import { getFirstRegionPage, getPagesWithRegions } from '../lib/regions';
+
+// react-pdf touches browser-only APIs (DOMMatrix, workers): load it client-side only.
+const PdfPageView = dynamic(() => import('./PdfPageView').then((m) => m.PdfPageView), {
+  ssr: false,
+  loading: () => <p className="m-auto text-sm text-slate-400">Caricamento del motore PDF...</p>,
+});
 import {
   ZoomIn,
   ZoomOut,
@@ -15,7 +22,6 @@ import {
   FileText,
   X,
   ExternalLink,
-  Sliders,
   List,
 } from 'lucide-react';
 
@@ -38,99 +44,38 @@ export function PdfFactCheckViewer({
   onClose,
   onSelectCitation,
 }: PdfFactCheckViewerProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // PDF document loading (download + pdf.js) lives in the hook.
-  const {
-    pdfDoc,
-    numPages,
-    isLoading,
-    loadingMessage,
-    error,
-    blobUrl: pdfBlobUrl,
-  } = usePdfDocument(documentId, filename);
+  // PDF download lives in the hook; parsing/rendering in react-pdf (PdfPageView).
+  const { file, isLoading, loadingMessage, error: downloadError, blobUrl: pdfBlobUrl } =
+    usePdfDocument(documentId, filename);
 
-  // Page state
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [pageWidthPt, setPageWidthPt] = useState<number>(612); // default 8.5" * 72
-  const [pageHeightPt, setPageHeightPt] = useState<number>(792); // default 11" * 72
-  const [pageDimensionsPx, setPageDimensionsPx] = useState<{ width: number; height: number }>({
-    width: 612,
-    height: 792,
-  });
+  const [numPages, setNumPages] = useState<number>(0);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const error = downloadError ?? renderError;
+
+  // Page state: with an active citation, start from its first bounding region.
+  const [currentPage, setCurrentPage] = useState<number>(
+    getFirstRegionPage(activeCitation) ?? initialPage
+  );
+  const [pageWidthPt, setPageWidthPt] = useState<number>(612);
 
   // Controls & Display state
   const [scale, setScale] = useState<number>(1.2);
-  const [origin, setOrigin] = useState<CoordinateOrigin>('top-left');
   const [showCitationList, setShowCitationList] = useState<boolean>(true);
-  const [showSettings, setShowSettings] = useState<boolean>(false);
 
-  // Sync initial page if prop changes using standard React render-time adjustment
-  const [prevInitialPage, setPrevInitialPage] = useState<number>(initialPage);
-  if (initialPage !== prevInitialPage) {
-    setPrevInitialPage(initialPage);
-    setCurrentPage(initialPage);
+  // Re-sync the page when the target page or the active citation changes (render-time adjustment).
+  const syncKey = `${initialPage}|${activeCitation?.document_id}|${activeCitation?.page_number}|${activeCitation?.text_quote}`;
+  const [prevSyncKey, setPrevSyncKey] = useState<string>(syncKey);
+  if (syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
+    setCurrentPage(getFirstRegionPage(activeCitation) ?? initialPage);
   }
 
-  // Render Page onto Canvas inside effect with cancellation tracking
-  useEffect(() => {
-    if (!pdfDoc || currentPage <= 0 || numPages <= 0) return;
-    let isCancelled = false;
-
-    async function drawPage() {
-      if (!canvasRef.current) return;
-
-      try {
-        if (!pdfDoc) return;
-        const page = await pdfDoc.getPage(currentPage);
-        if (isCancelled) return;
-
-        // Get unscaled viewport to determine original page points (DPI 72)
-        const unscaledViewport = page.getViewport({ scale: 1 });
-        setPageWidthPt(unscaledViewport.width);
-        setPageHeightPt(unscaledViewport.height);
-
-        // Render viewport with user zoom scale
-        const viewport = page.getViewport({ scale });
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const context = canvas.getContext('2d');
-        if (!context) return;
-
-        const outputScale = window.devicePixelRatio || 1;
-        canvas.width = Math.floor(viewport.width * outputScale);
-        canvas.height = Math.floor(viewport.height * outputScale);
-        canvas.style.width = `${Math.floor(viewport.width)}px`;
-        canvas.style.height = `${Math.floor(viewport.height)}px`;
-
-        setPageDimensionsPx({
-          width: Math.floor(viewport.width),
-          height: Math.floor(viewport.height),
-        });
-
-        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
-
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport,
-          transform: transform,
-        };
-
-        await page.render(renderContext).promise;
-      } catch (err) {
-        if (!isCancelled) {
-          console.warn('Page render was interrupted or failed:', err);
-        }
-      }
-    }
-
-    drawPage();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [pdfDoc, currentPage, scale, numPages]);
+  // Pages that have highlighted regions: those of the active citation, else of all citations.
+  const regionPages = getPagesWithRegions(
+    activeCitation && (activeCitation.bounding_regions?.length ?? 0) > 0 ? [activeCitation] : citations
+  );
 
   // Navigation handlers
   const handlePrevPage = () => {
@@ -268,19 +213,6 @@ export function PdfFactCheckViewer({
             <span className="hidden sm:inline">Citazioni ({citations.length})</span>
           </button>
 
-          {/* Settings / Origin toggle */}
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-              showSettings
-                ? 'bg-slate-700 border-slate-600 text-white'
-                : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-            }`}
-            title="Impostazioni visualizzazione coordinate"
-          >
-            <Sliders className="w-4 h-4" />
-          </button>
-
           {/* Raw PDF link */}
           {pdfBlobUrl && (
             <a
@@ -305,24 +237,29 @@ export function PdfFactCheckViewer({
         </div>
       </div>
 
-      {/* Coordinate Settings Dropdown */}
-      {showSettings && (
-        <div className="bg-slate-900 border-b border-slate-800 px-6 py-2.5 text-xs text-slate-300 flex flex-wrap items-center gap-4 animate-in slide-in-from-top-1 duration-150">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-400">Origine coordinate bounding box:</span>
-            <select
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value as CoordinateOrigin)}
-              className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white text-xs cursor-pointer"
+      {/* Pages with highlighted regions */}
+      {regionPages.length > 0 && (
+        <nav
+          aria-label="Pagine con regioni"
+          className="bg-slate-900 border-b border-slate-800 px-6 py-2 text-xs text-slate-300 flex flex-wrap items-center gap-2"
+        >
+          <span className="font-medium text-slate-400">Pagine con regioni:</span>
+          {regionPages.map((page) => (
+            <button
+              key={page}
+              type="button"
+              onClick={() => setCurrentPage(page)}
+              aria-current={page === currentPage ? 'page' : undefined}
+              className={`px-2 py-0.5 rounded border cursor-pointer transition-colors ${
+                page === currentPage
+                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                  : 'bg-slate-800 border-slate-700 hover:bg-slate-700'
+              }`}
             >
-              <option value="top-left">In alto a sinistra (Top-Left, standard OCR/Azure)</option>
-              <option value="bottom-left">In basso a sinistra (Bottom-Left, standard PDF nativo)</option>
-            </select>
-          </div>
-          <div className="text-slate-400">
-            DPI: <span className="font-mono text-slate-200">72 pt/pollice</span> • Dimensioni pagina: {pageWidthPt.toFixed(0)} × {pageHeightPt.toFixed(0)} pt ({(pageWidthPt / 72).toFixed(1)}&quot; × {(pageHeightPt / 72).toFixed(1)}&quot;)
-          </div>
-        </div>
+              Pag. {page}
+            </button>
+          ))}
+        </nav>
       )}
 
       {/* Main Content Area */}
@@ -385,28 +322,18 @@ export function PdfFactCheckViewer({
             </div>
           )}
 
-          {!isLoading && !error && (
-            <div
-              className="relative shadow-2xl rounded bg-white transition-all duration-150 my-auto"
-              style={{
-                width: `${pageDimensionsPx.width}px`,
-                height: `${pageDimensionsPx.height}px`,
-              }}
-            >
-              {/* PDF Canvas */}
-              <canvas ref={canvasRef} className="block rounded" />
-
-              {/* Interactive Bounding Box Highlight Overlay */}
-              <BoundingBoxOverlay
-                pageNumber={currentPage}
-                pageWidthPt={pageWidthPt}
-                pageHeightPt={pageHeightPt}
-                citations={citations}
-                activeCitation={activeCitation}
-                origin={origin}
-                onSelectCitation={onSelectCitation}
-              />
-            </div>
+          {!isLoading && !error && file && (
+            <PdfPageView
+              file={file}
+              pageNumber={currentPage}
+              scale={scale}
+              citations={citations}
+              activeCitation={activeCitation}
+              onSelectCitation={onSelectCitation}
+              onNumPages={setNumPages}
+              onPageWidthPt={setPageWidthPt}
+              onLoadError={setRenderError}
+            />
           )}
         </div>
 
@@ -455,7 +382,7 @@ export function PdfFactCheckViewer({
                     <div
                       key={`cit-list-${index}`}
                       onClick={() => {
-                        setCurrentPage(citation.page_number);
+                        setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);
                         onSelectCitation?.(citation);
                       }}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${

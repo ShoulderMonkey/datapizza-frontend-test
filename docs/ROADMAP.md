@@ -19,7 +19,7 @@
 | 3. Interruzione pulita | ✅ | `components/chat/ChatWorkspace.tsx:114-127` | — |
 | 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx` | — |
-| 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker CDN `src/features/factcheck/hooks/usePdfDocument.ts:58`; niente scroll alla regione | P1-08, P1-09 |
+| 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker locale (`lib/pdfWorker.ts`) e scroll alla regione (`PdfPageView.tsx:50`) risolti da P1-08 (T015) | P1-09 |
 | 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF a schermo intero | P1-04, P1-06, P1-09, P1-10 |
@@ -120,7 +120,7 @@
   - [x] `docker build -t docfact-frontend .` termina con exit 0. Build multi-stage `node:22-alpine` con `npm ci` e output `standalone`, eseguito come utente non root. → evidenza: `.claude/reports/T010/01-build.log`, `.claude/reports/T010/01-id.txt` (uid=1001(nextjs))
   - [x] `BACKEND_URL` è passato come build arg o env (i `rewrites` sono valutati a build time) e documentato. → evidenza: `Dockerfile` (ARG + ENV nello stage builder) e sezione README "Running with Docker"
   - [x] `docker-compose.yml` avvia frontend e backend (`build: ../test-tecnico-frontend-engineer/backend`, percorso documentato). Con `docker compose up`, curl su localhost:3000 = 200 e POST /api/auth/login = 200. → evidenza: `.claude/reports/T010/03-curl.txt`, percorso documentato nel README
-  - [x] Nessuna risorsa caricata da CDN a runtime (dipende da P1-08 per PDF.js; fino ad allora è un limite dichiarato nel README). → limite dichiarato nel README "Known Limitations"; risoluzione in P1-08
+  - [x] Nessuna risorsa caricata da CDN a runtime (dipende da P1-08 per PDF.js; fino ad allora è un limite dichiarato nel README). → limite dichiarato nel README "Known Limitations"; risolto in P1-08 (T015): worker pdf.js servito localmente, nessuna richiesta CDN (e2e/pdf-viewer.spec.ts)
 - Stato: done (T010)
 
 ### P0-08 — README accurato con decisioni, trade-off e limiti
@@ -232,12 +232,13 @@
 - Dipendenze: P1-01
 - Stima: M
 - Criteri di accettazione:
-  - [ ] Rendering con `react-pdf` e worker servito localmente. e2e: nessuna richiesta di rete verso `cdnjs.cloudflare.com` o `cdn.jsdelivr.net` durante l'apertura di un PDF.
-  - [ ] Funzione pura `inchesRectToPx(rect, pageWidthPt, renderedWidthPx)` (pollici × 72 = pt; pt × renderedWidthPx / pageWidthPt = px). Test unit: `[1,1,2,0.5]` su una pagina di 612 pt renderizzata a 612 px → `{left:72, top:72, width:144, height:36}`; con 1224 px tutti i valori raddoppiano.
-  - [ ] Il selettore di origine `top-left`/`bottom-left` è rimosso; l'origine è documentata (`BE:tests/bbox_visualization.py:48`).
-  - [ ] e2e: apertura di una citazione → la pagina mostrata è uguale a `bounding_regions[0].page_number`, ed esiste almeno un elemento `[data-testid="bbox"]` visibile nel viewport (scroll automatico alla prima regione).
-  - [ ] Una citazione con regioni su più pagine mostra l'elenco delle pagine con regioni e la navigazione tra di esse (test integration con una fixture a 2 pagine).
-- Stato: todo
+  - [x] Rendering con `react-pdf` e worker servito localmente. e2e: nessuna richiesta di rete verso `cdnjs.cloudflare.com` o `cdn.jsdelivr.net` durante l'apertura di un PDF.
+  - [x] Funzione pura `inchesRectToPx(rect, pageWidthPt, renderedWidthPx)` (pollici × 72 = pt; pt × renderedWidthPx / pageWidthPt = px). Test unit: `[1,1,2,0.5]` su una pagina di 612 pt renderizzata a 612 px → `{left:72, top:72, width:144, height:36}`; con 1224 px tutti i valori raddoppiano.
+  - [x] Il selettore di origine `top-left`/`bottom-left` è rimosso; l'origine è documentata (`BE:tests/bbox_visualization.py:48`).
+  - [x] e2e: apertura di una citazione → la pagina mostrata è uguale a `bounding_regions[0].page_number`, ed esiste almeno un elemento `[data-testid="bbox"]` visibile nel viewport (scroll automatico alla prima regione).
+  - [x] Una citazione con regioni su più pagine mostra l'elenco delle pagine con regioni e la navigazione tra di esse (test integration con una fixture a 2 pagine).
+- Nota (T015): `package.json:25` `react-pdf ^11.0.0`; worker locale in `src/features/factcheck/lib/pdfWorker.ts:5`; `inchesRectToPx` in `coordinates.ts:26` (`tests/unit/coordinates.test.ts`); `data-testid="bbox"` in `BoundingBoxOverlay.tsx:85`; scroll alla regione in `PdfPageView.tsx:50`; navigazione "Pagine con regioni" in `PdfFactCheckViewer.tsx:243` (`tests/integration/PdfFactCheckViewer.pages.test.tsx:31`); e2e `e2e/pdf-viewer.spec.ts` (`npm run e2e` exit 0, 4 passed).
+- Stato: done (T015)
 
 ### P1-09 — Layout affiancato conversazione + fact-checking
 - Criterio della specifica: "UX › Layout efficace per mostrare conversazione, documenti correlati, fact-checking/bounding box".

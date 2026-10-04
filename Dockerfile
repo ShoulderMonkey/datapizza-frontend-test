@@ -4,7 +4,9 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# The lockfile is generated locally with npm 11.6.2; the npm 10 bundled in
+# node:22 considers it out of sync (missing @emnapi/*), so align the version.
+RUN npm install -g npm@11.6.2 && npm ci
 
 # ---- builder: next build (output: 'standalone') ----
 FROM node:22-alpine AS builder

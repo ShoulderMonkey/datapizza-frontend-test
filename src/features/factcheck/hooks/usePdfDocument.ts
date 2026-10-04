@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { documentService, getUserMessage, isAbortError } from '@/src/api';
-import type { AsyncStatus, PdfDocumentLike } from '../types';
+import type { AsyncStatus } from '../types';
 
 const PDF_FALLBACK_MESSAGE = 'Impossibile caricare il file PDF dal server.';
 
@@ -10,8 +10,8 @@ interface PdfDocumentState {
   status: AsyncStatus;
   loadingMessage: string;
   error: string | null;
-  pdfDoc: PdfDocumentLike | null;
-  numPages: number;
+  /** Downloaded PDF, handed to react-pdf (which owns the pdf.js worker). */
+  file: Blob | null;
   /** Object URL of the downloaded file (open/download in a new tab). */
   blobUrl: string | null;
 }
@@ -20,13 +20,12 @@ const INITIAL_STATE: PdfDocumentState = {
   status: 'loading',
   loadingMessage: 'Caricamento del documento...',
   error: null,
-  pdfDoc: null,
-  numPages: 0,
+  file: null,
   blobUrl: null,
 };
 
 /**
- * Downloads GET /api/documents/{id}/file and opens it with pdf.js.
+ * Downloads GET /api/documents/{id}/file. Parsing and rendering are done by react-pdf.
  * The download is aborted and the object URL revoked when the document changes or on unmount.
  */
 export function usePdfDocument(documentId: string, filename: string) {
@@ -46,28 +45,7 @@ export function usePdfDocument(documentId: string, filename: string) {
 
         createdUrl = URL.createObjectURL(blob);
         const blobUrl = createdUrl;
-        setState((prev) => ({ ...prev, blobUrl }));
-        const arrayBuffer = await blob.arrayBuffer();
-        if (isCancelled) return;
-
-        setState((prev) => ({ ...prev, loadingMessage: 'Inizializzazione motore PDF.js...' }));
-        const pdfjsLib = await import('pdfjs-dist');
-
-        // Configure worker
-        if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-        }
-
-        const loadingTask = pdfjsLib.getDocument({
-          data: new Uint8Array(arrayBuffer),
-          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
-          cMapPacked: true,
-        });
-
-        const doc: PdfDocumentLike = await loadingTask.promise;
-        if (isCancelled) return;
-
-        setState((prev) => ({ ...prev, status: 'success', pdfDoc: doc, numPages: doc.numPages }));
+        setState((prev) => ({ ...prev, status: 'success', file: blob, blobUrl }));
       } catch (err: unknown) {
         if (isCancelled || isAbortError(err)) return;
         console.error('Failed to load PDF in fact-check viewer:', err);

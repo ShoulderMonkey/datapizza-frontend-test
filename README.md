@@ -119,6 +119,7 @@ The application will be accessible at `http://localhost:3000`.
   docker build --build-arg BACKEND_URL=http://custom-backend:8000 -t docfact-frontend .
   ```
 - Backend port 8000 is **intentionally not published** to the host in `docker-compose.yml`, avoiding clashes with locally running backends. The frontend communicates with the backend over the internal Docker Compose network. To expose Swagger at `http://localhost:8000/docs`, uncomment the `ports` section in `docker-compose.yml`.
+- **npm 11 per il lockfile:** `package.json` dichiara `"packageManager": "npm@11.6.2"` (riga 5) e il deps stage del `Dockerfile` (righe 7-9) installa `npm@11.6.2` prima di `npm ci`. Rigenera `package-lock.json` con npm 11, altrimenti `npm ci` nel container fallisce (l'npm 10 di `node:22-alpine` lo considera non sincronizzato).
 - The container runs as non-root user `nextjs` (uid 1001; `Dockerfile` line 32).
 - Backend data volume is mounted read-only (`../test-tecnico-frontend-engineer/backend/data:/app/data:ro`; `docker-compose.yml` line 11).
 - Backend health check (`python -c "import urllib.request; ..."`; `docker-compose.yml` lines 16–20) ensures the frontend starts only after the backend is ready.
@@ -168,9 +169,9 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   ├── hooks/           # useChatStream (183 lines, useState; reducer + rAF batching in P1-03), useAutoScroll
 │   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
 │   │   ├── factcheck/
-│   │   │   ├── components/      # PdfFactCheckViewer, BoundingBoxOverlay, RelatedDocumentsSection
+│   │   │   ├── components/      # PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection
 │   │   │   ├── hooks/           # usePdfDocument, usePdfViewer
-│   │   │   ├── lib/             # coordinates.ts (inch-to-pixel math, 72 DPI)
+│   │   │   ├── lib/             # coordinates.ts (inchesRectToPx, 72 pt/inch), pdfWorker.ts, regions.ts
 │   │   │   └── types.ts         # BoundingRegion, RectInches domain types
 │   │   └── history/
 │   │       ├── components/      # ChatSidebar (history list, new chat, user info)
@@ -267,22 +268,14 @@ In `src/api/ndjson.ts`:
 The backend returns bounding box coordinates in `rects_in: [[x, y, width, height]]` in **inches**, alongside `page_number`.
 
 #### Normalization & Scaling
-- In digital printing and PDF standards, **1 inch = 72 PostScript points** (`DPI = 72`).
-- When `pdfjs-dist` loads a page, `page.getViewport({ scale: 1 })` provides the natural width and height of the page in points (`pageWidthPt`, `pageHeightPt`).
-- In `src/features/factcheck/lib/coordinates.ts`:
-  ```ts
-  const pageWidthInches = pageWidthPt / 72;
-  const pageHeightInches = pageHeightPt / 72;
-
-  const leftPercent = (x / pageWidthInches) * 100;
-  const topPercent = (y / pageHeightInches) * 100;
-  const widthPercent = (width / pageWidthInches) * 100;
-  const heightPercent = (height / pageHeightInches) * 100;
-  ```
-- An absolute overlay container (`BoundingBoxOverlay.tsx`) sits directly on top of the rendered PDF canvas.
-- Rectangles are defined using **CSS percentages** (`left: X%`, `top: Y%`, `width: W%`, `height: H%`), allowing the bounding boxes to scale with zoom levels (`0.6x` to `3.0x`), screen resize events, and window DPI changes.
-- **Multiple Rectangles**: The viewer renders all bounding rectangles in a citation, badges them with region indices, and displays tooltip snippets on hover.
-- **Origin Flexibility**: Top-left origin is standard for OCR extraction tools (Azure Document Intelligence, Textract). A toggle in the viewer toolbar also allows switching to bottom-left origin if raw PostScript PDF coordinates are ever emitted.
+- **1 inch = 72 PostScript points**: `pt = inch * 72`.
+- Il viewer usa `react-pdf` (`src/features/factcheck/components/PdfPageView.tsx`); la larghezza naturale della pagina in punti (`pageWidthPt`) viene letta dalla pagina PDF e la scala di rendering è `scala = px / pt` (`renderedWidthPx / pageWidthPt`).
+- In `src/features/factcheck/lib/coordinates.ts` la funzione pura `inchesRectToPx(rect, pageWidthPt, renderedWidthPx)` converte `[x, y, w, h]` in pollici in `{left, top, width, height}` in **pixel**. Esempio (test unit): `[1,1,2,0.5]` su 612 pt a 612 px → `{left:72, top:72, width:144, height:36}`; a 1224 px i valori raddoppiano.
+- `BoundingBoxOverlay.tsx` (`data-testid="bbox"`) posiziona i rettangoli in modo assoluto sopra la pagina renderizzata usando questi pixel.
+- **Origine top-left**: `y` cresce verso il basso, quindi non c'è inversione dell'asse; l'origine è quella documentata in `BE:tests/bbox_visualization.py:48`. Il selettore di origine (top-left/bottom-left) è stato rimosso.
+- **Scroll alla regione**: aprendo una citazione la pagina mostrata è `bounding_regions[0].page_number` e la vista scorre alla prima regione (`PdfPageView.tsx:50`).
+- **Pagine con regioni**: se la citazione ha regioni su più pagine, `PdfFactCheckViewer.tsx` mostra l'elenco "Pagine con regioni" con navigazione (raggruppamento in `lib/regions.ts`).
+- **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `lib/pdfWorker.ts`, senza CDN.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
 
 ### Safe Markdown and HTML Rendering
@@ -330,9 +323,8 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
    - **Rationale:** Pipeline-native, doesn't require additional libraries, works on the AST before DOM insertion.
    - **Trade-off:** default schema only; no custom allowlist.
 
-4. **Direct `pdfjs-dist` Canvas Rendering**:
-   - Native `<iframe>`/`<embed>` lack programmatic DOM overlay access. Canvas rendering enables pixel-accurate overlays and multi-scale zooming.
-   - Dynamically imported in `useEffect` to avoid SSR hydration mismatches.
+4. **`react-pdf` canvas rendering** (P1-08):
+   - Native `<iframe>`/`<embed>` lack programmatic DOM overlay access. `react-pdf` (^11, su `pdfjs-dist`) renders pages to canvas, enabling pixel-accurate overlays; the worker is served locally (`lib/pdfWorker.ts`).
 
 5. **Streaming error handling and normalized ApiError** (P0-05, P1-01):
    - **Decision:** Distinguish stream errors (`type: "error"`), malformed lines (`NDJSONParseError`), HTTP errors (`ApiError.status` valued), and network errors (`ApiError.status` null, `code: 'network'`). All errors are normalized to `ApiError { status, code, userMessage, cause, detail }`.
@@ -355,8 +347,7 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - Streaming updates the UI on every received character (one state update per chunk, no per-frame batching). Queued renders could be batched with `requestAnimationFrame` for better performance (P1-03).
-  - The PDF.js worker and cMaps are loaded from CDN at runtime (`src/features/factcheck/hooks/usePdfDocument.ts` lines 58 and 63 load from `cdnjs.cloudflare.com` and `cdn.jsdelivr.net`). Bundling these locally would allow fully offline operation in Docker (P1-08).
-  - PDF text layer (selectable and copyable text) is not implemented (P1-08).
+  - PDF text layer (selectable and copyable text) is not implemented.
   - Multi-page continuous scrolling is not implemented; users navigate one page at a time (P1-08).
   - Automatic scroll to the first bounding region when opening a citation is not implemented (P1-08).
 
@@ -390,8 +381,6 @@ This section tracks planned improvements aligned with the evaluation criteria an
 **Session and 401 handling (P1-05):** Redirect to login on any 401; prevent hydration mismatches by deferring `localStorage` access.
 
 **Chat history model (P1-07):** Formalize the backend's Q/A model (one chat = one pair) and align the UI (no multi-turn state in backend, local only).
-
-**PDF.js worker and cMaps locally (P1-08):** Bundle PDF.js worker and cMap files instead of loading from CDN, enabling offline operation in Docker.
 
 **Side-by-side layout (P1-09):** Show conversation and PDF viewer side by side on ≥1024 px; modal on smaller screens.
 

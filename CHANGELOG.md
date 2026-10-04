@@ -128,6 +128,19 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 - Badge documenti non aggiornato dopo un upload riuscito: l'upload invalida `queryKeys.documents.all` (P1-06).
 - Storico e lista documenti includevano solo i 20 elementi più vecchi (il backend pagina con default 20 in ordine crescente), quindi le chat nuove di un utente con più di 20 chat non comparivano. `fetchAllPages` (`src/api/pagination.ts`: `limit=100`, `offset` crescente, stop alla pagina incompleta, tetto di 50 pagine) è ora usato da `listChats` (`src/api/chat.ts`) e `listDocuments` (`src/api/documents.ts`). Test: `tests/unit/pagination.test.ts`, `tests/integration/chat-list-pagination.test.tsx` (P1-06).
 
+### Added (T015)
+- P1-08: `react-pdf` ^11, `src/features/factcheck/lib/pdfWorker.ts` (worker pdf.js locale), componente `PdfPageView`, `lib/regions.ts`, navigazione "Pagine con regioni".
+- Test: `tests/unit/coordinates.test.ts`, `tests/unit/regions.test.ts`, `tests/integration/PdfFactCheckViewer.pages.test.tsx`, `e2e/pdf-viewer.spec.ts` (nessuna richiesta CDN, pagina = `bounding_regions[0].page_number`, bbox nel viewport).
+
+### Changed (T015)
+- P1-08: `inchesRectToPx` restituisce pixel al posto delle percentuali; scroll alla prima regione; `usePdfDocument` passa il Blob a `react-pdf`.
+
+### Removed (T015)
+- P1-08: dipendenza diretta `pdfjs-dist`, worker/cMaps da CDN, selettore di origine, `CoordinateOrigin`, `inchRectToPercent`/`percentToPixels`.
+
+### Fixed (T015)
+- `docker build` falliva a `npm ci` perché il lockfile, generato con npm 11.6.2, non era in sync per npm 10 di `node:22-alpine` (mancavano `@emnapi/runtime` e `@emnapi/core`). Il deps stage ora esegue `npm install -g npm@11.6.2 && npm ci` (`Dockerfile:7-9`) e `package.json` dichiara `"packageManager": "npm@11.6.2"` (`package.json:5`). Verifica: `docker build` exit 0 e container con risposta 200 (`.claude/reports/T015/docker-build-fixed.txt`).
+
 ---
 
 ## Note versioning
