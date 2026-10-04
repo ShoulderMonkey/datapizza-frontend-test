@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CitationReference } from '@/types/citation';
 import { documentService } from '@/services/document-service';
 import { BoundingBoxOverlay } from './BoundingBoxOverlay';

@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
-  ExternalLink,
   ShieldCheck,
   Zap,
 } from 'lucide-react';

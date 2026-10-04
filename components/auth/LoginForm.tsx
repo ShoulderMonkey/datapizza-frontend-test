@@ -7,7 +7,6 @@ import {
   Lock,
   ArrowRight,
   AlertCircle,
-  Sparkles,
   Server,
   FileCheck2,
 } from 'lucide-react';

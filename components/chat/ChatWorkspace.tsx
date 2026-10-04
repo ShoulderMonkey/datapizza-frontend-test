@@ -15,7 +15,6 @@ import {
   FileText,
   PanelLeft,
   Sparkles,
-  Info,
   Layers,
   CheckCircle,
 } from 'lucide-react';
