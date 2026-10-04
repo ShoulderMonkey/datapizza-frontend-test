@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http } from 'msw';
 import { server } from '@/src/mocks/server';
 import { ndjsonResponse } from '@/src/mocks/ndjson';
+import { renderWithProviders } from '@/src/test/render';
 import { ChatWorkspace } from '@/src/features/chat/components/ChatWorkspace';
 
 const content = (d: string) => JSON.stringify({ type: 'content', delta: d }) + '\n';
@@ -14,7 +15,7 @@ function useStream(chunks: string[]) {
 
 async function send(text = 'domanda') {
   const user = userEvent.setup();
-  render(<ChatWorkspace userId="u1" onLogout={() => {}} />);
+  renderWithProviders(<ChatWorkspace userId="u1" onLogout={() => {}} />);
   await user.type(screen.getByRole('textbox'), text);
   await user.click(screen.getByRole('button', { name: /invia/i }));
 }

@@ -18,7 +18,7 @@ beforeEach(() => {
   fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     const method = init?.method ?? 'GET';
-    if (/\/api\/chat\/[^/]+$/.test(url)) {
+    if (/\/api\/chat\/[^/?]+$/.test(url)) {
       // GET /api/chat/{id}: real ChatRecord shape (docs/AUDIT.md section 2)
       return jsonResponse({
         id: 'c1',
@@ -66,6 +66,7 @@ describe('API client uses the same-origin /api proxy', () => {
   it('documentService.listDocuments', async () => {
     await documentService.listDocuments();
     expectAllSameOriginApi();
+    expect(String((fetchSpy.mock.calls[0] as FetchArgs)[0])).toBe('/api/documents/?limit=100&offset=0');
   });
 
   it('documentService.uploadDocuments', async () => {
@@ -86,8 +87,9 @@ describe('API client uses the same-origin /api proxy', () => {
     expectAllSameOriginApi();
     expect(chats).toEqual([]);
     const [url, init] = fetchSpy.mock.calls[0] as FetchArgs;
-    expect(String(url)).toBe('/api/chat/');
+    expect(String(url)).toBe('/api/chat/?limit=100&offset=0');
     expect(init?.method).toBe('GET');
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // empty page: stop after one request
   });
 
   it('chatService.getChat', async () => {

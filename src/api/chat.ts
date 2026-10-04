@@ -1,4 +1,5 @@
 import { request, requestStream } from './client';
+import { fetchAllPages } from './pagination';
 import { ApiError, createApiError, toApiError } from './errors';
 import { parseNDJSONStream } from './ndjson';
 import type {
@@ -13,17 +14,16 @@ import type {
 const CHAT_ENDPOINT = '/api/chat/';
 
 export const chatService = {
-  /** GET /api/chat/: bare array of chat records (docs/AUDIT.md §2). */
-  async listChats(): Promise<ChatRecord[]> {
-    const data = await request<unknown>(CHAT_ENDPOINT, { method: 'GET' });
-    if (!Array.isArray(data)) throw invalidResponse();
-    return data.map(asChatRecord);
+  /** GET /api/chat/: every page (limit=100) of chat records, bare arrays (docs/AUDIT.md §2). */
+  async listChats(signal?: AbortSignal): Promise<ChatRecord[]> {
+    return fetchAllPages<ChatRecord>(CHAT_ENDPOINT, { signal, validate: asChatRecord });
   },
 
   /** GET /api/chat/{id}, converted into a transcript of user/assistant messages. */
-  async getChat(chatId: string): Promise<ChatTranscript> {
+  async getChat(chatId: string, signal?: AbortSignal): Promise<ChatTranscript> {
     const data = await request<unknown>(`${CHAT_ENDPOINT}${encodeURIComponent(chatId)}`, {
       method: 'GET',
+      signal,
       errorMessages: { not_found: 'La conversazione richiesta non esiste più.' },
     });
     return toTranscript(asChatRecord(data));

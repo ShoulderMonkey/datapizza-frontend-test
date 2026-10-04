@@ -174,7 +174,7 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   └── types.ts         # BoundingRegion, RectInches domain types
 │   │   └── history/
 │   │       ├── components/      # ChatSidebar (history list, new chat, user info)
-│   │       ├── hooks/           # useChatHistory
+│   │       ├── hooks/           # useChatHistory, useChatList, useChatDetail
 │   │       └── types.ts         # History domain types
 │   ├── components/
 │   │   └── ui/                  # Generic, feature-agnostic components
@@ -203,7 +203,7 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 
 **Feature structure** (`src/features/{auth,documents,chat,factcheck,history}/`):
 - **`components/`**: Presentazionali (ricevono `props`, chiamano `callbacks`); nessun `fetch` o import da `src/api`.
-- **`hooks/`**: Orchestrano stato, chiamano `src/api`, gestiscono effetti. Esempi: `useChatStream` (stato con `useState`; `useReducer` e batching `requestAnimationFrame` arriveranno con P1-03), `useLogin`, `useDocuments` (oggi `useState` + `useEffect`; TanStack Query arriverà con P1-06).
+- **`hooks/`**: Orchestrano stato, chiamano `src/api`, gestiscono effetti. Esempi: `useChatStream` (stato con `useState`; `useReducer` e batching `requestAnimationFrame` arriveranno con P1-03), `useLogin`, `useDocuments`, `useChatList`, `useChatDetail` (server state con TanStack Query, vedi sotto).
 - **`lib/` (optional)**: Funzioni pure senza React (coordinate math, session storage).
 - **`types.ts`**: Tipi della feature e re-export da `src/api/types.ts`.
 
@@ -304,6 +304,9 @@ Tables are wrapped in a horizontally scrolling container for mobile usability.
 ### Chat History Consistency
 Both active live chat sessions and previously stored sessions loaded from `GET /api/chat/{chat_id}` pass through the same `ChatMessageItem` and `MarkdownRenderer` components (`src/features/chat/components/`). This ensures visual and functional consistency across new and historical conversations, using the same Markdown pipeline and sanitization.
 
+### Server State with TanStack Query
+Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`, `useChatDetail`). Le query key sono condivise in `src/features/queryKeys.ts`, quindi badge e modale dei documenti leggono la stessa cache. Un upload riuscito invalida `queryKeys.documents.all` (`useDocumentUpload.ts`); a fine stream la lista chat viene ricaricata (`onStreamEnd` in `ChatWorkspace.tsx`). Lo storico e ordinato per `created_at` decrescente. La sidebar mostra loading (`role="status"`), errore e pulsante "Riprova". `QueryProvider` (`src/components/providers/QueryProvider.tsx`) crea un `QueryClient` per montaggio con retry massimo 1, nessun retry sugli errori 4xx e `refetchOnWindowFocus: false`. La modale documenti non mostra `page_count`, perche il backend lo restituisce come mock fisso a 5 (limite del backend, `docs/AUDIT.md` §2). Il backend pagina le liste con `limit` 1–100 (default 20) in ordine crescente; per non perdere le chat più recenti il client scarica tutte le pagine con `fetchAllPages` (`src/api/pagination.ts`: `limit=100`, `offset` crescente, stop alla prima pagina incompleta, tetto di 50 pagine), usato da `listChats` e `listDocuments`.
+
 ---
 
 ## 6. Architectural Decisions & Trade-Offs
@@ -364,6 +367,9 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 - **Validation details:**
   - Client `user_id` validation is more restrictive than the backend: only ASCII `[a-zA-Z0-9_-]` (max 100 chars), vs backend `str.isalnum()` which accepts Unicode. The backend is lenient; the client enforces stricter rules.
 
+- **Full-list loading:**
+  - The client downloads every page of chats and documents (`src/api/pagination.ts`). With very long histories this should be replaced by incremental pagination (P2-04).
+
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
 
@@ -382,8 +388,6 @@ This section tracks planned improvements aligned with the evaluation criteria an
 **User-friendly error messages (P1-04):** Map backend error codes and network errors to Italian messages without exposing technical details (no status codes, no URLs, no stack traces).
 
 **Session and 401 handling (P1-05):** Redirect to login on any 401; prevent hydration mismatches by deferring `localStorage` access.
-
-**Server state with TanStack Query (P1-06):** Use `useQuery` and `useMutation` for documents and chat history with proper loading and error states (sidebar currently hardcodes `loading: false`).
 
 **Chat history model (P1-07):** Formalize the backend's Q/A model (one chat = one pair) and align the UI (no multi-turn state in backend, local only).
 

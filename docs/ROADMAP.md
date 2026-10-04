@@ -207,11 +207,11 @@
 - Dipendenze: P1-01
 - Stima: M
 - Criteri di accettazione:
-  - [ ] `useDocuments`, `useChatList` e `useChatDetail` con TanStack Query. Upload riuscito → invalida i documenti; fine stream → invalida lo storico.
-  - [ ] Test integration: mentre `GET /api/chat/` è pendente (MSW con delay) la sidebar mostra un indicatore di loading accessibile (`role="status"`); in caso di errore, un messaggio e un pulsante "Riprova" che ripete la richiesta.
-  - [ ] Test: selezione rapida della chat A (risposta lenta) e poi della B (veloce) → viene mostrata B, anche quando A risponde dopo.
-  - [ ] Storico ordinato per `created_at` decrescente. La lista documenti non mostra `page_count` (mock fisso a 5, `BE:src/dependencies.py:25`).
-- Stato: todo
+  - [x] `useDocuments`, `useChatList` e `useChatDetail` con TanStack Query. Upload riuscito → invalida i documenti; fine stream → invalida lo storico.
+  - [x] Test integration: mentre `GET /api/chat/` è pendente (MSW con delay) la sidebar mostra un indicatore di loading accessibile (`role="status"`); in caso di errore, un messaggio e un pulsante "Riprova" che ripete la richiesta.
+  - [x] Test: selezione rapida della chat A (risposta lenta) e poi della B (veloce) → viene mostrata B, anche quando A risponde dopo.
+  - [x] Storico ordinato per `created_at` decrescente. La lista documenti non mostra `page_count` (mock fisso a 5, `BE:src/dependencies.py:25`).
+- Stato: done (T014)
 
 ### P1-07 — Modello dello storico coerente con il backend
 - Criterio della specifica: "Funzionalità minime › 5. L'integrazione con lo storico deve essere coerente con la UI principale di chat"; "Utilizzo del backend › corretta comprensione degli endpoint".
@@ -311,6 +311,7 @@
 - Owner: `frontend-developer`
 - Dipendenze: P1-06
 - Stima: S
+- Nota (T014): il client oggi scarica tutte le pagine con limit=100 (src/api/pagination.ts); P2-04 dovrà passare a una paginazione incrementale ("Carica altre") mantenendo la chat più recente in cima.
 - Criteri di accettazione:
   - [ ] Con 25 chat (MSW) la sidebar mostra 20 voci e un pulsante "Carica altre" che richiede `offset=20` (verifica della query string nel test).
 - Stato: todo

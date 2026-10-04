@@ -112,6 +112,22 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 ### Removed (T013)
 - Normalizzatori speculativi (`obj.sessions`, `obj.items`, `obj.files`, `obj.chats`), invio di `chat_id` nel body, tipi `ChatSummary`, `DocumentItem`, `DocumentUploadResponse` e index signature `[key: string]: unknown` (P1-02).
 
+### Added (T014)
+- Dipendenza `@tanstack/react-query`, `src/components/providers/QueryProvider.tsx` (un `QueryClient` per montaggio, retry max 1 e nessuno su `ApiError` 4xx, `refetchOnWindowFocus: false`) e `src/features/queryKeys.ts` con query key condivise (P1-06).
+- Hook `useChatList` (`src/features/history/hooks/useChatList.ts`) e `useChatDetail` (`useChatDetail.ts`, chiave per id con `signal`); `useDocuments` migrato a TanStack Query (P1-06).
+- Helper di test `src/test/render.tsx` (`renderWithProviders`), `tests/integration/history-documents-query.test.tsx` (loading `role="status"`, errore con "Riprova", ordinamento, race tra chat A e B, invalidazione dopo upload e a fine stream) e `tests/unit/sortChats.test.ts` (P1-06).
+
+### Changed (T014)
+- `ChatSidebar` mostra stati reali: loading (`role="status"`), errore con pulsante "Riprova" (P1-06).
+- Il badge dei documenti condivide la stessa query della modale; lo storico e ordinato per `created_at` decrescente; a fine stream la lista chat viene ricaricata (P1-06).
+
+### Removed (T014)
+- `page_count` dalla modale documenti (il backend lo valorizza con un mock fisso, `docs/AUDIT.md` §2) e opzione `chatId` di `useChatStream` (P1-06).
+
+### Fixed (T014)
+- Badge documenti non aggiornato dopo un upload riuscito: l'upload invalida `queryKeys.documents.all` (P1-06).
+- Storico e lista documenti includevano solo i 20 elementi più vecchi (il backend pagina con default 20 in ordine crescente), quindi le chat nuove di un utente con più di 20 chat non comparivano. `fetchAllPages` (`src/api/pagination.ts`: `limit=100`, `offset` crescente, stop alla pagina incompleta, tetto di 50 pagine) è ora usato da `listChats` (`src/api/chat.ts`) e `listDocuments` (`src/api/documents.ts`). Test: `tests/unit/pagination.test.ts`, `tests/integration/chat-list-pagination.test.tsx` (P1-06).
+
 ---
 
 ## Note versioning

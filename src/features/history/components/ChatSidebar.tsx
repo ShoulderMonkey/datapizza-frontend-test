@@ -150,9 +150,9 @@ export function ChatSidebar({
           </div>
 
           {isLoading && chats.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-500 space-y-2">
-              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <span>Caricamento sessioni...</span>
+            <div role="status" className="py-8 text-center text-xs text-slate-500 space-y-2">
+              <div aria-hidden="true" className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <span>Caricamento cronologia…</span>
             </div>
           ) : error ? (
             <div className="p-3 bg-red-950/40 border border-red-900/60 rounded-xl text-xs text-red-300 space-y-1.5">

@@ -1,4 +1,5 @@
 import { request, requestRaw } from './client';
+import { fetchAllPages } from './pagination';
 import { createApiError } from './errors';
 import type { Document, UploadResponse } from './types';
 
@@ -7,9 +8,9 @@ export function isPdfFile(file: File): boolean {
 }
 
 export const documentService = {
-  /** GET /api/documents/ */
-  async listDocuments(): Promise<Document[]> {
-    return request<Document[]>('/api/documents/', { method: 'GET' });
+  /** GET /api/documents/: every page (limit=100). */
+  async listDocuments(signal?: AbortSignal): Promise<Document[]> {
+    return fetchAllPages<Document>('/api/documents/', { signal });
   },
 
   /** POST /api/documents/ as multipart/form-data with field name `files`. */

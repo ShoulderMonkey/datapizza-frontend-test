@@ -11,8 +11,6 @@ export const STREAM_ERROR_MESSAGE =
 const STREAM_FALLBACK_MESSAGE = 'La risposta si è interrotta. Puoi riprovare.';
 
 interface UseChatStreamOptions {
-  /** Active conversation id, forwarded as before P1-01 (removed from the body by P1-02). */
-  chatId?: string | null;
   /** Called when a stream ends without throwing (also after an `error` chunk). */
   onStreamEnd?: () => void;
 }
@@ -28,21 +26,21 @@ interface UseChatStreamOptions {
  *
  * P1-03 will move this state to `useReducer` with typed actions and rAF batching.
  */
-export function useChatStream({ chatId = null, onStreamEnd }: UseChatStreamOptions = {}) {
+export function useChatStream({ onStreamEnd }: UseChatStreamOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const messagesRef = useRef<ChatMessage[]>(messages);
-  const optionsRef = useRef({ chatId, onStreamEnd });
+  const optionsRef = useRef({ onStreamEnd });
 
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
   useEffect(() => {
-    optionsRef.current = { chatId, onStreamEnd };
-  }, [chatId, onStreamEnd]);
+    optionsRef.current = { onStreamEnd };
+  }, [onStreamEnd]);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();

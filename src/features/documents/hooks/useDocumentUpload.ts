@@ -1,13 +1,16 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { documentService, getUserMessage } from '@/src/api';
+import { queryKeys } from '../../queryKeys';
 import type { AsyncStatus } from '../types';
 
 const UPLOAD_FALLBACK_MESSAGE = 'Non è stato possibile caricare i documenti. Controlla i file e riprova.';
 
 /** Upload of PDFs (POST /api/documents/, multipart field `files`). */
 export function useDocumentUpload() {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<AsyncStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -25,6 +28,7 @@ export function useDocumentUpload() {
     setSuccessMessage(null);
     try {
       await documentService.uploadDocuments(files);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
       setSuccessMessage(`${files.length} documento/i caricato/i con successo!`);
       setStatus('success');
       return true;
@@ -34,7 +38,7 @@ export function useDocumentUpload() {
       setStatus('error');
       return false;
     }
-  }, []);
+  }, [queryClient]);
 
   return {
     status,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DocumentListModal } from '@/src/features/documents/components/DocumentListModal';
 import { useDocuments } from '@/src/features/documents/hooks/useDocuments';
 import { PdfFactCheckViewer } from '@/src/features/factcheck/components/PdfFactCheckViewer';
@@ -31,19 +31,27 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
   const history = useChatHistory();
   const documents = useDocuments({ enabled: true });
   const pdfViewer = usePdfViewer();
-  const chat = useChatStream({ chatId: history.activeChatId, onStreamEnd: history.refresh });
+  const chat = useChatStream({ onStreamEnd: history.refresh });
   const { endRef, onScroll } = useAutoScroll(chat.messages);
 
   const documentCount = documents.hasLoaded ? documents.documents.length : undefined;
 
-  const handleSelectChat = async (chatId: string) => {
-    chat.cancel();
-    const transcript = await history.openChat(chatId);
-    if (transcript) {
-      chat.replaceMessages(
-        transcript.messages.map((m): ChatMessage => ({ ...m, status: 'completed' }))
-      );
+  // The transcript belongs to the chat selected last (query key = chat id), so a slow response
+  // for a superseded chat can never overwrite the visible conversation.
+  const { activeChatId, transcript } = history;
+  const { replaceMessages } = chat;
+  useEffect(() => {
+    if (activeChatId && transcript) {
+      replaceMessages(transcript.messages.map((m): ChatMessage => ({ ...m, status: 'completed' })));
     }
+  }, [activeChatId, transcript, replaceMessages]);
+
+  const handleSelectChat = (chatId: string) => {
+    chat.cancel();
+    if (chatId === activeChatId && transcript) {
+      replaceMessages(transcript.messages.map((m): ChatMessage => ({ ...m, status: 'completed' })));
+    }
+    history.selectChat(chatId);
   };
 
   const handleNewChat = () => {
@@ -66,8 +74,8 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
       <ChatSidebar
         chats={history.chats}
         activeChatId={history.activeChatId}
-        isLoading={false}
-        error={null}
+        isLoading={history.isListLoading}
+        error={history.listError}
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
         onRefreshChats={history.refresh}
@@ -93,7 +101,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           messages={chat.messages}
           isLoading={history.isChatLoading}
           loadError={history.chatLoadError}
-          onRetryLoad={() => history.activeChatId && handleSelectChat(history.activeChatId)}
+          onRetryLoad={() => void history.reloadChat()}
           onInspectCitation={handleInspectCitation}
           onRetry={chat.retry}
           endRef={endRef}
@@ -122,10 +130,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
 
       <DocumentListModal
         isOpen={isDocumentsOpen}
-        onClose={() => {
-          setIsDocumentsOpen(false);
-          void documents.refresh();
-        }}
+        onClose={() => setIsDocumentsOpen(false)}
         onOpenPdfViewer={pdfViewer.openDocument}
       />
     </div>

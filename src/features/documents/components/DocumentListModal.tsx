@@ -157,7 +157,6 @@ export function DocumentListModal({
                             </p>
                             <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                               <span className="font-mono text-slate-400">ID: {docId.slice(0, 10)}...</span>
-                              {doc.page_count && <span>• {doc.page_count} pag.</span>}
                             </div>
                           </div>
                         </div>

@@ -1,51 +1,33 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { documentService, getUserMessage } from '@/src/api';
-import type { AsyncStatus, Document } from '../types';
+import { queryKeys } from '../../queryKeys';
 
 const LIST_FALLBACK_MESSAGE = 'Non è stato possibile caricare la lista documenti.';
 
 /**
- * Document list (GET /api/documents/). Loads when `enabled` becomes true and on `refresh()`.
- * Responses that arrive after unmount or after a newer request are ignored.
+ * Document list (GET /api/documents/) as server state. All consumers share the same query
+ * key, so an invalidation after an upload updates every one of them (sidebar badge included).
  */
 export function useDocuments({ enabled = true }: { enabled?: boolean } = {}) {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [status, setStatus] = useState<AsyncStatus>(enabled ? 'loading' : 'idle');
-  const [error, setError] = useState<string | null>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const requestIdRef = useRef(0);
+  const query = useQuery({
+    queryKey: queryKeys.documents.list(),
+    queryFn: () => documentService.listDocuments(),
+    enabled,
+  });
 
+  const { refetch } = query;
   const refresh = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    setStatus('loading');
-    setError(null);
-    try {
-      const docs = await documentService.listDocuments();
-      if (requestId !== requestIdRef.current) return;
-      setDocuments(docs);
-      setHasLoaded(true);
-      setStatus('success');
-    } catch (err: unknown) {
-      if (requestId !== requestIdRef.current) return;
-      console.error('Failed to list documents:', err);
-      setError(getUserMessage(err, LIST_FALLBACK_MESSAGE));
-      setStatus('error');
-    }
-  }, []);
+    await refetch();
+  }, [refetch]);
 
-  /** Makes in-flight responses stale (disable/unmount). */
-  const invalidate = useCallback(() => {
-    requestIdRef.current++;
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) return;
-    void refresh();
-    return invalidate;
-  }, [enabled, refresh, invalidate]);
-
-  /** `hasLoaded`: at least one successful load (the list is meaningful even while refreshing). */
-  return { documents, status, isLoading: status === 'loading', hasLoaded, error, refresh };
+  return {
+    documents: query.data ?? [],
+    isLoading: query.isFetching && query.data === undefined,
+    hasLoaded: query.data !== undefined,
+    error: query.isError ? getUserMessage(query.error, LIST_FALLBACK_MESSAGE) : null,
+    refresh,
+  };
 }
