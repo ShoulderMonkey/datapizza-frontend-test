@@ -168,3 +168,11 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 - **PDF Text Layer**: The viewer currently renders visual highlights and canvas pixels. Adding a selectable text layer (`pdfjs-dist` text content layer) would allow users to select and copy text directly from the PDF canvas.
 - **Multi-page continuous scroll**: The viewer currently features single-page navigation (`<` Prev, `>` Next, jump to page). A virtualized infinite vertical scroll for multi-page documents could be added with more time.
 - **Offline / Mock Mode Toggle**: A dedicated offline mock fixture mode could be toggled for automated visual regression testing when no backend instance is available.
+
+## 7. Sviluppo con Claude Code (team di subagenti)
+
+Il lavoro sul frontend è orchestrato con Claude Code: `CLAUDE.md` (regole dell'orchestratore), `.claude/agents/` (subagenti), `.claude/hooks/` (guard, quality gate, validazione output) e `docs/ROADMAP.md` (piano).
+
+Limiti noti degli hook:
+- `.claude/hooks/guard-orchestrator.mjs` impedisce al thread principale di modificare file fuori da `.claude/` e `CLAUDE.md`. Il controllo sui comandi **Bash** è **best-effort**: riconosce i pattern di scrittura comuni (`sed -i`, `perl -i`, `tee`, redirezioni `>`/`>>`, `cp`, `mv`, `rm`, `git apply`, `git checkout --`, `--write`, `--fix`, `npm install`), ma non ogni possibile scrittura via shell (ad esempio script eseguiti con `node -e` o `python -c`).
+- Il quality gate (`.claude/hooks/quality-gate.mjs`) esegue `typecheck`, `lint` e `test`, non gli e2e, che richiedono il backend avviato.
