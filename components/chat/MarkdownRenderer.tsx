@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { sanitizeHtml } from '@/utils/sanitize';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { Check, Copy } from 'lucide-react';
+
+const SAFE_LINK = /^(https?:|mailto:)/i;
 
 interface MarkdownRendererProps {
   content: string;
@@ -12,15 +15,12 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
-  // First sanitize any raw inline HTML present in content
-  const safeContent = useMemo(() => {
-    return sanitizeHtml(content);
-  }, [content]);
-
   return (
     <div className={`prose-content text-slate-800 leading-relaxed text-[15px] space-y-3.5 break-words ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        // Order matters: sanitize must run AFTER raw so parsed inline HTML is filtered.
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
         components={{
           h1: ({ children }) => (
             <h1 className="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2 mt-4 mb-2 tracking-tight">
@@ -88,10 +88,10 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             );
           },
           a: ({ href, children }) => {
-            const isSafe = href && !href.startsWith('javascript:');
+            const isSafe = typeof href === 'string' && SAFE_LINK.test(href.trim());
             return (
               <a
-                href={isSafe ? href : '#'}
+                href={isSafe ? href : undefined}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-indigo-600 hover:text-indigo-800 underline font-medium"
@@ -102,7 +102,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           },
         }}
       >
-        {safeContent}
+        {content}
       </ReactMarkdown>
     </div>
   );
