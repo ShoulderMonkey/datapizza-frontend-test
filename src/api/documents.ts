@@ -15,7 +15,7 @@ export const documentService = {
   },
 
   /** POST /api/documents/ as multipart/form-data with field name `files`. */
-  async uploadDocuments(files: File[]): Promise<UploadResponse> {
+  async uploadDocuments(files: File[], signal?: AbortSignal): Promise<UploadResponse> {
     if (!files || files.length === 0) {
       throw createApiError('client_validation', {
         userMessage: message('upload_no_file'),
@@ -39,6 +39,7 @@ export const documentService = {
     return request<UploadResponse>('/api/documents/', {
       method: 'POST',
       body: formData,
+      signal,
     });
   },
 

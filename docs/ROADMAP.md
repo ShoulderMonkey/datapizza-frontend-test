@@ -5,15 +5,15 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T025)
+## Stato attuale (aggiornato a T026)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-05..P2-07; P2-01, P2-03 e P2-04 sono `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-06, P2-07; P2-01, P2-03, P2-04 e P2-05 sono `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
 | 1. Login mock + cookie | ✅ | `src/api/client.ts` (proxy same-origin, credentials: 'same-origin'); `e2e/proxy-cookie.spec.ts` | P0-03 |
 | 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `src/api/auth.ts` (USER_ID_MAX_LENGTH = 100); `tests/unit/auth-service.test.ts`; `tests/integration/LoginForm.test.tsx` | P0-06 |
-| 2. Upload multiplo, stato, errori | ✅ | `src/features/documents/components/DocumentUploadDropzone.tsx`; `src/api/errorMessages.ts`; `e2e/upload-errors.spec.ts` | P1-04 |
+| 2. Upload multiplo, stato, errori | ✅ | `src/features/documents/components/DocumentUploadDropzone.tsx`; `src/api/errorMessages.ts`; `e2e/upload-errors.spec.ts`; annullamento con "Annulla" (`useDocumentUpload.ts`, `tests/integration/document-upload-cancel.test.tsx`) | P1-04, P2-05 |
 | 2. Lista documenti | ✅ | `src/features/documents/hooks/useDocuments.ts`; `tests/integration/history-documents-query.test.tsx`; paginazione letterale a 20 con "Carica altri" (`src/api/pagination.ts`, ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P2-04 |
 | 3. Layout chat + Invia | ✅ | `src/features/chat/components/ChatWorkspace.tsx`, `ChatComposer.tsx` | P1-01 |
 | 3. Streaming NDJSON incrementale | ✅ | `src/api/ndjson.ts`; `src/features/chat/lib/chatStreamReducer.ts` + batching rAF in `useChatStream.ts`; `tests/integration/ChatWorkspace.batching.test.tsx` | P1-03 |
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-05..P2
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 32 file / 244 test (T025); e2e 14/14 (T021) | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T026); e2e 14/14 (T021) | P0-01, P0-02 |
 
 ---
 
@@ -325,8 +325,9 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-05..P2
 - Dipendenze: P1-04
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Durante l'upload è visibile il pulsante "Annulla", che chiama `AbortController.abort()`. Test: dopo l'annullamento, nessun messaggio di successo né di errore e lista documenti invariata.
-- Stato: todo
+  - [x] Durante l'upload è visibile il pulsante "Annulla", che chiama `AbortController.abort()`. Test: dopo l'annullamento, nessun messaggio di successo né di errore e lista documenti invariata.
+    Evidenza (T026): `tests/integration/document-upload-cancel.test.tsx:57` e `:94` (happy path); `src/features/documents/hooks/useDocumentUpload.ts:17,29,42,55`; `src/features/documents/components/DocumentUploadDropzone.tsx:193-196`; `src/api/documents.ts:18,42`; quality gate typecheck/lint/test exit 0 (33 file / 246 test).
+- Stato: done (T026)
 
 ### P2-06 — Accessibilità avanzata e lingua
 - Criterio della specifica: "UX e micro-interazioni".

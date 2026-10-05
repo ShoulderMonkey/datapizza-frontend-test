@@ -386,6 +386,9 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 - **Literal pagination:**
   - The backend lists items in ascending order without a total, so with more than 20 chats the most recent ones may appear only after "Carica altre"; a new chat shows on top only if it falls within the loaded pages; the "+" suffix appears when the total is an exact multiple of 20 (the next page is then empty). See `docs/adr/0005-paginazione-letterale.md`.
 
+- **Upload cancellation:**
+  - "Annulla" interrompe la richiesta lato client (`AbortController`, `src/features/documents/hooks/useDocumentUpload.ts`), ma se il backend ha già ricevuto l'intero corpo il file può risultare salvato e comparire al prossimo aggiornamento della lista.
+
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
 
@@ -407,8 +410,6 @@ All P1 items are done; this section lists only work not yet done.
 - `/favicon.ico` returns 404.
 
 **Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
-
-**Upload cancellation (P2-05):** Add an abort button during multipart upload.
 
 **Accessibility and language (P2-06):** Set `<html lang="it">`; audit with axe-core for WCAG violations.
 

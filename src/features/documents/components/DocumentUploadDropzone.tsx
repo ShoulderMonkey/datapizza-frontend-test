@@ -13,7 +13,7 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const { isUploading, error, setError, successMessage, setSuccessMessage, upload } = useDocumentUpload();
+  const { isUploading, error, setError, successMessage, setSuccessMessage, upload, cancel } = useDocumentUpload();
 
   const handleFilesChosen = (incomingFiles: FileList | null) => {
     if (!incomingFiles || incomingFiles.length === 0) return;
@@ -186,7 +186,16 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
             ))}
           </div>
 
-          <div className="pt-2 flex justify-end">
+          <div className="pt-2 flex justify-end items-center gap-2">
+            {isUploading && (
+              <button
+                type="button"
+                onClick={cancel}
+                className="px-3 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Annulla
+              </button>
+            )}
             <button
               type="button"
               onClick={handleUpload}

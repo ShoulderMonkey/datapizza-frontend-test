@@ -8,6 +8,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T026, P2-05)
+- Annullamento dell'upload in corso: `useDocumentUpload.ts` usa un `AbortController` (`cancel()`, abort anche allo smontaggio); `DocumentUploadDropzone.tsx` mostra "Annulla" solo durante l'upload; `uploadDocuments(files, signal?)` in `src/api/documents.ts`. Dopo l'annullamento nessun messaggio di successo o errore, nessun refetch della lista, file ancora selezionati.
+- Test: `tests/integration/document-upload-cancel.test.tsx` (33 file / 246 test).
+
 ### Changed (T025, P2-04)
 - `src/api/pagination.ts`: `fetchAllPages` (limit=100, tutte le pagine) rimosso; ora `fetchPage` (limit 20) e `nextOffset`. `useChatList` e `useDocuments` usano `useInfiniteQuery`.
 - Decisione "letterale" documentata in `docs/adr/0005-paginazione-letterale.md`.
