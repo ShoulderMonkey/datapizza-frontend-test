@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 // Minimal PDF with a name the backend does not know: POST /api/documents/ answers 400 and stores nothing.
 const MINIMAL_PDF = Buffer.from(
@@ -8,7 +9,7 @@ const MINIMAL_PDF = Buffer.from(
 
 test('upload of a non-admitted PDF shows a friendly message and leaves the document list unchanged', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('upload-errors'));
   await page.getByRole('button', { name: /accedi all/i }).click();
   await expect(page.getByRole('textbox').last()).toBeVisible();
 

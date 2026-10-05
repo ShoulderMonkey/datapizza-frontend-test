@@ -1,4 +1,5 @@
 import { test, expect, type Locator } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 type Box = { x: number; y: number; width: number; height: number };
 const overlaps = (a: Box, b: Box) =>
@@ -10,7 +11,7 @@ test(`P2-09: at ${width}px with sidebar and viewer open, related cards and heade
   await page.setViewportSize({ width, height: 800 });
 
   await page.goto('/');
-  await page.locator('#user_id').fill(`e2e_related_${Date.now()}`);
+  await page.locator('#user_id').fill(uniqueUser("related"));
   await page.getByRole('button', { name: /accedi all/i }).click();
   await page.getByRole('button', { name: /invia messaggio/i }).waitFor();
 

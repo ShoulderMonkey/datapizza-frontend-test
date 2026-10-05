@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 // P2-11: icon served + clean console, no backend Location leak on collection routes, no duplicate first-page fetches.
 
-const USER = 'hygiene-t041';
+const USER = uniqueUser('hygiene');
 // Dev (React StrictMode) double-invokes effects: 2 first-page requests are expected. Production must do 1.
 const IS_PROD = !!process.env.PLAYWRIGHT_BASE_URL;
 const MAX_FIRST_PAGE = IS_PROD ? 1 : 2;

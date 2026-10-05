@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 test('streaming through the proxy is not buffered: assistant text grows progressively', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('proxy-streaming'));
   await page.getByRole('button', { name: /accedi all/i }).click();
 
   const composer = page.getByRole('textbox').last();

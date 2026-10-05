@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 const Q1 = "Che cos'è Bitcoin?";
 const Q2 = 'Come funziona la blockchain?';
 
-const uniqueUser = () => `e2e_hist_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 const entries = (page: Page) => page.locator('[data-testid="history-entry"]');
 
 /** Message text without the header (role label + time), which differs between live and stored rendering. */
@@ -30,7 +30,7 @@ test.describe('history model', () => {
   test.describe.configure({ timeout: 240_000 });
 
   test('two questions create two entries, most recent on top', async ({ page }) => {
-    await login(page, uniqueUser());
+    await login(page, uniqueUser('hist'));
     await expect(entries(page)).toHaveCount(0);
 
     await ask(page, Q1);
@@ -44,7 +44,7 @@ test.describe('history model', () => {
   });
 
   test('selecting an entry shows Q/A and citations, the PDF opens, and a new question leaves the entry untouched', async ({ page }) => {
-    await login(page, uniqueUser());
+    await login(page, uniqueUser('hist'));
     const liveAssistant = await ask(page, Q1);
     const answerText = bodyOf(await liveAssistant.textContent());
     expect(answerText.length).toBeGreaterThan(0);

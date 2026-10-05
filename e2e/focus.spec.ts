@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 // P1-12: focus management. Keyboard-only where possible (no click on the elements under test).
 
@@ -35,7 +36,7 @@ test.describe('focus after Interrompi (P1-12)', () => {
 
   test('click on Interrompi: the textarea has the focus', async ({ page }) => {
     const release = await holdStream(page);
-    const composer = await login(page, `e2e_focus_${Date.now()}_a`);
+    const composer = await login(page, uniqueUser('focus_a'));
     await page.keyboard.type('domanda');
     await page.keyboard.press('Enter');
     const stop = page.getByRole('button', { name: /interrompi/i });
@@ -48,7 +49,7 @@ test.describe('focus after Interrompi (P1-12)', () => {
 
   test('Enter on Interrompi (keyboard): the textarea has the focus', async ({ page }) => {
     const release = await holdStream(page);
-    const composer = await login(page, `e2e_focus_${Date.now()}_b`);
+    const composer = await login(page, uniqueUser('focus_b'));
     await page.keyboard.type('domanda');
     await page.keyboard.press('Enter');
     const stop = page.getByRole('button', { name: /interrompi/i });
@@ -63,7 +64,7 @@ test.describe('focus after Interrompi (P1-12)', () => {
 
   test('stream ends by itself while Interrompi has the focus: the focus is on the textarea', async ({ page }) => {
     const release = await holdStream(page);
-    const composer = await login(page, `e2e_focus_${Date.now()}_d`);
+    const composer = await login(page, uniqueUser('focus_d'));
     await page.keyboard.type('domanda');
     await page.keyboard.press('Enter');
     const stop = page.getByRole('button', { name: /interrompi/i });
@@ -81,7 +82,7 @@ test.describe('skip link to the citations list (P1-12)', () => {
   test.describe.configure({ timeout: 180_000 });
 
   test('panel open: Tab then Enter (<= 3 key presses) focuses the first citation card', async ({ page }) => {
-    const composer = await login(page, `e2e_focus_${Date.now()}_c`);
+    const composer = await login(page, uniqueUser('focus_c'));
     await composer.fill("Che cos'è Bitcoin?");
     await page.keyboard.press('Enter');
     const assistant = page.locator('[data-role="assistant"]').last();

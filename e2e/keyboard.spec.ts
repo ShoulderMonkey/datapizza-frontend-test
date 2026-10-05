@@ -1,11 +1,11 @@
 import { test, expect, type FileChooser, type Page } from '@playwright/test';
 import path from 'node:path';
+import { uniqueUser } from './helpers/user';
 
 // Keyboard-only journey against the real backend. Forbidden here: click(), mouse.*, dispatchEvent('click').
 // focus() is used only once, to give the page its first focus target, see `focusFirstField`.
 
 const PDF = path.resolve(__dirname, '../../test-tecnico-frontend-engineer/backend/data/pdfs/bitcoin.pdf');
-const uniqueUser = () => `e2e_kbd_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 
 /** Accessible-ish label of the focused element: aria-label, then text, then title. */
 const activeLabel = (page: Page) =>
@@ -46,7 +46,7 @@ test.describe('keyboard-only journey (1440x900)', () => {
       return 0;
     });
     await expect(page.locator('#user_id')).toBeFocused();
-    await page.keyboard.type(uniqueUser());
+    await page.keyboard.type(uniqueUser('kbd'));
     await page.keyboard.press('Enter');
     const composer = page.getByRole('textbox', { name: 'Domanda sui documenti' });
     await expect(composer).toBeVisible();

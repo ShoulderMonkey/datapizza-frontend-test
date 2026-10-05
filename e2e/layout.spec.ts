@@ -1,10 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
-const uniqueUser = () => `e2e_layout_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 
 async function askWithCitations(page: Page) {
   await page.goto('/');
-  await page.locator('#user_id').fill(uniqueUser());
+  await page.locator('#user_id').fill(uniqueUser('layout'));
   await page.getByRole('button', { name: /accedi all/i }).click();
   const composer = page.getByRole('textbox').last();
   await expect(composer).toBeVisible();

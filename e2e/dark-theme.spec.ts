@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { uniqueUser } from './helpers/user';
 
 // P2-07: dark theme (prefers-color-scheme: dark) must have a dark page background and WCAG AA text contrast.
 
-const USER = 'dark-t028';
+const USER = uniqueUser('dark');
 // Relative luminance (WCAG) below which a background counts as "dark".
 const DARK_LUMINANCE_MAX = 0.2;
 
@@ -82,7 +83,7 @@ test.describe('dark theme', () => {
   }
 
   test('upload error state has no color-contrast violations', async ({ page }) => {
-    await openUploadWithFile(page, `dark-t039-err-${Date.now()}`);
+    await openUploadWithFile(page, uniqueUser('dark_err'));
     await page.getByRole('button', { name: /carica 1 file/i }).click();
     await expect(page.getByText(/«non-ammesso\.pdf»/)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText('Errore caricamento:')).toBeVisible();
@@ -98,7 +99,7 @@ test.describe('dark theme', () => {
       await gate;
       await route.fallback();
     });
-    await openUploadWithFile(page, `dark-t039-up-${Date.now()}`);
+    await openUploadWithFile(page, uniqueUser('dark_up'));
     await page.getByRole('button', { name: /carica 1 file/i }).click();
     await expect(page.getByRole('button', { name: 'Annulla' })).toBeVisible();
     await expect(page.getByText('Caricamento in corso...')).toBeVisible();

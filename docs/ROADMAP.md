@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T041)
+## Stato attuale (aggiornato a T042)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) e P2-11 (T041): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) P2-11 (T041) e P2-12 (T042): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. È aperto (`todo`) solo l'ultimo item P2 nato dai findings dei task T001–T029: P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -475,10 +475,10 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T011, T013, T025, T027.
 - Findings: residuo statistico sulla race del filechooser in `e2e/keyboard.spec.ts` (T027); gli e2e lasciano dati sul backend reale (upload duplicati, utenti `t25paged` con 45 chat e `t25`; T013, T025); avviso `"next start" does not work with "output: standalone"` (T011).
 - Criteri di accettazione:
-  - [ ] `npx playwright test e2e/keyboard.spec.ts --repeat-each=20 --workers=1` exit 0.
-  - [ ] Gli e2e usano `user_id` univoci per run e il README documenta i dati che restano sul backend (non esiste un endpoint di cancellazione).
-  - [ ] `npm run start` (o lo script documentato nel README) avvia il server standalone senza l'avviso.
-- Stato: todo
+  - [x] `npx playwright test e2e/keyboard.spec.ts --repeat-each=20 --workers=1` exit 0. Evidenza: 20/20 passed (6.2m), exit 0 (evidence-T042.json); la race del filechooser era già gestita dal fix di T027 (listener registrato prima di `goto`), quindi nessuna modifica allo spec; 20/20 lo conferma.
+  - [x] Gli e2e usano `user_id` univoci per run e il README documenta i dati che restano sul backend (non esiste un endpoint di cancellazione). Evidenza: `e2e/helpers/user.ts:9,12` (`uniqueUser(prefix)` -> `<prefix>_<Date.now()>_<pid>_<counter>_<hex>`, solo `[a-zA-Z0-9_-]`, < 100 caratteri), usato negli spec (es. `e2e/keyboard.spec.ts:3`); nessun `fill('test_user')` rimasto in `e2e/`; `npx playwright test` exit 0, 41 passed; README, sezione Quality Gate.
+  - [x] `npm run start` (o lo script documentato nel README) avvia il server standalone senza l'avviso. Evidenza: `package.json:9-10` (`postbuild` -> `scripts/copy-standalone-assets.mjs`, `start` -> `node .next/standalone/server.js`); `scripts/copy-standalone-assets.mjs:6-13` copia `.next/static` e `public` nello standalone; `npm run build` + `npm run start` su porta 3300: "Ready in 92ms" senza avviso, `/` 200, CSS 200, `/icon.svg` 200, `POST /api/auth/login` 200 (evidence-T042.json); gate typecheck, lint, test exit 0.
+- Stato: done (T042)
 
 ### P2-13 — Viewer PDF: text layer e scroll continuo
 - Criterio della specifica: "UX e micro-interazioni".

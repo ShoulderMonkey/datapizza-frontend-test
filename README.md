@@ -60,10 +60,10 @@ npm run dev
 **Production build:**
 ```bash
 npm run build
-npm start
+npm run start
 ```
 
-**Note on standalone output:** Next.js is configured with `output: 'standalone'` in `next.config.ts:11` for Docker efficiency (reducing image size by excluding unnecessary files). When running `npm start`, Next.js prints a warning: `⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.` The server responds normally and the application is accessible at `http://localhost:3000`, but the recommended way to run the production build is via the `Dockerfile`, which properly copies the standalone output (`.next/standalone/`, `.next/static/`, and `public/`) and executes `node server.js`.
+`npm run build` runs `postbuild` (`scripts/copy-standalone-assets.mjs`), which copies `.next/static` and `public` into `.next/standalone`; `npm run start` then runs `node .next/standalone/server.js` (`package.json:9-10`), consistent with `output: 'standalone'` in `next.config.ts`, with no `next start` warning. The `Dockerfile` uses the same standalone output.
 
 The application will be accessible at: `http://localhost:3000`.
 
@@ -80,7 +80,11 @@ npm run e2e
 
 # E2E against an already running server (e.g. a production build): no webServer is started
 PLAYWRIGHT_BASE_URL=http://localhost:3300 npx playwright test e2e/hygiene.spec.ts
+```
 
+**Data left on the backend by e2e (P2-12):** the e2e suite runs against the real backend. Each test logs in with a unique `user_id` per run (`uniqueUser(prefix)` in `e2e/helpers/user.ts`: spec prefix + timestamp + pid + counter + random hex), so runs do not collide. The backend has no delete endpoint (only login, upload, list and get for documents and chats) and keeps its data in an in-memory `MockDatabase` (`BE:src/dependencies.py:8-72`), so chats and uploaded documents created by the tests stay until the backend process is restarted (with `docker-compose`, restart or recreate the container).
+
+```bash
 # Regenerate API request types from docs/api/openapi.json
 npm run gen:api
 ```
@@ -389,7 +393,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-12 and P2-13 (see "With More Time").
+  - The only open item tracked in `docs/ROADMAP.md` is P2-13 (see "With More Time").
 
 - **Validation details:**
   - Client `user_id` validation is more restrictive than the backend: only ASCII `[a-zA-Z0-9_-]` (max 100 chars), vs backend `str.isalnum()` which accepts Unicode. The backend is lenient; the client enforces stricter rules.
@@ -413,8 +417,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08, P2-09, P2-10 and P2-11 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P2-12**: e2e and startup stability (filechooser race, data left on the backend, `next start` warning with `output: standalone`).
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08, P2-09, P2-10, P2-11 and P2-12 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P2-13**: PDF text layer and continuous scrolling.
 
 ---

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 test.use({ viewport: { width: 1280, height: 720 } });
 
@@ -6,7 +7,7 @@ test('P2-08: opening a second document keeps the active card fully visible in th
   test.setTimeout(120_000);
 
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('citation-occurrence'));
   await page.getByRole('button', { name: /accedi all/i }).click();
   await page.getByRole('button', { name: /invia messaggio/i }).waitFor();
 

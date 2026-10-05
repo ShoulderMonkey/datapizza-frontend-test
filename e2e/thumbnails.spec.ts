@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 // P2-02: lazy citation thumbnails share one download per document_id with the PDF viewer (real backend).
 
@@ -11,7 +12,7 @@ test('thumbnails download at most one PDF per distinct document_id, also when op
   });
 
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('thumbnails'));
   await page.getByRole('button', { name: /accedi all/i }).click();
   const composer = page.getByRole('textbox').last();
   await expect(composer).toBeVisible();

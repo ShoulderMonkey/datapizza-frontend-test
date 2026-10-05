@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T042, P2-12)
+- `npm run start` avvia il server standalone (`node .next/standalone/server.js`, `package.json:10`) senza l'avviso di `next start`; `postbuild` (`scripts/copy-standalone-assets.mjs`) copia `.next/static` e `public` nello standalone. Verificato: `/`, CSS, `/icon.svg` e login 200.
+- e2e: `user_id` univoci per run (`e2e/helpers/user.ts`, `uniqueUser`) al posto di costanti fisse, per non accumulare dati sullo stesso utente. Suite completa 41 passed. La race del filechooser in `e2e/keyboard.spec.ts` era già risolta da T027: `--repeat-each=20 --workers=1` 20/20.
+
+### Changed (T042)
+- README: avvio di produzione con `npm run build` e `npm run start` (nota sull'avviso rimossa); documentati i dati che gli e2e lasciano sul backend (DB in memoria, nessun endpoint di cancellazione). P2-12 `done`.
+
 ### Fixed (T041, P2-11)
 - Proxy: `/api/documents` e `/api/chat` senza slash finale sono riscritte verso `${BACKEND_URL}/api/<x>/` (`next.config.ts:21-22`); prima FastAPI rispondeva 307 con `Location` assoluta verso l'host del backend. Dopo: nessuna `Location`, 401 senza cookie e 200 con cookie, POST `/api/chat` 200 NDJSON.
 - Console del primo load vuota: aggiunta l'icona `app/icon.svg` (marchio "DF"); l'errore era il 404 di `/favicon.ico`.

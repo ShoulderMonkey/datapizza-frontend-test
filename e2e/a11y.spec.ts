@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { uniqueUser } from './helpers/user';
 
 // P2-06: WCAG 2.1 A/AA scan (serious/critical only) of login, chat and PDF viewer against the real backend.
 
-const USER = 'a11y-t027';
+const USER = uniqueUser('a11y');
 
 test.describe('accessibility (axe, WCAG 2.1 A/AA)', () => {
   test.use({ viewport: { width: 1440, height: 900 } });

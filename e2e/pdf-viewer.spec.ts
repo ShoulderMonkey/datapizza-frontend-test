@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 test('PDF viewer: no CDN requests, opens on first region page, bbox in viewport', async ({ page }) => {
   test.setTimeout(150_000);
   const cdnRequests: string[] = [];
 
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('pdf-viewer'));
   await page.getByRole('button', { name: /accedi all/i }).click();
 
   const composer = page.getByRole('textbox').last();

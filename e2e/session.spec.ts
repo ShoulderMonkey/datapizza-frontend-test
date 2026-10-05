@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { uniqueUser } from './helpers/user';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/');
-  await page.locator('#user_id').fill('test_user');
+  await page.locator('#user_id').fill(uniqueUser('session'));
   await page.getByRole('button', { name: /accedi all/i }).click();
   await expect(page.getByRole('button', { name: /libreria documenti|documenti pdf/i }).first()).toBeVisible();
   // Initial lists loaded (document count badge and history section), so no fetch is in flight later.
