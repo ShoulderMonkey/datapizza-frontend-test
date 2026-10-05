@@ -17,6 +17,10 @@ import {
 
 interface ChatSidebarProps {
   chats: ChatRecord[];
+  /**
+   * Entry shown as current (`aria-current` and active style): the selected entry or, when nothing
+   * is selected, the entry saved by the last stream (ADR 0007).
+   */
   activeChatId: string | null;
   isLoading: boolean;
   error: string | null;
@@ -47,7 +51,8 @@ function formatEntryDate(createdAt: string): string {
 
 /**
  * Sidebar with the chat history. Each entry is one stored backend chat, i.e. one question/answer
- * pair (ADR 0004): title = `query`, date = `created_at`. The selected entry has `aria-current`.
+ * pair (ADR 0004): title = `query`, date = `created_at`. The current entry (selected, or just saved
+ * by the last stream, ADR 0007) has `aria-current`.
  */
 export function ChatSidebar({
   chats,

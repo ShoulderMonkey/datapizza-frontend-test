@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DocumentListModal } from '@/src/features/documents/components/DocumentListModal';
 import { useDocuments } from '@/src/features/documents/hooks/useDocuments';
 import { CitationHighlightProvider } from '@/src/features/factcheck/hooks/useCitationHighlight';
@@ -8,10 +8,12 @@ import { FactCheckPanel } from '@/src/features/factcheck/components/FactCheckPan
 import { usePdfViewer } from '@/src/features/factcheck/hooks/usePdfViewer';
 import { ChatSidebar } from '@/src/features/history/components/ChatSidebar';
 import { HistoryEntryNotice } from '@/src/features/history/components/HistoryEntryNotice';
+import { HistorySavedStatus } from '@/src/features/history/components/HistorySavedStatus';
 import { useChatHistory } from '@/src/features/history/hooks/useChatHistory';
+import { useSavedChat } from '@/src/features/history/hooks/useSavedChat';
 import { useSidebarOpen } from '@/src/features/history/hooks/useSidebarOpen';
 import { useAutoScroll } from '../hooks/useAutoScroll';
-import { useChatStream } from '../hooks/useChatStream';
+import { useChatStream, type StreamEndResult } from '../hooks/useChatStream';
 import type { ChatMessage, CitationReference } from '../types';
 import { ChatComposer } from './ChatComposer';
 import { ChatConversation } from './ChatConversation';
@@ -27,6 +29,8 @@ interface ChatWorkspaceProps {
 const toCompletedMessages = (messages: readonly Omit<ChatMessage, 'status'>[]): ChatMessage[] =>
   messages.map((m): ChatMessage => ({ ...m, status: 'completed' }));
 
+const NO_IDS: ReadonlySet<string> = new Set();
+
 /**
  * Layout of the authenticated app. It only wires hooks (history, documents, stream,
  * PDF panel) to presentational components: no API calls and no stream logic here.
@@ -35,20 +39,33 @@ const toCompletedMessages = (messages: readonly Omit<ChatMessage, 'status'>[]): 
  * history entry (title = `query`, date = `created_at`). The multi-turn conversation is local only.
  * - Selecting an entry shows its Q/A (and saved citations) and highlights it (`aria-current`).
  * - Sending (or retrying) while an entry is selected starts a new local session: the selection is
- *   cleared, the entry's Q/A stays on screen and is sent in `history` (ignored by the backend),
- *   and the backend stores a new chat. The selected entry is never modified.
- * - At the end of the stream the list is refetched and the new entry appears on top, not selected:
- *   the stream does not return the chat id, and selecting it would replace the local multi-turn
- *   conversation with a single Q/A pair.
+ *   cleared, the entry's Q/A stays on screen labelled "Dalla conversazione precedente" and is sent
+ *   in `history` (ignored by the backend), and the backend stores a new chat. The selected entry is
+ *   never modified.
+ * - At the end of a successful stream the list is refetched and the new entry appears on top,
+ *   marked as current (`aria-current`) but not selected, with a `role="status"` announcement
+ *   (ADR 0007, modifies ADR 0004 point 5). The stream does not return the chat id, so the entry is
+ *   the one absent from the snapshot taken at send time with the same `query` (`useSavedChat`).
+ *   It is not selected: selecting would load its transcript and replace the local multi-turn
+ *   conversation with a single Q/A pair. Clicking it selects it as usual; a new send, "Nuova
+ *   conversazione", the selection of an entry, Stop or logout reset the mark.
  */
 export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
   const { isOpen: isSidebarOpen, setOpen: setIsSidebarOpen, toggle: toggleSidebar } = useSidebarOpen();
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  /** Ids of the stored messages kept as context of a new local session (ADR 0004 point 3). */
+  const [contextIds, setContextIds] = useState<ReadonlySet<string>>(NO_IDS);
 
   const history = useChatHistory();
   const documents = useDocuments({ enabled: true });
   const pdfViewer = usePdfViewer();
-  const chat = useChatStream({ onStreamEnd: history.refresh });
+  const savedChat = useSavedChat({ chats: history.chats, refresh: history.refresh });
+  const { complete: completeSavedChat, begin: beginSavedChat, clear: clearSavedChat } = savedChat;
+  const handleStreamEnd = useCallback(
+    (result: StreamEndResult) => void completeSavedChat(result),
+    [completeSavedChat]
+  );
+  const chat = useChatStream({ onStreamEnd: handleStreamEnd });
   const { endRef, onScroll } = useAutoScroll(chat.messages);
 
   // Only the first page may be loaded: with more pages the count is a lower bound ("20+").
@@ -69,6 +86,8 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
   // Switching chat (or starting a new one) aborts the running stream: `cancel()` stops it now,
   // and `replaceMessages()` aborts too, so a stream can never write into another conversation.
   const handleSelectChat = (chatId: string) => {
+    clearSavedChat();
+    setContextIds(NO_IDS);
     if (chatId === activeChatId && transcript) {
       // Re-selecting the entry restores its stored Q/A (and aborts a running stream).
       replaceMessages(toCompletedMessages(transcript.messages));
@@ -82,8 +101,21 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
 
   const handleNewChat = () => {
     chat.cancel();
+    clearSavedChat();
+    setContextIds(NO_IDS);
     history.clearActiveChat();
     chat.replaceMessages([]);
+  };
+
+  // An aborted stream stores nothing: no announcement and no marked entry.
+  const handleCancelStream = () => {
+    chat.cancel();
+    clearSavedChat();
+  };
+
+  const handleLogout = () => {
+    clearSavedChat();
+    onLogout();
   };
 
   // Stable callback: memoized message rows do not re-render when the conversation changes.
@@ -94,41 +126,56 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
     [inspectCitation, getConversationCitations]
   );
 
+  const isViewingHistoryEntry =
+    activeChatId !== null && transcript !== undefined && !history.isChatLoading && !history.chatLoadError;
+
+  // Messages of the selected entry: while it is viewed, and as labelled context after a new question.
+  const transcriptIds = useMemo(
+    () => (transcript ? new Set(transcript.messages.map((m) => m.id)) : NO_IDS),
+    [transcript]
+  );
   // ADR 0004: a new question never modifies the selected entry. The selection is cleared so the
-  // sidebar no longer marks it as the current conversation; the backend stores a new chat.
+  // sidebar no longer marks it as the current conversation; its messages stay as labelled context
+  // (ADR 0007), and the ids of the loaded entries are snapshotted to find the new one at the end.
   const { clearActiveChat } = history;
   const { send, retry, isStreaming } = chat;
+  const startNewQuestion = useCallback(() => {
+    if (isViewingHistoryEntry) setContextIds(transcriptIds);
+    beginSavedChat();
+    clearActiveChat();
+  }, [isViewingHistoryEntry, transcriptIds, beginSavedChat, clearActiveChat]);
+
   const handleSend = (query: string) => {
     if (isStreaming) return; // ADR 0003: no send during a stream.
-    clearActiveChat();
+    startNewQuestion();
     void send(query);
   };
 
   // Stable callback (memoized rows); a retry is a new send, so it follows the same rule.
   const handleRetry = useCallback(
     (message: ChatMessage) => {
-      clearActiveChat();
+      startNewQuestion();
       retry(message);
     },
-    [clearActiveChat, retry]
+    [startNewQuestion, retry]
   );
 
-  const isViewingHistoryEntry =
-    activeChatId !== null && transcript !== undefined && !history.isChatLoading && !history.chatLoadError;
+  // The sidebar marks the selected entry or, when nothing is selected, the entry just saved.
+  const currentChatId = history.activeChatId ?? savedChat.savedChatId;
 
   return (
     <CitationHighlightProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
       <ChatSidebar
         chats={history.chats}
-        activeChatId={history.activeChatId}
+        activeChatId={currentChatId}
         isLoading={history.isListLoading}
         error={history.listError}
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
         onRefreshChats={history.refresh}
         onOpenDocuments={() => setIsDocumentsOpen(true)}
-        onLogout={onLogout}
+        onLogout={handleLogout}
         userId={userId}
         isOpen={isSidebarOpen}
         onToggleOpen={toggleSidebar}
@@ -164,13 +211,18 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           emptyState={
             <WelcomePanel onOpenDocuments={() => setIsDocumentsOpen(true)} onAskQuestion={handleSend} />
           }
+          entryMessageIds={isViewingHistoryEntry ? transcriptIds : contextIds}
+          isEntryContext={!isViewingHistoryEntry && contextIds.size > 0}
         />
 
         <div className="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pt-3">
           {isViewingHistoryEntry && <HistoryEntryNotice />}
+          {savedChat.state.status !== 'idle' && (
+            <HistorySavedStatus isSaved={savedChat.state.status === 'saved'} />
+          )}
           <ChatComposer
             onSendMessage={handleSend}
-            onCancelStream={chat.cancel}
+            onCancelStream={handleCancelStream}
             isStreaming={chat.isStreaming}
             disabled={history.isChatLoading}
           />

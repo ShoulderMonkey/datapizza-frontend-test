@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T033)
+## Stato attuale (aggiornato a T034)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032) e P1-13 (T033); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033) e P1-14 (T034); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-13, P1-14, P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -324,9 +324,9 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T019.
 - Findings: nessun segnale che la nuova voce dello storico è salvata a fine stream (medium, T019); il contesto della voce precedente non ha un'etichetta nella nuova sessione (medium, T019).
 - Criteri di accettazione:
-  - [ ] A fine stream la nuova voce compare in cima allo storico ed è marcata come attiva (`aria-current`), con un annuncio `role="status"` del salvataggio (integration + e2e).
-  - [ ] I messaggi della voce precedente mostrati come contesto hanno un'etichetta visibile e accessibile (es. "Dalla conversazione precedente") (integration).
-- Stato: todo
+  - [x] A fine stream la nuova voce compare in cima allo storico ed è marcata come attiva (`aria-current`), con un annuncio `role="status"` del salvataggio (integration + e2e). Evidenza: `useSavedChat.ts:58,68-76`, `ChatWorkspace.tsx:164`, `ChatSidebar.tsx:223`, `HistorySavedStatus.tsx:20-21`; `tests/integration/history-saved-p1-14.test.tsx:57`, `history-model.test.tsx:50-54`, `e2e/history.spec.ts:76-79`; `npm run test` exit 0, `npx playwright test e2e/history.spec.ts --repeat-each=3 --workers=1` exit 0, tester 10 passed (history, session, keyboard x2). Decisione in `docs/adr/0007-feedback-storico.md`.
+  - [x] I messaggi della voce precedente mostrati come contesto hanno un'etichetta visibile e accessibile (es. "Dalla conversazione precedente") (integration). Evidenza: `ChatConversation.tsx:108-124` (`role="group"` + `aria-labelledby`), `tests/integration/history-saved-p1-14.test.tsx:60-63`, `e2e/history.spec.ts:80`; ariaSnapshot del tester: group "Dalla conversazione precedente" (report non versionato).
+- Stato: done (T034)
 
 ### P1-15 — Microcopy e feedback di upload e composer
 - Criterio della specifica: "UX e micro-interazioni" / "Gestione degli errori".

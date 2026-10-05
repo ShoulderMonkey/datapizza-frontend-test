@@ -32,8 +32,13 @@ export function useChatList() {
   useEffect(() => {
     if (failure) logError('Failed to load the chat history:', failure);
   }, [failure]);
-  const refresh = useCallback(async () => {
-    await refetch();
+  /**
+   * Refetches every loaded page and resolves with the refreshed, sorted list (the previous data if
+   * the request fails), so a caller can compare it with an earlier snapshot (ADR 0007).
+   */
+  const refresh = useCallback(async (): Promise<ChatRecord[]> => {
+    const result = await refetch();
+    return result.data ?? [];
   }, [refetch]);
   const loadMore = useCallback(async () => {
     await fetchNextPage();

@@ -1,6 +1,6 @@
 # 0004 — Modello dello storico: una chat = una coppia domanda/risposta
 
-**Stato:** accettato
+**Stato:** accettato, punto 5 modificato da ADR 0007
 
 **Data:** 2026-10-04 — Item: P1-07 (T019)
 
@@ -14,7 +14,7 @@ Il backend salva ogni richiesta a `POST /api/chat/` come un record `{id, user_id
 2. Selezionare una voce mostra domanda, risposta renderizzata e le citazioni salvate (`Documenti correlati`), da cui si apre il PDF. La conversazione precedente viene svuotata subito, così non resta visibile durante il caricamento e non finisce nella `history`.
 3. Una nuova domanda (o un Riprova) con una voce selezionata avvia una nuova sessione locale: la selezione viene annullata (nessuna voce con `aria-current`, titolo 'Nuova sessione'). La domanda e la risposta della voce restano visibili come contesto e vengono inviate in `history` senza promettere effetti. Il backend crea una nuova chat; la voce selezionata non viene modificata. Mentre una voce è aperta, una nota sopra il composer lo spiega (`HistoryEntryNotice`).
 4. La conversazione multi-turno esiste solo nel client. Il campo `history` viene inviato per compatibilità con lo schema (`docs/api/openapi.json`), ma la UI non dichiara che il modello lo usi.
-5. A fine stream la lista viene ricaricata (`onStreamEnd` → `history.refresh`) e la nuova voce compare in cima, **non selezionata**.
+5. A fine stream la lista viene ricaricata (`onStreamEnd` → `history.refresh`) e la nuova voce compare in cima, **non selezionata**. *(Modificato da ADR 0007: la nuova voce viene marcata con `aria-current` senza selezionarla.)*
 
 **Alternative considerate**
 
@@ -26,7 +26,7 @@ Il backend salva ogni richiesta a `POST /api/chat/` come un record `{id, user_id
 
 - La sidebar e il backend coincidono: N domande inviate = N nuove voci, la più recente in alto.
 - Il contesto multi-turno si perde al ricaricamento della pagina o selezionando una voce (lo storico server ha solo coppie Q/A); è un limite del backend, non della UI.
-- Comportamento verificabile: dopo un invio nessuna voce ha `aria-current`, la voce selezionata in precedenza mantiene titolo e contenuto, e la lista ricaricata contiene una voce in più in cima.
+- Comportamento verificabile: dopo un invio riuscito la nuova voce ha `aria-current` (ADR 0007), la voce selezionata in precedenza mantiene titolo e contenuto, e la lista ricaricata contiene una voce in più in cima.
 
 Riferimenti codice: src/features/chat/components/ChatWorkspace.tsx:25-112 (docblock, handleSelectChat, handleSend, handleRetry), src/features/history/components/ChatSidebar.tsx:38,201-218 (titolo :215), src/features/history/components/HistoryEntryNotice.tsx, src/features/chat/hooks/useChatStream.ts:143-145 (history inviata).
 - Test: `tests/integration/history-model.test.tsx` (selezione annullata all'invio, `history` con la Q/A di A, nuova voce in cima con A invariata) ed `e2e/history.spec.ts` (2 domande, 2 voci, la più recente in alto; selezione voce con Q/A, Documenti correlati e PDF; nuova domanda con voce selezionata, +1 voce e A invariata).

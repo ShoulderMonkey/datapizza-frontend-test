@@ -73,7 +73,11 @@ test.describe('history model', () => {
     await ask(page, Q2);
     await expect(entries(page)).toHaveCount(2);
     await expect(entries(page).first()).toContainText(Q2);
-    await expect(page.locator('[data-testid="history-entry"][aria-current]')).toHaveCount(0);
+    // ADR 0007: the entry just saved is the active one, A is not; the saving is announced.
+    await expect(entries(page).first()).toHaveAttribute('aria-current', 'true');
+    await expect(entries(page).nth(1)).not.toHaveAttribute('aria-current', 'true');
+    await expect(page.getByRole('status').filter({ hasText: 'Conversazione salvata nello storico' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Dalla conversazione precedente' })).toBeVisible();
     await expect(page.getByTestId('history-entry-notice')).toHaveCount(0);
 
     await entries(page).nth(1).click();

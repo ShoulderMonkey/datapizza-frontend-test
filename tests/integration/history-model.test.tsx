@@ -47,7 +47,10 @@ describe('history model (ADR 0004): a new question never modifies the selected e
     await user.click(screen.getByRole('button', { name: /invia/i }));
 
     await waitFor(() => expect(entries()).toHaveLength(2));
-    expect(document.querySelector('[aria-current]')).toBeNull();
+    // ADR 0007: A is no longer selected; the entry just saved (N, on top) is the active one.
+    await waitFor(() => expect(entries()[0]).toHaveAttribute('aria-current', 'true'));
+    expect(entries()[1]).not.toHaveAttribute('aria-current');
+    expect(document.querySelectorAll('[aria-current]')).toHaveLength(1);
     expect(screen.queryByTestId('history-entry-notice')).not.toBeInTheDocument();
 
     expect(postBody?.history).toEqual([

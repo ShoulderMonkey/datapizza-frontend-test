@@ -5,9 +5,20 @@ import { ERROR_MESSAGES, chatService, logError, toApiError, toUserMessage } from
 import { chatStreamReducer, initialChatStreamState, type ChatStreamAction } from '../lib/chatStreamReducer';
 import type { ChatHistoryEntry, ChatMessage, CitationReference } from '../types';
 
+/** How a stream ended, passed to `onStreamEnd` (ADR 0007). */
+export interface StreamEndResult {
+  /**
+   * True when the stream ended without an `error` chunk: the backend stored a new chat
+   * (BE:src/routes/chat.py:203-206, the record is written after the last chunk).
+   */
+  saved: boolean;
+  /** The question sent (the backend stores it unchanged as `query`). */
+  query: string;
+}
+
 interface UseChatStreamOptions {
   /** Called when a stream ends without throwing (also after an `error` chunk). Not after an abort. */
-  onStreamEnd?: () => void;
+  onStreamEnd?: (result: StreamEndResult) => void;
 }
 
 type FrameHandle = { kind: 'raf'; id: number } | { kind: 'timeout'; id: ReturnType<typeof setTimeout> };
@@ -192,8 +203,8 @@ export function useChatStream({ onStreamEnd }: UseChatStreamOptions = {}) {
         if (!isCurrent()) return;
         // `done` never overwrites the `error` set by an error chunk (reducer rule, P0-05).
         if (!streamFailed) flushAndEmit({ type: 'done' });
-        // Refresh the history to show the newly stored chat.
-        optionsRef.current.onStreamEnd?.();
+        // Refresh the history to show the newly stored chat (and mark it, ADR 0007).
+        optionsRef.current.onStreamEnd?.({ saved: !streamFailed, query: queryText });
       } catch (err: unknown) {
         // Aborted by cancel()/chat switch/unmount: the abort was already handled, stay silent.
         if (!isCurrent()) return;

@@ -8,6 +8,18 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T034, P1-14)
+- Voce salvata marcata con `aria-current` a fine stream riuscito, senza selezionarla, e annuncio `role="status"` "Conversazione salvata nello storico" (`useSavedChat.ts`, `findSavedChatId.ts`, `HistorySavedStatus.tsx`, `ChatWorkspace.tsx`, `ChatSidebar.tsx`, `useChatList.ts`, `useChatStream.ts`).
+- Contesto della voce precedente in un gruppo etichettato "Dalla conversazione precedente" (`ChatConversation.tsx`).
+- Test: `tests/unit/findSavedChatId.test.ts`, `tests/integration/history-saved-p1-14.test.tsx`, `e2e/history.spec.ts` (history x3 exit 0; tester 10 passed).
+
+### Changed (T034, P1-14)
+- ADR 0004 punto 5 modificato: la nuova voce non è più "non selezionata" ma marcata (`docs/adr/0007-feedback-storico.md`); `tests/integration/history-model.test.tsx` aggiornato.
+- Limite noto: con più di 20 chat la nuova voce può essere oltre le pagine caricate e non viene marcata (l'annuncio resta).
+
+### Docs (T034)
+- `docs/ROADMAP.md`: P1-14 `done`; README §5, §7 e §8 aggiornati.
+
 ### Added (T033, P1-13)
 - Fit-to-width automatico della pagina PDF nel drawer sotto 1024 px (`PdfFactCheckViewer.tsx`, `FactCheckPanel.tsx`) e larghezza minima della conversazione di 480 px a ≥ xl (`ChatWorkspace.tsx`).
 - Test: `e2e/responsive.spec.ts` (suite completa 30 passed; responsive x3 15 passed).
