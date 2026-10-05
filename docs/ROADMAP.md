@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T030)
+## Stato attuale (aggiornato a T031)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P0-09, P1-12, P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-12, P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -146,10 +146,10 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`; ne
 - Fonte: `npm audit` del 2026-10-05; "npm audit non esaminato" aperto in T001, T002, T003.
 - Findings: 7 vulnerabilità (6 high, 1 moderate). Runtime/build: `next` (moderate, dipendenza diretta) → `postcss` high (XSS per `</style>` non escapato nello stringify; lettura arbitraria di file `.map` via `sourceMappingURL`); il fix richiede il major `next@16.x`. Solo dev: `eslint-config-next` (diretta) → `@next/eslint-plugin-next` → `fast-glob` → `micromatch` → `braces` high (DoS); il fix proposto da npm è `eslint-config-next@14.2.35` (semver major, incoerente con Next 15).
 - Criteri di accettazione:
-  - [ ] `npm audit --omit=dev` senza vulnerabilità high/critical, oppure ADR in `docs/adr/` che motiva l'accettazione del rischio residuo (sfruttabilità solo con CSS non controllato dall'utente) e la scelta di non passare a Next 16.
-  - [ ] Le vulnerabilità solo-dev sono risolte o elencate nell'ADR.
-  - [ ] Quality gate e suite e2e completa con exit 0 dopo l'eventuale aggiornamento.
-- Stato: todo
+  - [x] `npm audit --omit=dev` senza vulnerabilità high/critical, oppure ADR in `docs/adr/` che motiva l'accettazione del rischio residuo e la scelta di non passare a Next 16. → evidenza: override `next > postcss ^8.5.28` in `package.json:55-59`; `npm audit --omit=dev` exit 0 ("found 0 vulnerabilities"); `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`.
+  - [x] Le vulnerabilità solo-dev sono risolte o elencate nell'ADR. → evidenza: i 5 high solo-dev della catena `braces` (nessun fix disponibile) sono elencati nell'ADR 0006.
+  - [x] Quality gate e suite e2e completa con exit 0 dopo l'eventuale aggiornamento. → evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0 (gate dell'orchestratore); e2e 21/21 exit 0 e `npm run build` exit 0 (report del tester T031, non versionato).
+- Stato: done (T031)
 
 ---
 

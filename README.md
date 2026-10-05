@@ -377,7 +377,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P0-09 (dependency vulnerabilities), P1-12 (focus), P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-12 (focus), P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -392,6 +392,9 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 - **Upload cancellation:**
   - "Annulla" interrompe la richiesta lato client (`AbortController`, `src/features/documents/hooks/useDocumentUpload.ts`), ma se il backend ha già ricevuto l'intero corpo il file può risultare salvato e comparire al prossimo aggiornamento della lista.
 
+- **Dependency vulnerabilities (P0-09):**
+  - An override `next > postcss ^8.5.28` (`package.json:55-59`) brings `npm audit --omit=dev` to 0 vulnerabilities without moving to Next 16. 5 high-severity findings remain in the dev-only chain `eslint-config-next > ... > braces@3.0.3` (no fix published); they affect only ESLint on repository globs, not the production bundle. See `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`.
+
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
 - **Citation thumbnails (P2-09):** the placeholder has a fixed size (140x180), so landscape pages are cropped; each card runs its own pdf.js parse of the shared Blob (one download per document, but one parse per card).
@@ -402,8 +405,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`):
-- **P0-09**: dependency vulnerabilities reported by `npm audit` (`next`/`postcss`, dev-only `eslint-config-next` chain); fix or ADR accepting the residual risk.
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 is done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P1-12**: keyboard focus polish (focus lost after "Interrompi", 15 Tab presses to the citation list, low-visibility focus rings).
 - **P1-13**: responsive layout (PDF clipped in the mobile drawer at 120% zoom, narrow conversation at 1440 px, composer placeholder clipped with the viewer open).
 - **P1-14**: history feedback (no signal when the new entry is saved, previous-entry context unlabeled).

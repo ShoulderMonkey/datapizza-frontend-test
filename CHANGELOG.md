@@ -8,6 +8,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Security (T031, P0-09)
+- `package.json`: override `next > postcss ^8.5.28` (righe 55-59); `npm audit --omit=dev` passa da 2 vulnerabilità (1 high) a 0, senza Next 16. Restano 5 high solo-dev nella catena `braces` (nessun fix), accettati nell'ADR `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`. Gate, e2e 21/21 e build exit 0.
+
 ### Docs (T030)
 - `docs/ROADMAP.md`: nuovi item `todo` dai findings di T001–T029 (P0-09, P1-12…P1-15, P2-08…P2-13), sezione "Findings non trasformati in item (con motivo)", esito delle suite e2e complete in P2-06 (17 passed, T027) e P2-07 (20/20, T028). README §7/§8 riallineati con rimandi per id; nessun finding aperto senza item.
 
