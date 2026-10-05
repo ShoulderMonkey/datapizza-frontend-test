@@ -139,7 +139,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         onLoadMoreChats={history.loadMoreChats}
       />
 
-      <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 relative">
+      <main className="flex-1 flex flex-col h-full min-w-0 xl:min-w-[480px] bg-white dark:bg-slate-900 relative">
         <ChatHeader
           title={history.activeChatTitle}
           isStreaming={chat.isStreaming}

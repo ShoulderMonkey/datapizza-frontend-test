@@ -82,7 +82,7 @@ export function FactCheckPanel({ target, onClose, onSelectCitation }: FactCheckP
       data-mode={isDesktop ? 'panel' : 'drawer'}
       className={
         isDesktop
-          ? 'h-full w-[46%] max-w-3xl shrink-0 border-l border-slate-800 bg-slate-950 outline-none'
+          ? 'h-full w-[46%] min-w-[320px] max-w-3xl shrink border-l border-slate-800 bg-slate-950 outline-none'
           : 'fixed inset-0 z-50 bg-slate-950 outline-none'
       }
       {...modeProps}
@@ -95,6 +95,7 @@ export function FactCheckPanel({ target, onClose, onSelectCitation }: FactCheckP
         activeCitation={target.citation}
         onClose={onClose}
         onSelectCitation={onSelectCitation}
+        autoFitWidth={!isDesktop}
       />
     </div>
   );

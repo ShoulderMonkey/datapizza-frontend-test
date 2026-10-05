@@ -35,6 +35,8 @@ interface PdfFactCheckViewerProps {
   activeCitation?: CitationReference | null;
   onClose: () => void;
   onSelectCitation?: (citation: CitationReference) => void;
+  /** Drawer mode (< 1024 px): fit the page to the container width automatically (P1-13). */
+  autoFitWidth?: boolean;
 }
 
 export function PdfFactCheckViewer({
@@ -45,6 +47,7 @@ export function PdfFactCheckViewer({
   activeCitation,
   onClose,
   onSelectCitation,
+  autoFitWidth = false,
 }: PdfFactCheckViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const citationListRef = useRef<HTMLDivElement | null>(null);
@@ -121,13 +124,36 @@ export function PdfFactCheckViewer({
   const handleZoomIn = () => setScale((s) => Math.min(3.0, +(s + 0.2).toFixed(1)));
   const handleZoomOut = () => setScale((s) => Math.max(0.6, +(s - 0.2).toFixed(1)));
   const handleResetZoom = () => setScale(1.2);
+  // Scale that makes the page exactly as wide as the container content box (padding excluded).
+  // Floored to 2 decimals so rounding never causes a 1px horizontal overflow.
+  const computeFitScale = (el: HTMLElement, pagePt: number): number => {
+    const cs = window.getComputedStyle(el);
+    const padding = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const available = el.clientWidth - padding;
+    return Math.max(0.3, Math.min(2.5, Math.floor((available / pagePt) * 100) / 100));
+  };
   const handleFitWidth = () => {
     if (containerRef.current && pageWidthPt > 0) {
-      const containerWidth = containerRef.current.clientWidth - 48; // padding
-      const computedScale = Math.max(0.6, Math.min(2.5, containerWidth / pageWidthPt));
-      setScale(+computedScale.toFixed(2));
+      setScale(computeFitScale(containerRef.current, pageWidthPt));
     }
   };
+
+  // Automatic fit-to-width in drawer mode: on page load / document change and when the container
+  // width changes. A manual zoom is kept until one of those events happens.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!autoFitWidth || !el || pageWidthPt <= 0) return;
+    let lastWidth = el.clientWidth;
+    setScale(computeFitScale(el, pageWidthPt));
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (el.clientWidth === lastWidth) return;
+      lastWidth = el.clientWidth;
+      setScale(computeFitScale(el, pageWidthPt));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [autoFitWidth, pageWidthPt, documentId]);
 
   return (
     <div className="flex h-full w-full flex-col bg-slate-950 animate-in fade-in duration-200">

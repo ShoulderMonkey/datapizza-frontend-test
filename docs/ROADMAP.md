@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T032)
+## Stato attuale (aggiornato a T033)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031) e P1-12 (T032); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032) e P1-13 (T033); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -311,10 +311,10 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T020, T028.
 - Findings: PDF tagliato nel drawer mobile a zoom 120% (medium, T020); conversazione stretta a 1440 px con sidebar e viewer aperti, lista citazioni `h-56` (low, T020); placeholder del composer tagliato a viewer aperto (low, T028).
 - Criteri di accettazione:
-  - [ ] A viewport < 1024 px la pagina PDF si adatta alla larghezza del drawer (fit-to-width) e a 390 px e 768 px non c'è scroll orizzontale della pagina (e2e: `scrollWidth <= clientWidth`).
-  - [ ] A 1440 px con sidebar e viewer aperti la colonna della conversazione è larga almeno 480 px (e2e).
-  - [ ] A viewer aperto il placeholder del composer è interamente visibile (e2e: nessun overflow del testo o placeholder abbreviato).
-- Stato: todo
+  - [x] A viewport < 1024 px la pagina PDF si adatta alla larghezza del drawer (fit-to-width) e a 390 px e 768 px non c'è scroll orizzontale della pagina (e2e: `scrollWidth <= clientWidth`). Evidenza: `PdfFactCheckViewer.tsx:129-156` (`computeFitScale`, `ResizeObserver`), `FactCheckPanel.tsx:98` (`autoFitWidth={!isDesktop}`), `e2e/responsive.spec.ts:31`. Tester: a 390 px documento 390/390 e canvas 354, a 768 px canvas 716; `npx playwright test` exit 0 (30 passed) e `npx playwright test e2e/responsive.spec.ts --repeat-each=3 --workers=1` exit 0 (15 passed) (T033).
+  - [x] A 1440 px con sidebar e viewer aperti la colonna della conversazione è larga almeno 480 px (e2e). Evidenza: `ChatWorkspace.tsx:142` (`xl:min-w-[480px]`), `FactCheckPanel.tsx:85` (`w-[46%] min-w-[320px] max-w-3xl shrink`), `e2e/responsive.spec.ts:81`; main misurata 490 px a 1440 (T033).
+  - [x] A viewer aperto il placeholder del composer è interamente visibile (e2e: nessun overflow del testo o placeholder abbreviato). Evidenza: `ChatComposer.tsx:110,115` (placeholder "Fai una domanda..." e `aria-describedby="composer-shortcuts-hint"`: le scorciatoie sono nel testo di aiuto), `e2e/responsive.spec.ts:53`; scrollWidth/clientWidth del placeholder 231/231 a 1024 px e 456/456 a 1440 px (report T033, non versionato).
+- Stato: done (T033)
 
 ### P1-14 — Feedback dello storico
 - Criterio della specifica: "Storico chat" / "UX e micro-interazioni".
@@ -431,11 +431,12 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Owner: `frontend-developer`
 - Dipendenze: P2-02
 - Stima: S
-- Fonte: T029, README §7.
-- Findings: placeholder a misura fissa 140x180, le pagine orizzontali vengono tagliate; ogni card esegue un proprio parse pdf.js del Blob condiviso (un download per documento, un parse per card).
+- Fonte: T029, T033, README §7.
+- Findings: placeholder a misura fissa 140x180, le pagine orizzontali vengono tagliate; ogni card esegue un proprio parse pdf.js del Blob condiviso (un download per documento, un parse per card); a 1024 px con sidebar e viewer aperti la colonna chat è ~265 px: card miniatura dei documenti correlati sovrapposte (link "Verifica nel PDF" coperti) e header con "Libreria PDF" sovrapposto al titolo (preesistente, tester T033).
 - Criteri di accettazione:
   - [ ] Una pagina orizzontale è mostrata intera nella thumbnail, senza layout shift dopo il caricamento (e2e o integration con dimensioni della pagina mockate).
   - [ ] N card dello stesso documento producono 1 solo parse pdf.js (unit/integration con spy sul loader).
+  - [ ] A 1024 px con sidebar e viewer aperti le card dei documenti correlati e gli elementi dell'header della chat non si sovrappongono (e2e: bounding box disgiunti) e i link "Verifica nel PDF" sono cliccabili.
 - Stato: todo
 
 ### P2-10 — Tema scuro: rifinitura

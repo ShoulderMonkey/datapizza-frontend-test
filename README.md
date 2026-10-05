@@ -280,6 +280,7 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 - **Pagine con regioni**: se la citazione ha regioni su più pagine, `PdfFactCheckViewer.tsx` mostra l'elenco "Pagine con regioni" con navigazione (raggruppamento in `lib/regions.ts`).
 - **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `src/features/factcheck/lib/pdfWorker.ts`, senza CDN.
 - **Layout e focus (P1-09)**: `FactCheckPanel.tsx` mostra il viewer come pannello laterale (`role="complementary"`) a ≥ 1024 px, con la conversazione ancora visibile e scrollabile (`useIsDesktop.ts`), e come dialog a schermo intero (`role="dialog"`, `aria-modal`, pulsante di chiusura) sotto. All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione. La card attiva (`aria-current` in `RelatedDocumentsSection.tsx`) e le sue regioni sul PDF (`data-active` in `BoundingBoxOverlay.tsx`) sono evidenziate. Test: `tests/integration/FactCheckPanel.test.tsx`, `e2e/layout.spec.ts`.
+- **Responsive layout (P1-13)**: sotto 1024 px il drawer applica un fit-to-width automatico alla pagina PDF (`autoFitWidth` in `FactCheckPanel.tsx`, `computeFitScale` con `ResizeObserver` in `PdfFactCheckViewer.tsx`); nel layout affiancato il pannello è `w-[46%] min-w-[320px] max-w-3xl` e la conversazione ha `xl:min-w-[480px]` (`ChatWorkspace.tsx`). Il placeholder del composer è "Fai una domanda..." e le scorciatoie sono nel testo di aiuto collegato con `aria-describedby` (`ChatComposer.tsx`). Test: `e2e/responsive.spec.ts`. Limite noto: a 1024 px con sidebar e viewer aperti la colonna chat è stretta (P2-09).
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
 
 - **Citation thumbnails (P2-02)**: each citation card shows a 140 px thumbnail of the cited page with only that page's regions (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`). It is lazy: nothing is downloaded or parsed until the card is near the viewport (`IntersectionObserver`, `rootMargin` 200 px). The PDF Blob is cached per `document_id` (`useDocumentFile.ts`): one download per document, shared with the viewer (`usePdfDocument.ts`). Tests: `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts`.
@@ -378,7 +379,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -407,7 +408,6 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
 The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 is done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P1-13**: responsive layout (PDF clipped in the mobile drawer at 120% zoom, narrow conversation at 1440 px, composer placeholder clipped with the viewer open).
 - **P1-14**: history feedback (no signal when the new entry is saved, previous-entry context unlabeled).
 - **P1-15**: microcopy and composer (English "boxes" in the citation panel, success message lost after upload, "0 file" while loading, no 10000-character limit).
 - **P2-08**: highlight precision (duplicate backend citations highlighted together, active card overflowing by 4.3 px).

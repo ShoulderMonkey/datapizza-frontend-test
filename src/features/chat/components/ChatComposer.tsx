@@ -107,13 +107,14 @@ export function ChatComposer({
           disabled={disabled}
           aria-disabled={disabled || isStreaming ? 'true' : undefined}
           aria-label="Domanda sui documenti"
+          aria-describedby="composer-shortcuts-hint"
           rows={1}
           placeholder={
             isStreaming
               ? "L'assistente sta rispondendo..."
-              : 'Fai una domanda sui documenti caricati... (Invio per inviare, Shift+Invio per a capo)'
+              : 'Fai una domanda...'
           }
-          className="w-full pl-4 pr-14 py-3.5 bg-transparent resize-none outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm leading-relaxed max-h-48 overflow-y-auto disabled:opacity-60 read-only:opacity-60"
+          className="w-full pl-3 pr-12 py-3.5 bg-transparent resize-none outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm leading-relaxed max-h-48 overflow-y-auto disabled:opacity-60 read-only:opacity-60"
         />
 
         <div className="absolute right-2.5 bottom-2.5">
@@ -142,8 +143,8 @@ export function ChatComposer({
         </div>
       </form>
 
-      <div className="mt-2 text-center text-[11px] text-slate-600 dark:text-slate-400">
-        Le risposte sono groundate sui PDF tramite streaming NDJSON e verificate con bounding region.
+      <div id="composer-shortcuts-hint" className="mt-2 text-center text-[11px] text-slate-600 dark:text-slate-400">
+        Invio per inviare, Shift+Invio per a capo. Le risposte sono groundate sui PDF tramite streaming NDJSON e verificate con bounding region.
       </div>
     </div>
   );

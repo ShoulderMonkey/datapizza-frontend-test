@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T033, P1-13)
+- Fit-to-width automatico della pagina PDF nel drawer sotto 1024 px (`PdfFactCheckViewer.tsx`, `FactCheckPanel.tsx`) e larghezza minima della conversazione di 480 px a ≥ xl (`ChatWorkspace.tsx`).
+- Test: `e2e/responsive.spec.ts` (suite completa 30 passed; responsive x3 15 passed).
+
+### Fixed (T033, P1-13)
+- Nessuno scroll orizzontale a 390 e 768 px (canvas 354 e 716 px); conversazione 490 px a 1440 px con sidebar e viewer aperti.
+- Placeholder del composer non più troncato ("Fai una domanda..."); le scorciatoie sono nel testo di aiuto collegato con `aria-describedby` (`ChatComposer.tsx`).
+
+### Docs (T033)
+- `docs/ROADMAP.md`: P1-13 `done`; a P2-09 aggiunto il criterio sulla sovrapposizione a 1024 px (finding del tester, preesistente).
+
 ### Added (T032, P1-12)
 - Skip link "Vai alle citazioni" nel viewer (`PdfFactCheckViewer.tsx`): primo tab stop, Enter porta alla prima card citazione (2 pressioni di tasto, scelta motivata da WCAG 2.4.3 rispetto al riordino del DOM).
 - Test: `tests/integration/focus-p1-12.test.tsx`, `e2e/focus.spec.ts` (e2e mirati x3: 15 passed; suite completa 25 passed).
