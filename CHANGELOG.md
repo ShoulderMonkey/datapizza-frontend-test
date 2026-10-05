@@ -8,6 +8,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T035, P1-13)
+- Bbox vicina al margine sinistro non raggiungibile nel layout affiancato. Causa: container `justify-center` con overflow non scrollabile a sinistra; il pannello era stato ristretto da 589 a 512 px in T033, rendendo visibile il difetto.
+- Fix: container senza `justify-center` (`PdfFactCheckViewer.tsx:338`) e wrapper della pagina `my-auto mx-auto shrink-0` (`PdfPageView.tsx:63`).
+- Test: `e2e/pdf-viewer-overflow.spec.ts` (rosso su eec31bd, verde dopo il fix); `pdf-viewer.spec` x20 exit 0 (prima 5/50 fail su 2d211e3); suite completa 31 passed.
+
 ### Added (T034, P1-14)
 - Voce salvata marcata con `aria-current` a fine stream riuscito, senza selezionarla, e annuncio `role="status"` "Conversazione salvata nello storico" (`useSavedChat.ts`, `findSavedChatId.ts`, `HistorySavedStatus.tsx`, `ChatWorkspace.tsx`, `ChatSidebar.tsx`, `useChatList.ts`, `useChatStream.ts`).
 - Contesto della voce precedente in un gruppo etichettato "Dalla conversazione precedente" (`ChatConversation.tsx`).

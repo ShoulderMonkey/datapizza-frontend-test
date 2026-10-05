@@ -335,7 +335,7 @@ export function PdfFactCheckViewer({
           role="region"
           tabIndex={0}
           aria-label="Pagina PDF"
-          className="flex-1 overflow-auto bg-slate-950 flex items-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400 justify-center p-4 sm:p-6"
+          className="flex-1 overflow-auto bg-slate-950 flex items-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400 p-4 sm:p-6"
         >
           {isLoading && (
             <div className="m-auto text-center p-8 bg-slate-900/90 border border-slate-800 rounded-xl shadow-2xl max-w-sm">

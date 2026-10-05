@@ -59,7 +59,7 @@ export function PdfPageView({
   }, [renderedPage, pageNumber, activeCitation, scrollToFirstBox]);
 
   return (
-    <div ref={wrapperRef} className="relative shadow-2xl rounded bg-white my-auto">
+    <div ref={wrapperRef} className="relative shadow-2xl rounded bg-white my-auto mx-auto shrink-0">
       <Document
         file={file}
         options={options}

@@ -5,7 +5,7 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T034)
+## Stato attuale (aggiornato a T035)
 
 Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033) e P1-14 (T034); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
@@ -315,6 +315,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] A 1440 px con sidebar e viewer aperti la colonna della conversazione è larga almeno 480 px (e2e). Evidenza: `ChatWorkspace.tsx:142` (`xl:min-w-[480px]`), `FactCheckPanel.tsx:85` (`w-[46%] min-w-[320px] max-w-3xl shrink`), `e2e/responsive.spec.ts:81`; main misurata 490 px a 1440 (T033).
   - [x] A viewer aperto il placeholder del composer è interamente visibile (e2e: nessun overflow del testo o placeholder abbreviato). Evidenza: `ChatComposer.tsx:110,115` (placeholder "Fai una domanda..." e `aria-describedby="composer-shortcuts-hint"`: le scorciatoie sono nel testo di aiuto), `e2e/responsive.spec.ts:53`; scrollWidth/clientWidth del placeholder 231/231 a 1024 px e 456/456 a 1440 px (report T033, non versionato).
 - Stato: done (T033)
+- Nota: regressione corretta in T035. Nel layout affiancato il pannello ristretto da 589 a 512 px faceva sì che una bbox vicina al margine sinistro fosse irraggiungibile (container `justify-center` con overflow non scrollabile a sinistra). Fix: `PdfFactCheckViewer.tsx:338`, `PdfPageView.tsx:63`. Evidenza: `npx playwright test e2e/pdf-viewer.spec.ts --repeat-each=20 --workers=1` exit 0 (20 passed; prima 5/50 fail su 2d211e3); `e2e/pdf-viewer-overflow.spec.ts` rosso su eec31bd, verde dopo il fix; `npx playwright test` exit 0 (31 passed). Nessun cambio di stato.
 
 ### P1-14 — Feedback dello storico
 - Criterio della specifica: "Storico chat" / "UX e micro-interazioni".
