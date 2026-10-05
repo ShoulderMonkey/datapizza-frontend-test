@@ -22,7 +22,7 @@
 | 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker locale (`lib/pdfWorker.ts`) e scroll alla regione (`PdfPageView.tsx:50`) risolti da P1-08 (T015) | P1-09 |
 | 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
 | Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF affiancato ≥1024 px e drawer sotto (P1-09 ✅, T020) | P1-04, P1-06, P1-10 |
+| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF affiancato ≥1024 px e drawer sotto (P1-09 ✅, T020; P1-10 ✅ tastiera, T021) | P1-04, P1-06, P1-10 |
 | Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ✅ done (T019) | P0-03, P0-05, P0-06, P1-02, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -258,10 +258,10 @@
 - Dipendenze: P1-01
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Le card citazione e le card di suggerimento sono `<button>` (grep `<div onClick` in `src/`: 0).
-  - [ ] L'area messaggi ha `aria-live="polite"`. Dopo l'invio il focus resta sull'input; a fine stream non viene rubato.
-  - [ ] e2e da sola tastiera: login → apertura documenti → upload → invio domanda → apertura citazione → chiusura viewer, senza mouse.
-- Stato: todo
+  - [x] Le card citazione e le card di suggerimento sono `<button>` (grep `<div onClick` in `src/`: 0). Evidenza: `WelcomePanel.tsx:29,43`, `RelatedDocumentsSection.tsx:37,72`, scan in `tests/integration/a11y-keyboard.test.tsx`. Unica eccezione dichiarata: il backdrop decorativo della sidebar mobile (`ChatSidebar.tsx:99-101`, `aria-hidden`, alternativa da tastiera "Chiudi barra laterale" a `:125`), non trovato dal grep letterale perché su più righe.
+  - [x] L'area messaggi ha `aria-live="polite"` (`ChatConversation.tsx:43-47`, `role="log"`, `aria-busy`). Dopo l'invio il focus resta sull'input; a fine stream non viene rubato: la textarea è `readOnly` + `aria-disabled` durante lo stream invece di `disabled` (`ChatComposer.tsx:87-90`; ADR 0003 invariato). Test: `tests/integration/ChatWorkspace.abort.test.tsx`, `tests/integration/a11y-keyboard.test.tsx`.
+  - [x] e2e da sola tastiera: login → apertura documenti → upload → invio domanda → apertura citazione → chiusura viewer, senza mouse (`e2e/keyboard.spec.ts:31`). `npm run e2e` 14/14 per due esecuzioni consecutive (JSON del test-writer).
+- Stato: done (T021)
 
 ### P1-11 — Pulizia dei residui AI Studio e delle dipendenze inutilizzate
 - Criterio della specifica: "Qualità del codice › Pulizia, leggibilità".

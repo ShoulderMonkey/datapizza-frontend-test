@@ -1,7 +1,9 @@
 'use client';
 
 import { ERROR_MESSAGES } from '@/src/api';
-import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../queryKeys';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDocuments } from '../hooks/useDocuments';
 import { DocumentUploadDropzone } from './DocumentUploadDropzone';
 import {
@@ -28,11 +30,51 @@ export function DocumentListModal({
   const [activeTab, setActiveTab] = useState<'list' | 'upload'>('list');
   const { documents, isLoading, error, refresh: refreshDocuments } = useDocuments({ enabled: isOpen });
 
+  // Opening the library always revalidates the list. A request still in flight (started by the
+  // workspace, possibly before the session changed) is cancelled first: react-query would
+  // otherwise reuse it, and the user could see data older than the moment they opened the modal.
+  const queryClient = useQueryClient();
+  const refreshRef = useRef(refreshDocuments);
+  refreshRef.current = refreshDocuments;
+  useEffect(() => {
+    if (!isOpen) return;
+    void queryClient.cancelQueries({ queryKey: queryKeys.documents.list() }).then(() => refreshRef.current());
+  }, [isOpen, queryClient]);
+
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Escape closes the dialog; focus moves inside on open and returns to the opener on close.
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="documents-dialog-title"
+        tabIndex={-1}
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh] outline-none"
+      >
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -40,7 +82,7 @@ export function DocumentListModal({
               <FolderOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Libreria Documenti PDF</h2>
+              <h2 id="documents-dialog-title" className="text-base font-bold text-slate-900">Libreria Documenti PDF</h2>
               <p className="text-xs text-slate-500">
                 Gestisci i file PDF utilizzati per il retrieval e fact-checking
               </p>

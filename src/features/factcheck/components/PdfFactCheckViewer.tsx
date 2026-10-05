@@ -351,6 +351,7 @@ export function PdfFactCheckViewer({
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowCitationList(false)}
                 className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 cursor-pointer"
                 title="Nascondi pannello"
@@ -376,14 +377,15 @@ export function PdfFactCheckViewer({
                     ) || 0;
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={`cit-list-${index}`}
                       aria-current={isSelected ? 'true' : undefined}
                       onClick={() => {
                         setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);
                         onSelectCitation?.(citation);
                       }}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                      className={`block w-full text-left p-3 rounded-lg border transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-amber-950/40 border-amber-500/80 ring-2 ring-amber-500/20 shadow-md'
                           : isCurrentPage
@@ -391,7 +393,7 @@ export function PdfFactCheckViewer({
                           : 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800/80 hover:border-slate-600'
                       }`}
                     >
-                      <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="flex items-center justify-between text-xs mb-1.5">
                         <span
                           className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
                             isCurrentPage
@@ -404,13 +406,13 @@ export function PdfFactCheckViewer({
                         <span className="text-[11px] text-slate-400">
                           {rectCount} {rectCount === 1 ? 'box' : 'boxes'}
                         </span>
-                      </div>
+                      </span>
 
-                      <blockquote className="text-xs text-slate-200 italic line-clamp-4 bg-slate-950/40 p-2 rounded border border-slate-800/80 leading-relaxed">
+                      <span className="block text-xs text-slate-200 italic line-clamp-4 bg-slate-950/40 p-2 rounded border border-slate-800/80 leading-relaxed">
                         &ldquo;{citation.text_quote}&rdquo;
-                      </blockquote>
+                      </span>
 
-                      <div className="mt-2 flex items-center justify-between text-[11px]">
+                      <span className="mt-2 flex items-center justify-between text-[11px]">
                         <span className="text-slate-400 truncate max-w-[140px]">
                           {citation.filename}
                         </span>
@@ -421,8 +423,8 @@ export function PdfFactCheckViewer({
                         >
                           {isCurrentPage ? 'Evidenziato' : 'Vai a pagina'} →
                         </span>
-                      </div>
-                    </div>
+                      </span>
+                    </button>
                   );
                 })
               )}

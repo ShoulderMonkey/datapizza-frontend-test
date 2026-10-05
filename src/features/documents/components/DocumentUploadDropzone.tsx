@@ -87,8 +87,19 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
           setIsDragging(false);
           handleFilesChosen(e.dataTransfer.files);
         }}
+        // Keyboard: the drop area is a button (Enter / Space open the file picker).
+        role="button"
+        tabIndex={0}
+        aria-label="Scegli i documenti PDF da caricare"
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-indigo-600 ${
           isDragging
             ? 'border-indigo-600 bg-indigo-50/50 scale-[1.01]'
             : 'border-slate-300 hover:border-indigo-400 bg-slate-50/50 hover:bg-slate-50'
@@ -100,6 +111,8 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
           accept=".pdf,application/pdf"
           multiple
           className="hidden"
+          tabIndex={-1}
+          aria-hidden="true"
           onChange={(e) => handleFilesChosen(e.target.files)}
         />
         <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3">

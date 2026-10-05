@@ -312,6 +312,16 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 ---
 
+### Keyboard Accessibility (P1-10)
+
+- **Keyboard path:** login, open the documents modal, upload (the dropzone is `role="button"`, Enter/Space open the file picker: `DocumentUploadDropzone.tsx`), send a question, open a citation, close the viewer. Covered by `e2e/keyboard.spec.ts`.
+- **Escape and focus:** Escape closes the documents modal (`DocumentListModal.tsx`) and the fact-check viewer (`FactCheckPanel.tsx`); when the viewer closes, focus returns to the citation card.
+- **Live region:** the message area is `role="log"` with `aria-live="polite"` and `aria-busy` (`ChatConversation.tsx`).
+- **Focus while streaming:** the textarea is `readOnly` + `aria-disabled` (not `disabled`), so focus stays on the input after sending and is not stolen at the end of the stream (`ChatComposer.tsx`, ADR 0003).
+- **Buttons:** suggestion cards, citation cards and bounding boxes are `<button>`; boxes have `tabIndex={-1}` (out of the tab order, the citation list is the keyboard path). The only non-interactive click target is the decorative mobile sidebar backdrop (`aria-hidden`; keyboard alternative: "Chiudi barra laterale").
+
+---
+
 ## 6. Architectural Decisions & Trade-Offs
 
 1. **Feature-based project structure with centralized API layer** (P1-01):
@@ -395,7 +405,7 @@ This section tracks planned improvements aligned with the evaluation criteria an
 
 **Chat history model (P1-07):** Done (T019) — one chat = one Q/A pair, new questions never modify a selected entry. See ADR 0004.
 
-**Keyboard navigation (P1-10):** Make citations and buttons keyboard-accessible; test with Playwright.
+**Keyboard navigation (P1-10):** Done (T021) — see Keyboard Accessibility.
 
 **Highlight bidirectional sync (P2-01):** Clicking a bounding box highlights its citation card; hovering a card highlights its boxes.
 

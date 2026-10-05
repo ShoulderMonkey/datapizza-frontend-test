@@ -8,6 +8,7 @@ import { usePdfViewer } from '@/src/features/factcheck/hooks/usePdfViewer';
 import { ChatSidebar } from '@/src/features/history/components/ChatSidebar';
 import { HistoryEntryNotice } from '@/src/features/history/components/HistoryEntryNotice';
 import { useChatHistory } from '@/src/features/history/hooks/useChatHistory';
+import { useSidebarOpen } from '@/src/features/history/hooks/useSidebarOpen';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStream } from '../hooks/useChatStream';
 import type { ChatMessage, CitationReference } from '../types';
@@ -40,7 +41,7 @@ const toCompletedMessages = (messages: readonly Omit<ChatMessage, 'status'>[]): 
  *   conversation with a single Q/A pair.
  */
 export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { isOpen: isSidebarOpen, setOpen: setIsSidebarOpen, toggle: toggleSidebar } = useSidebarOpen();
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
 
   const history = useChatHistory();
@@ -125,7 +126,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         onLogout={onLogout}
         userId={userId}
         isOpen={isSidebarOpen}
-        onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleOpen={toggleSidebar}
         documentCount={documentCount}
       />
 
@@ -141,6 +142,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
 
         <ChatConversation
           messages={chat.messages}
+          isStreaming={isStreaming}
           isLoading={history.isChatLoading}
           loadError={history.chatLoadError}
           onRetryLoad={() => void history.reloadChat()}

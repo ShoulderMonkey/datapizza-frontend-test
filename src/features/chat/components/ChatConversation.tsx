@@ -7,6 +7,8 @@ import { ChatMessageItem } from './ChatMessageItem';
 
 interface ChatConversationProps {
   messages: ChatMessage[];
+  /** True while a response streams: the live region is busy and is announced at the end. */
+  isStreaming?: boolean;
   isLoading: boolean;
   loadError: string | null;
   onRetryLoad: () => void;
@@ -23,6 +25,7 @@ interface ChatConversationProps {
 /** Scrollable message area: loading, load error, empty state or the message list. */
 export function ChatConversation({
   messages,
+  isStreaming = false,
   isLoading,
   loadError,
   onRetryLoad,
@@ -34,7 +37,15 @@ export function ChatConversation({
   emptyState,
 }: ChatConversationProps) {
   return (
-    <div className="flex-1 overflow-y-auto" onScroll={onScroll}>
+    <div
+      className="flex-1 overflow-y-auto"
+      onScroll={onScroll}
+      role="log"
+      aria-label="Conversazione"
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-busy={isStreaming}
+    >
       {isLoading ? (
         <div className="py-20 text-center space-y-3">
           <Spinner className="w-8 h-8 mx-auto" />

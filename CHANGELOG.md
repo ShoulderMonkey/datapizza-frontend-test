@@ -8,6 +8,21 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T021, P1-10)
+- `src/features/history/hooks/useSidebarOpen.ts`: stato della sidebar (chiusa di default sotto 768 px).
+- Test: `e2e/keyboard.spec.ts` (flusso da sola tastiera) e `tests/integration/a11y-keyboard.test.tsx`.
+
+### Changed (T021, P1-10)
+- Card di suggerimento, lista CITAZIONI e bounding box sono `<button>`; le bbox sono fuori dal tab order (`tabIndex={-1}`).
+- La dropzone ha `role="button"` e si attiva con Enter/Spazio.
+- Durante lo stream la textarea è `readOnly` + `aria-disabled` invece di `disabled` (ADR 0003 invariato), così il focus non si perde.
+- L'area messaggi ha `role="log"`, `aria-live="polite"` e `aria-busy`.
+- Sidebar chiusa di default sotto 768 px e sempre montata; modale documenti chiusa con Escape e rivalidata all'apertura.
+
+### Fixed (T021, P1-10)
+- La sidebar copriva il composer su mobile.
+- Flakiness di `e2e/session.spec.ts` (login reso robusto).
+
 ### Added (T020, P1-09)
 - `src/features/factcheck/components/FactCheckPanel.tsx`: contenitore del viewer; a ≥ 1024 px è un pannello laterale (`role="complementary"`, `aria-label="Verifica fonti"`), sotto è un dialog a schermo intero (`role="dialog"`, `aria-modal`) con trap del Tab.
 - `src/features/factcheck/hooks/useIsDesktop.ts` (media query `min-width: 1024px`) e `isSameCitation` in `src/features/factcheck/lib/citations.ts`.

@@ -8,11 +8,11 @@ async function askWithCitations(page: Page) {
   await page.getByRole('button', { name: /accedi all/i }).click();
   const composer = page.getByRole('textbox').last();
   await expect(composer).toBeVisible();
-  // On narrow viewports the history sidebar opens as an overlay: close it to reach the composer.
+  // On narrow viewports the sidebar is closed by default (P1-10): the overlay never covers the composer.
   const closeSidebar = page.getByRole('button', { name: 'Chiudi barra laterale' });
   if ((page.viewportSize()?.width ?? 0) < 768) {
-    await closeSidebar.click();
     await expect(closeSidebar).toHaveCount(0);
+    await expect(composer).toBeInViewport();
   }
   await composer.fill("Che cos'è Bitcoin?");
   await page.getByRole('button', { name: /invia messaggio/i }).click();

@@ -74,8 +74,12 @@ export function BoundingBoxOverlay({
         const px = inchesRectToPx(item.rectInches, pageWidthPt, renderedWidthPx);
 
         return (
-          <div
+          <button
+            type="button"
+            tabIndex={-1}
             key={`bbox-${pageNumber}-${index}`}
+            aria-label={`Citazione ${index + 1}`}
+            aria-current={item.isActive ? 'true' : undefined}
             style={{
               left: px.left,
               top: px.top,
@@ -107,15 +111,15 @@ export function BoundingBoxOverlay({
             </span>
 
             {/* Tooltip on hover */}
-            <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 max-w-xs p-2 bg-slate-900/95 text-white text-xs rounded-md shadow-xl z-50 pointer-events-none backdrop-blur-xs border border-slate-700">
-              <div className="font-semibold text-amber-300 text-[11px] mb-0.5">
+            <span className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 max-w-xs p-2 bg-slate-900/95 text-white text-xs rounded-md shadow-xl z-50 pointer-events-none backdrop-blur-xs border border-slate-700">
+              <span className="block font-semibold text-amber-300 text-[11px] mb-0.5">
                 Regione di citazione ({item.rectInches[0].toFixed(2)}&quot; × {item.rectInches[1].toFixed(2)}&quot;)
-              </div>
-              <p className="italic text-slate-200 line-clamp-3 leading-snug">
+              </span>
+              <span className="block italic text-slate-200 line-clamp-3 leading-snug">
                 &ldquo;{item.citation.text_quote}&rdquo;
-              </p>
-            </div>
-          </div>
+              </span>
+            </span>
+          </button>
         );
       })}
     </div>

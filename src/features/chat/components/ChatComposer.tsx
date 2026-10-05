@@ -29,12 +29,11 @@ export function ChatComposer({
     }
   }, [query]);
 
-  // Focus on mount or when stream finishes
+  // Focus on mount only. The textarea is never `disabled` during a stream (it would lose focus),
+  // so after sending the focus stays on it and at the end of the stream it is not moved.
   useEffect(() => {
-    if (!isStreaming && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [isStreaming]);
+    textareaRef.current?.focus();
+  }, []);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -84,14 +83,19 @@ export function ChatComposer({
             if (validationError) setValidationError(null);
           }}
           onKeyDown={handleKeyDown}
-          disabled={disabled || isStreaming}
+          // ADR 0003: the send is blocked during a stream (handleSubmit), but the field is
+          // `readOnly` + `aria-disabled` instead of `disabled` so keyboard focus is not lost.
+          readOnly={isStreaming}
+          disabled={disabled}
+          aria-disabled={disabled || isStreaming ? 'true' : undefined}
+          aria-label="Domanda sui documenti"
           rows={1}
           placeholder={
             isStreaming
               ? "L'assistente sta rispondendo..."
               : 'Fai una domanda sui documenti caricati... (Invio per inviare, Shift+Invio per a capo)'
           }
-          className="w-full pl-4 pr-14 py-3.5 bg-transparent resize-none outline-none text-slate-800 placeholder-slate-400 text-sm leading-relaxed max-h-48 overflow-y-auto disabled:opacity-60"
+          className="w-full pl-4 pr-14 py-3.5 bg-transparent resize-none outline-none text-slate-800 placeholder-slate-400 text-sm leading-relaxed max-h-48 overflow-y-auto disabled:opacity-60 read-only:opacity-60"
         />
 
         <div className="absolute right-2.5 bottom-2.5">

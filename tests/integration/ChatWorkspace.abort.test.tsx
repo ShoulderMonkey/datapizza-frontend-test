@@ -128,7 +128,11 @@ describe('send disabled during a stream (ADR 0003)', () => {
     openStream();
     const { user } = await start();
 
-    expect(screen.getByRole('textbox')).toBeDisabled();
+    // The textarea is not `disabled` (it would lose focus): readOnly + aria-disabled, send blocked.
+    const box = screen.getByRole('textbox');
+    expect(box).toHaveAttribute('aria-disabled', 'true');
+    expect(box).toHaveAttribute('readonly');
+    expect(box).not.toBeDisabled();
     expect(screen.queryByRole('button', { name: /invia/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /interrompi/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /riprova/i })).not.toBeInTheDocument();
@@ -136,5 +140,6 @@ describe('send disabled during a stream (ADR 0003)', () => {
     await user.type(screen.getByRole('textbox'), 'altra{Enter}');
     await sleep(50);
     expect(posts).toBe(1);
+    expect(screen.getByRole('textbox')).toHaveFocus();
   });
 });

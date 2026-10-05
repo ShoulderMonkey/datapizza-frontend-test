@@ -5,6 +5,9 @@ async function login(page: import('@playwright/test').Page) {
   await page.locator('#user_id').fill('test_user');
   await page.getByRole('button', { name: /accedi all/i }).click();
   await expect(page.getByRole('button', { name: /libreria documenti|documenti pdf/i }).first()).toBeVisible();
+  // Initial lists loaded (document count badge and history section), so no fetch is in flight later.
+  await expect(page.getByRole('button', { name: /^documenti pdf\s*\d+$/i })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/cronologia chat \(\d+\)/i)).toBeVisible({ timeout: 15_000 });
 }
 
 test('reload while logged in: no hydration errors and the workspace is visible', async ({ page }) => {

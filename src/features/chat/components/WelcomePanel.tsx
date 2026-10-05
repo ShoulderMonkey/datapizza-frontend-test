@@ -26,31 +26,33 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
 
       {/* Quick suggestions / cards */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-        <div
+        <button
+          type="button"
           onClick={onOpenDocuments}
-          className="p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+          className="text-left p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
         >
-          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
+          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
             <FileText className="w-4 h-4 text-indigo-500" />
             <span>1. Carica PDF</span>
-          </div>
-          <p className="text-[11px] text-slate-500 leading-snug">
+          </span>
+          <span className="block text-[11px] text-slate-500 leading-snug">
             Carica i documenti di test del backend tramite multipart/form-data.
-          </p>
-        </div>
+          </span>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => onAskQuestion(SUGGESTED_QUESTION)}
-          className="p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+          className="text-left p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
         >
-          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
+          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
             <Layers className="w-4 h-4 text-indigo-500" />
             <span>2. Fai una domanda</span>
-          </div>
-          <p className="text-[11px] text-slate-500 leading-snug">
+          </span>
+          <span className="block text-[11px] text-slate-500 leading-snug">
             &quot;Quali sono i punti principali trattati nei documenti?&quot;
-          </p>
-        </div>
+          </span>
+        </button>
 
         <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
           <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 mb-1">

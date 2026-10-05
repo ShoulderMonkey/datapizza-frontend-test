@@ -60,9 +60,15 @@ export function ChatSidebar({
   onToggleOpen,
   documentCount,
 }: ChatSidebarProps) {
-  if (!isOpen) {
-    return (
-      <div className="hidden md:flex flex-col items-center py-3 px-2 bg-slate-900 border-r border-slate-800 text-slate-400 select-none">
+  // Both layouts stay mounted and CSS (`hidden`) picks one: toggling or the post-hydration viewport
+  // update never unmounts the buttons (a remount detached them while e2e clicked them).
+  return (
+    <>
+      <div
+        data-sidebar="collapsed"
+        hidden={isOpen}
+        className={`${isOpen ? 'hidden' : 'hidden md:flex'} flex-col items-center py-3 px-2 bg-slate-900 border-r border-slate-800 text-slate-400 select-none`}
+      >
         <button
           onClick={onToggleOpen}
           aria-label="Espandi barra laterale"
@@ -88,18 +94,21 @@ export function ChatSidebar({
           <Files className="w-5 h-5" />
         </button>
       </div>
-    );
-  }
 
-  return (
-    <>
       {/* Mobile overlay */}
+      {/* Decorative backdrop: keyboard alternative = the "Chiudi barra laterale" button. */}
       <div
-        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-30 md:hidden animate-in fade-in"
+        aria-hidden="true"
+        hidden={!isOpen}
+        className={`${isOpen ? '' : 'hidden'} fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-30 md:hidden`}
         onClick={onToggleOpen}
       />
 
-      <aside className="fixed md:static inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-full text-slate-200 select-none transition-all duration-200">
+      <aside
+        data-sidebar="expanded"
+        hidden={!isOpen}
+        className={`${isOpen ? 'flex' : 'hidden'} fixed md:static inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex-col h-full text-slate-200 select-none`}
+      >
         {/* Top Header */}
         <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
