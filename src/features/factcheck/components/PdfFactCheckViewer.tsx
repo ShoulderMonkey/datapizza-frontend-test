@@ -476,7 +476,7 @@ export function PdfFactCheckViewer({
                           Pagina {citation.page_number}
                         </span>
                         <span className="text-[11px] text-slate-400">
-                          {rectCount} {rectCount === 1 ? 'box' : 'boxes'}
+                          {rectCount} box
                         </span>
                       </span>
 

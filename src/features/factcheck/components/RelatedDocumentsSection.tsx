@@ -36,7 +36,7 @@ export function RelatedDocumentsSection({
     return null;
   }
 
-  // Count total bounding boxes
+  // Count total bounding regions (rects)
   const totalBoxes = citations.reduce((total, cit) => {
     return (
       total +

@@ -313,6 +313,8 @@ Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`
 ### Error Handling
 Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERROR_MESSAGES` (`src/api/errorMessages.ts`). `messageKeyFor` sceglie la chiave dal `code` normalizzato di `ApiError`, dall'endpoint e dal testo `detail` del backend (ad esempio query vuota e troppo lunga su `POST /api/chat/` hanno messaggi distinti). Per l'upload rifiutato con 400 "not recognized", `extractRejectedFilename` estrae il nome del file dal `detail` e il messaggio lo cita. `toUserMessage` (`src/api/errors.ts`) restituisce il messaggio della mappa oppure un fallback per contesto, senza mostrare status code, `detail`, stack o URL del backend (unica cifra ammessa: il limite 100 del `user_id`). I dettagli tecnici restano in `ApiError.cause` e vengono scritti solo in `console` da `logError`. Test: `tests/unit/errorMessages.test.ts`, `tests/integration/error-messages-ui.test.tsx` ed e2e `e2e/upload-errors.spec.ts` (upload di un PDF non ammesso).
 
+**Composer e upload (P1-15):** il composer applica il limite di 10000 caratteri lato client (`QUERY_MAX_LENGTH` in `src/api/chat.ts`, valore del backend `BE:src/routes/chat.py:232`): oltre 9000 mostra il contatore "N/10000 caratteri", oltre il limite mostra un messaggio in italiano (`role="alert"`), disabilita "Invia" e non invia la richiesta (`ChatComposer.tsx`; nessun `maxLength`, così il testo incollato non viene troncato). Dopo un upload riuscito il messaggio di successo resta visibile con `role="status"` anche nel tab lista (`DocumentListModal.tsx`), e durante il caricamento la lista mostra "Caricamento…" invece di "0 file". Test: `tests/integration/p1-15-microcopy.test.tsx`, `tests/unit/no-english-boxes.test.ts`.
+
 ---
 
 ### Keyboard Accessibility (P1-10)
@@ -379,7 +381,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-08 to P2-12 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -407,8 +409,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 is done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P1-15**: microcopy and composer (English "boxes" in the citation panel, success message lost after upload, "0 file" while loading, no 10000-character limit).
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 and P1-15 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P2-08**: highlight precision (duplicate backend citations highlighted together, active card overflowing by 4.3 px).
 - **P2-09**: thumbnails (landscape pages cropped, one pdf.js parse per card).
 - **P2-10**: dark theme polish (hover without visible change, error/upload states not covered by e2e).

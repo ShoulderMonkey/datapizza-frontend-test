@@ -19,7 +19,7 @@ export interface LoginResponse {
   user_id: string;
 }
 
-// --- Citations / bounding boxes ---------------------------------------------
+// --- Citations / bounding regions ---------------------------------------------
 
 /**
  * Bounding rectangle coordinate tuple: [x, y, width, height] in inches.

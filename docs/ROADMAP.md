@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T035)
+## Stato attuale (aggiornato a T036)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033) e P1-14 (T034); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034) e P1-15 (T036): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); microcopy e limite del composer in `ChatComposer.tsx` (P1-15) | P1-04, P1-06, P1-09, P1-10, P1-15 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -337,11 +337,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T017, T026, T028.
 - Findings: "N boxes" in inglese nella lista CITAZIONI del pannello (`src/features/factcheck/components/PdfFactCheckViewer.tsx:435`) contro "N box verificati" nelle card (low, T028); dopo un upload riuscito la modale passa al tab lista e il messaggio di successo viene smontato (`src/features/documents/components/DocumentListModal.tsx:141-144`; low, T026); la modale mostra "0 file disponibili" durante il caricamento (low, T017); nessun limite client di 10000 caratteri nel composer (il backend rifiuta query troppo lunghe; low, T017).
 - Criteri di accettazione:
-  - [ ] Nessuna stringa inglese visibile nel pannello citazioni (unit/grep su "boxes" = 0 in `src/`).
-  - [ ] Dopo un upload riuscito un messaggio di successo resta visibile (o è annunciato via `role="status"`) anche dopo il passaggio al tab lista (integration).
-  - [ ] Durante il caricamento della lista la modale non mostra "0 file" ma uno stato di caricamento (integration).
-  - [ ] Il composer impedisce l'invio oltre 10000 caratteri e mostra il contatore o un messaggio in italiano prima della richiesta (integration).
-- Stato: todo
+  - [x] Nessuna stringa inglese visibile nel pannello citazioni (unit/grep su "boxes" = 0 in `src/`). Evidenza: `PdfFactCheckViewer.tsx:479` ("{rectCount} box"); `grep -rn boxes src/` exit 1 (0 occorrenze); `tests/unit/no-english-boxes.test.ts`; tester S1 "6 box" nella lista CITAZIONI.
+  - [x] Dopo un upload riuscito un messaggio di successo resta visibile (o è annunciato via `role="status"`) anche dopo il passaggio al tab lista (integration). Evidenza: `DocumentListModal.tsx:32,149,157-160` (`uploadNotice` nello stato della modale, `role="status"`), `DocumentUploadDropzone.tsx:73`; `tests/integration/p1-15-microcopy.test.tsx`; tester S2 role=status 'Documento "unix.pdf" caricato con successo.' con tab lista attivo.
+  - [x] Durante il caricamento della lista la modale non mostra "0 file" ma uno stato di caricamento (integration). Evidenza: `DocumentListModal.tsx:166` ("Caricamento…"); `tests/integration/p1-15-microcopy.test.tsx`; tester S3 con GET ritardata, nessun "0 file".
+  - [x] Il composer impedisce l'invio oltre 10000 caratteri e mostra il contatore o un messaggio in italiano prima della richiesta (integration). Evidenza: `src/api/chat.ts:17` (`QUERY_MAX_LENGTH = 10000`), `ChatComposer.tsx:23-24,65-66,161-162`, `errorMessages.ts:26`; `tests/integration/p1-15-microcopy.test.tsx`; tester S4 10001 caratteri: role=alert, Invia disabilitato, 0 POST (chiaro e scuro). Test nuovi 7/7 rossi su 1421d3a e verdi dopo; `npm run typecheck`, `lint`, `test` exit 0 (39 file, 271 test); `npx playwright test` exit 0 (31 passed); report tester non versionato.
+- Stato: done (T036)
 
 ---
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { QUERY_MAX_LENGTH, ERROR_MESSAGES } from '@/src/api';
 import { Send, Square, AlertCircle } from 'lucide-react';
 
 interface ChatComposerProps {
@@ -19,6 +20,8 @@ export function ChatComposer({
   const [query, setQuery] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const overLimit = query.length > QUERY_MAX_LENGTH;
+  const nearLimit = query.length > QUERY_MAX_LENGTH * 0.9;
 
   // Auto-resize textarea height
   useEffect(() => {
@@ -58,6 +61,11 @@ export function ChatComposer({
     // ADR 0003: no new send while a stream is active (the Stop button replaces Send).
     if (isStreaming || disabled) return;
     const trimmed = query.trim();
+
+    if (trimmed.length > QUERY_MAX_LENGTH) {
+      setValidationError(ERROR_MESSAGES.query_too_long);
+      return;
+    }
 
     if (!trimmed) {
       setValidationError('Inserisci una domanda prima di inviare.');
@@ -107,7 +115,8 @@ export function ChatComposer({
           disabled={disabled}
           aria-disabled={disabled || isStreaming ? 'true' : undefined}
           aria-label="Domanda sui documenti"
-          aria-describedby="composer-shortcuts-hint"
+          aria-describedby={`composer-shortcuts-hint${nearLimit ? ' composer-counter' : ''}`}
+          aria-invalid={overLimit ? 'true' : undefined}
           rows={1}
           placeholder={
             isStreaming
@@ -133,7 +142,7 @@ export function ChatComposer({
             <button
               key="send"
               type="submit"
-              disabled={disabled || !query.trim()}
+              disabled={disabled || !query.trim() || overLimit}
               className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 text-white transition-all cursor-pointer disabled:cursor-not-allowed shadow-sm hover:shadow"
               title="Invia messaggio"
             >
@@ -142,6 +151,17 @@ export function ChatComposer({
           )}
         </div>
       </form>
+
+      {nearLimit && (
+        <div
+          id="composer-counter"
+          role={overLimit ? 'alert' : undefined}
+          className={`mt-1 text-right text-[11px] ${overLimit ? 'text-red-700 dark:text-red-400 font-semibold' : 'text-slate-600 dark:text-slate-400'}`}
+        >
+          {query.length}/{QUERY_MAX_LENGTH} caratteri
+          {overLimit && ` · ${ERROR_MESSAGES.query_too_long}`}
+        </div>
+      )}
 
       <div id="composer-shortcuts-hint" className="mt-2 text-center text-[11px] text-slate-600 dark:text-slate-400">
         Invio per inviare, Shift+Invio per a capo. Le risposte sono groundate sui PDF tramite streaming NDJSON e verificate con bounding region.

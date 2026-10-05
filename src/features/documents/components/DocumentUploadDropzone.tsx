@@ -6,7 +6,7 @@ import { isPdfFile } from '@/src/api';
 import { useDocumentUpload } from '../hooks/useDocumentUpload';
 
 interface DocumentUploadDropzoneProps {
-  onUploadSuccess: () => void;
+  onUploadSuccess: (message: string) => void;
 }
 
 export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzoneProps) {
@@ -66,10 +66,15 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
       return;
     }
 
+    const names = selectedFiles.map((f) => f.name);
     const ok = await upload(selectedFiles);
     if (ok) {
       setSelectedFiles([]);
-      onUploadSuccess();
+      onUploadSuccess(
+        names.length === 1
+          ? `Documento "${names[0]}" caricato con successo.`
+          : `${names.length} documenti caricati con successo: ${names.join(', ')}.`
+      );
     }
   };
 

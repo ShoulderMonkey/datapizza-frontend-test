@@ -28,6 +28,8 @@ export function DocumentListModal({
   onOpenPdfViewer,
 }: DocumentListModalProps) {
   const [activeTab, setActiveTab] = useState<'list' | 'upload'>('list');
+  // Upload outcome shown in the list tab: the dropzone unmounts on tab change, so it lives here.
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const {
     documents,
     isLoading,
@@ -111,18 +113,24 @@ export function DocumentListModal({
         <div className="flex border-b border-slate-200 dark:border-slate-700 px-6 bg-slate-50/50 dark:bg-slate-800/40">
           <button
             type="button"
-            onClick={() => setActiveTab('list')}
+            onClick={() => {
+              setActiveTab('list');
+              setUploadNotice(null);
+            }}
             className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'list'
                 ? 'border-indigo-600 text-indigo-600 dark:text-indigo-300'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
             }`}
           >
-            <span>Documenti ({countLabel})</span>
+            <span>Documenti ({isLoading ? '…' : countLabel})</span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('upload')}
+            onClick={() => {
+              setActiveTab('upload');
+              setUploadNotice(null);
+            }}
             className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'upload'
                 ? 'border-indigo-600 text-indigo-600 dark:text-indigo-300'
@@ -138,15 +146,27 @@ export function DocumentListModal({
         <div className="p-6 overflow-y-auto flex-1">
           {activeTab === 'upload' ? (
             <DocumentUploadDropzone
-              onUploadSuccess={() => {
+              onUploadSuccess={(message) => {
+                setUploadNotice(message);
                 refreshDocuments();
                 setActiveTab('list');
               }}
             />
           ) : (
             <div className="space-y-3">
+              <div role="status">
+                {uploadNotice && (
+                  <p className="px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-emerald-800 dark:text-emerald-300">
+                    {uploadNotice}
+                  </p>
+                )}
+              </div>
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>{countLabel} file disponibili sul backend</span>
+                {isLoading ? (
+                  <span role="status">Caricamento…</span>
+                ) : (
+                  <span>{countLabel} file disponibili sul backend</span>
+                )}
                 <button
                   type="button"
                   onClick={refreshDocuments}
@@ -185,7 +205,10 @@ export function DocumentListModal({
                     Carica i documenti PDF di test del backend per abilitare il retrieval e le citazioni con bounding box.
                   </p>
                   <button
-                    onClick={() => setActiveTab('upload')}
+                    onClick={() => {
+                      setActiveTab('upload');
+                      setUploadNotice(null);
+                    }}
                     className="mt-4 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
                   >
                     Carica subito PDF

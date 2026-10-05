@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T036, P1-15)
+- Composer: limite di 10000 caratteri lato client (`QUERY_MAX_LENGTH` in `src/api/chat.ts`, fonte backend), contatore "N/10000 caratteri" oltre 9000, messaggio in italiano con `role="alert"`, "Invia" disabilitato e nessuna richiesta oltre il limite (`ChatComposer.tsx`).
+- Upload: messaggio di successo persistente con `role="status"` nel tab lista (`DocumentListModal.tsx`, `DocumentUploadDropzone.tsx`).
+- Test: `tests/unit/no-english-boxes.test.ts`, `tests/integration/p1-15-microcopy.test.tsx` (7 test rossi su 1421d3a, verdi dopo); gate exit 0 (271 test), e2e 31 passed.
+
+### Changed (T036, P1-15)
+- Lista CITAZIONI: "N boxes" diventa "N box" (`PdfFactCheckViewer.tsx:479`); la modale documenti mostra "Caricamento…" invece di "0 file" durante il fetch.
+
 ### Fixed (T035, P1-13)
 - Bbox vicina al margine sinistro non raggiungibile nel layout affiancato. Causa: container `justify-center` con overflow non scrollabile a sinistra; il pannello era stato ristretto da 589 a 512 px in T033, rendendo visibile il difetto.
 - Fix: container senza `justify-center` (`PdfFactCheckViewer.tsx:338`) e wrapper della pagina `my-auto mx-auto shrink-0` (`PdfPageView.tsx:63`).

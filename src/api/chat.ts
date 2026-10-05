@@ -13,6 +13,9 @@ import type {
 
 const CHAT_ENDPOINT = '/api/chat/';
 
+/** Max query length: the backend answers 400 above it (BE: backend/src/routes/chat.py:232, `len(request.query) > 10000`). */
+export const QUERY_MAX_LENGTH = 10000;
+
 export const chatService = {
   /** GET /api/chat/?limit&offset: one page of chat records, bare array (docs/AUDIT.md §2). */
   async listChats(offset = 0, signal?: AbortSignal): Promise<ChatRecord[]> {

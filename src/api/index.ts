@@ -26,6 +26,7 @@ export {
   type ErrorContext,
   type ErrorMessageKey,
 } from './errorMessages';
+export { QUERY_MAX_LENGTH } from './chat';
 export { notifyUnauthorized, resetUnauthorizedGuard, setUnauthorizedHandler } from './session';
 export { PAGE_SIZE, fetchPage, nextOffset, type FetchPageOptions } from './pagination';
 export { NDJSONParseError, parseNDJSONStream } from './ndjson';
