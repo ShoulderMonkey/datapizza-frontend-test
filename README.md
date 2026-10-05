@@ -376,11 +376,10 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
   - **Response types are not in OpenAPI**: all `GET` and `POST` endpoints return `200` with an empty schema `{"schema": {}}` in `docs/api/openapi.json` (generated from the backend source without running it). Real response types are documented in `docs/AUDIT.md` §2 and written by hand in `src/api/types.ts` (`Document` line 47, `UploadResponse` line 58, `ChatRecord` line 66). Request types (`LoginRequest`, `ChatRequest`) derive from `src/api/schema.d.ts`, generated with `npm run gen:api` (`openapi-typescript`). A response that does not match the expected shape (e.g. a non-array list) becomes `ApiError` with code `invalid_response` (`tests/unit/api-contract.test.ts`).
 
 - **Frontend scope (not yet implemented / planned improvements):**
-  - PDF text layer (selectable and copyable text) is not implemented.
-  - Multi-page continuous scrolling is not implemented; users navigate one page at a time.
-  - Open issues found by the testers (see "With More Time"): PDF clipped in the mobile drawer at 120% zoom, focus lost after "Interrompi", 15 Tab presses to reach the citation list in the panel, no signal when the new history entry is saved, previous-entry context unlabeled in the new session, duplicate backend citations highlighted together.
+  - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P0-09 (dependency vulnerabilities), P1-12 (focus), P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
 
-- **Minor issues (low severity):**
+- **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
   - Requests to `/api/...` without trailing slash (e.g., `/api/documents` instead of `/api/documents/`) receive a 307 redirect with an absolute backend URL (`http://backend:8000/...`), which is unreachable from the browser. The application always uses the trailing slash, so this does not affect normal operation.
 
@@ -395,7 +394,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
-- **Citation thumbnails:** the placeholder has a fixed size (140x180), so landscape pages are cropped; each card runs its own pdf.js parse of the shared Blob (one download per document, but one parse per card).
+- **Citation thumbnails (P2-09):** the placeholder has a fixed size (140x180), so landscape pages are cropped; each card runs its own pdf.js parse of the shared Blob (one download per document, but one parse per card).
 
 ---
 
@@ -403,16 +402,18 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-All P0, P1 and P2 items are done; this section lists only work not yet done.
-
-**Open issues found by the testers (not yet fixed):**
-- PDF clipped in the mobile drawer at 120% zoom.
-- Focus is lost after "Interrompi".
-- 15 Tab presses are needed to reach the citation list in the panel.
-- No signal when the new history entry is saved.
-- The context of the previous entry has no label in the new session.
-- Duplicate citations from the backend are highlighted together.
-- `/favicon.ico` returns 404.
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`):
+- **P0-09**: dependency vulnerabilities reported by `npm audit` (`next`/`postcss`, dev-only `eslint-config-next` chain); fix or ADR accepting the residual risk.
+- **P1-12**: keyboard focus polish (focus lost after "Interrompi", 15 Tab presses to the citation list, low-visibility focus rings).
+- **P1-13**: responsive layout (PDF clipped in the mobile drawer at 120% zoom, narrow conversation at 1440 px, composer placeholder clipped with the viewer open).
+- **P1-14**: history feedback (no signal when the new entry is saved, previous-entry context unlabeled).
+- **P1-15**: microcopy and composer (English "boxes" in the citation panel, success message lost after upload, "0 file" while loading, no 10000-character limit).
+- **P2-08**: highlight precision (duplicate backend citations highlighted together, active card overflowing by 4.3 px).
+- **P2-09**: thumbnails (landscape pages cropped, one pdf.js parse per card).
+- **P2-10**: dark theme polish (hover without visible change, error/upload states not covered by e2e).
+- **P2-11**: proxy and console hygiene (`/favicon.ico` 404, 307 with absolute backend Location, repeated page-1 requests in dev).
+- **P2-12**: e2e and startup stability (filechooser race, data left on the backend, `next start` warning with `output: standalone`).
+- **P2-13**: PDF text layer and continuous scrolling.
 
 ---
 

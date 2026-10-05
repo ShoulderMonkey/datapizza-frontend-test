@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T029)
+## Stato attuale (aggiornato a T030)
 
-Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P0-09, P1-12, P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester in README §8 | P1-04, P1-06, P1-09, P1-10 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-12, P1-13, P1-14, P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -137,6 +137,19 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
   - [x] La sezione "Sviluppo con Claude Code", con il limite noto del controllo Bash best-effort di `.claude/hooks/guard-orchestrator.mjs`, è conservata. → evidenza: README.md §9 "Sviluppo con Claude Code (team di subagenti)" (righe 370–377, testo italiano con limite best-effort).
   - [x] I comandi del README (`npm ci`, `npm run dev`, `docker compose up`) sono stati eseguiti da `frontend-tester` su un clone pulito, con evidenza in `.claude/reports/`. → evidenza: `.claude/reports/T011/summary.md`, `03-dev-curl.txt` (npm run dev), `05-compose-curl.txt` (docker compose up).
 - Stato: done (T011)
+
+### P0-09 — Vulnerabilità delle dipendenze (npm audit)
+- Criterio della specifica: sicurezza (precedenza di `CLAUDE.md` E.8); "Qualità del codice".
+- Owner: `frontend-developer`
+- Dipendenze: nessuna
+- Stima: M
+- Fonte: `npm audit` del 2026-10-05; "npm audit non esaminato" aperto in T001, T002, T003.
+- Findings: 7 vulnerabilità (6 high, 1 moderate). Runtime/build: `next` (moderate, dipendenza diretta) → `postcss` high (XSS per `</style>` non escapato nello stringify; lettura arbitraria di file `.map` via `sourceMappingURL`); il fix richiede il major `next@16.x`. Solo dev: `eslint-config-next` (diretta) → `@next/eslint-plugin-next` → `fast-glob` → `micromatch` → `braces` high (DoS); il fix proposto da npm è `eslint-config-next@14.2.35` (semver major, incoerente con Next 15).
+- Criteri di accettazione:
+  - [ ] `npm audit --omit=dev` senza vulnerabilità high/critical, oppure ADR in `docs/adr/` che motiva l'accettazione del rischio residuo (sfruttabilità solo con CSS non controllato dall'utente) e la scelta di non passare a Next 16.
+  - [ ] Le vulnerabilità solo-dev sono risolte o elencate nell'ADR.
+  - [ ] Quality gate e suite e2e completa con exit 0 dopo l'eventuale aggiornamento.
+- Stato: todo
 
 ---
 
@@ -276,6 +289,58 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
   - [x] `npm run typecheck && npm run lint && npm run test && npm run build`: exit 0.
 - Stato: done (T006)
 
+### P1-12 — Focus e navigazione da tastiera: rifinitura
+- Criterio della specifica: "UX e micro-interazioni" (accessibilità).
+- Owner: `frontend-developer`
+- Dipendenze: P1-10
+- Stima: S
+- Fonte: T021 (report del tester), T027.
+- Findings: focus perso sul body dopo "Interrompi" (medium, T021); 15 Tab dal pannello alla lista CITAZIONI, container di scroll focalizzabile (medium, T021); focus ring di "Interrompi" poco visibile (low, T021); focus ring della regione PDF poco visibile (low, T027).
+- Criteri di accettazione:
+  - [ ] Dopo "Interrompi" (click o Enter) `document.activeElement` è la textarea del composer (integration + e2e).
+  - [ ] Dall'apertura del pannello la prima card della lista CITAZIONI si raggiunge con al massimo 3 Tab (e2e).
+  - [ ] Il focus ring di "Interrompi" e della regione PDF ha contrasto ≥ 3:1 con lo sfondo adiacente in tema chiaro e scuro (WCAG 1.4.11), verificato con screenshot nel report del tester.
+- Stato: todo
+
+### P1-13 — Layout responsive di viewer e chat
+- Criterio della specifica: "UX e micro-interazioni" (layout).
+- Owner: `frontend-developer`
+- Dipendenze: P1-09
+- Stima: M
+- Fonte: T020, T028.
+- Findings: PDF tagliato nel drawer mobile a zoom 120% (medium, T020); conversazione stretta a 1440 px con sidebar e viewer aperti, lista citazioni `h-56` (low, T020); placeholder del composer tagliato a viewer aperto (low, T028).
+- Criteri di accettazione:
+  - [ ] A viewport < 1024 px la pagina PDF si adatta alla larghezza del drawer (fit-to-width) e a 390 px e 768 px non c'è scroll orizzontale della pagina (e2e: `scrollWidth <= clientWidth`).
+  - [ ] A 1440 px con sidebar e viewer aperti la colonna della conversazione è larga almeno 480 px (e2e).
+  - [ ] A viewer aperto il placeholder del composer è interamente visibile (e2e: nessun overflow del testo o placeholder abbreviato).
+- Stato: todo
+
+### P1-14 — Feedback dello storico
+- Criterio della specifica: "Storico chat" / "UX e micro-interazioni".
+- Owner: `frontend-developer`
+- Dipendenze: P1-07
+- Stima: S
+- Fonte: T019.
+- Findings: nessun segnale che la nuova voce dello storico è salvata a fine stream (medium, T019); il contesto della voce precedente non ha un'etichetta nella nuova sessione (medium, T019).
+- Criteri di accettazione:
+  - [ ] A fine stream la nuova voce compare in cima allo storico ed è marcata come attiva (`aria-current`), con un annuncio `role="status"` del salvataggio (integration + e2e).
+  - [ ] I messaggi della voce precedente mostrati come contesto hanno un'etichetta visibile e accessibile (es. "Dalla conversazione precedente") (integration).
+- Stato: todo
+
+### P1-15 — Microcopy e feedback di upload e composer
+- Criterio della specifica: "UX e micro-interazioni" / "Gestione degli errori".
+- Owner: `frontend-developer`
+- Dipendenze: P1-04, P2-06
+- Stima: S
+- Fonte: T017, T026, T028.
+- Findings: "N boxes" in inglese nella lista CITAZIONI del pannello (`src/features/factcheck/components/PdfFactCheckViewer.tsx:435`) contro "N box verificati" nelle card (low, T028); dopo un upload riuscito la modale passa al tab lista e il messaggio di successo viene smontato (`src/features/documents/components/DocumentListModal.tsx:141-144`; low, T026); la modale mostra "0 file disponibili" durante il caricamento (low, T017); nessun limite client di 10000 caratteri nel composer (il backend rifiuta query troppo lunghe; low, T017).
+- Criteri di accettazione:
+  - [ ] Nessuna stringa inglese visibile nel pannello citazioni (unit/grep su "boxes" = 0 in `src/`).
+  - [ ] Dopo un upload riuscito un messaggio di successo resta visibile (o è annunciato via `role="status"`) anche dopo il passaggio al tab lista (integration).
+  - [ ] Durante il caricamento della lista la modale non mostra "0 file" ma uno stato di caricamento (integration).
+  - [ ] Il composer impedisce l'invio oltre 10000 caratteri e mostra il contatore o un messaggio in italiano prima della richiesta (integration).
+- Stato: todo
+
 ---
 
 ## P2 — Differenzianti
@@ -297,7 +362,7 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 - Stima: M
 - Criteri di accettazione:
   - [x] Ogni card mostra una miniatura della pagina citata con i rettangoli disegnati, renderizzata in modo lazy (solo quando visibile, con `IntersectionObserver`). Evidenza: `tests/integration/CitationThumbnail.test.tsx:70` (nessuna GET prima dell'intersezione; poi 1 GET, `data-state` rendered, solo i rect della pagina citata scalati a 140 px); `CitationThumbnail.tsx:46-57` (IntersectionObserver, `rootMargin`, disconnect), `:13` (`next/dynamic` con `ssr: false`), `:78` (`data-state`); `CitationThumbnailPage.tsx:8` (larghezza 140 px).
-  - [x] e2e: con 5 citazioni vengono scaricati al massimo N PDF distinti (cache per `document_id`). Evidenza: `e2e/thumbnails.spec.ts:5` (GET `/api/documents/*/file` distinte pari ai `document_id` del chunk citations e totali <= N, anche dopo l'apertura del viewer; `npx playwright test e2e/thumbnails.spec.ts` exit 0, evidence-T029.json); integration `CitationThumbnail.test.tsx:90` (due card dello stesso documento, 1 GET) e `:98` (viewer su documento in cache, nessuna nuova GET); cache in `useDocumentFile.ts:21-22` (`staleTime: Infinity`, `gcTime`), riusata da `usePdfDocument.ts:6,14`; gate T029: typecheck, lint, test exit 0 (34 file / 250 test). La conferma dell'intera suite e2e è in corso da parte del tester.
+  - [x] e2e: con 5 citazioni vengono scaricati al massimo N PDF distinti (cache per `document_id`). Evidenza: `e2e/thumbnails.spec.ts:5` (GET `/api/documents/*/file` distinte pari ai `document_id` del chunk citations e totali <= N, anche dopo l'apertura del viewer; `npx playwright test e2e/thumbnails.spec.ts` exit 0, evidence-T029.json); integration `CitationThumbnail.test.tsx:90` (due card dello stesso documento, 1 GET) e `:98` (viewer su documento in cache, nessuna nuova GET); cache in `useDocumentFile.ts:21-22` (`staleTime: Infinity`, `gcTime`), riusata da `usePdfDocument.ts:6,14`; gate T029: typecheck, lint, test exit 0 (34 file / 250 test). Esito della suite e2e completa (T029, frontend-tester): `npx playwright test` exit 0, 21/21; log non versionato (vedi P2-12 e la tabella dei findings non trasformati).
 - Stato: done (T029)
 
 ### P2-03 — Rendering stabile del Markdown durante lo stream
@@ -336,7 +401,7 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 - Stima: S
 - Criteri di accettazione:
   - [x] `<html lang="it">` (`app/layout.tsx:21`). Evidenza: `grep -n` su `app/layout.tsx:21`; test `e2e/a11y.spec.ts:12` (`html has lang="it"`), rosso prima del fix (lang=en), verde dopo (T027).
-  - [x] e2e con `@axe-core/playwright` su login, chat e viewer: 0 violazioni `serious` o `critical`. Evidenza: `e2e/a11y.spec.ts:17` (login), `:24` (chat con citazioni e viewer PDF aperto), helper AxeBuilder a `:51`; prima del fix 2 nodi `color-contrast` su login, 10 su chat, 10 + `label` + `scrollable-region-focusable` sul viewer; dopo il fix `a11y.spec.ts` verde (run del developer, evidence-T027.json). Sorgenti corretti: `PdfFactCheckViewer.tsx:162` (`aria-label="Numero di pagina"`), `:291-293` (`role="region"`, `tabIndex`, `aria-label="Pagina PDF"`), `ChatMessageItem.tsx:63` (`it-IT`), contrasti in `LoginForm.tsx`, `ChatComposer.tsx`, `ChatMessageItem.tsx`, `RelatedDocumentsSection.tsx`, `ChatSidebar.tsx`, `BoundingBoxOverlay.tsx`. La conferma dell'intera suite e2e è in corso da parte del tester.
+  - [x] e2e con `@axe-core/playwright` su login, chat e viewer: 0 violazioni `serious` o `critical`. Evidenza: `e2e/a11y.spec.ts:17` (login), `:24` (chat con citazioni e viewer PDF aperto), helper AxeBuilder a `:51`; prima del fix 2 nodi `color-contrast` su login, 10 su chat, 10 + `label` + `scrollable-region-focusable` sul viewer; dopo il fix `a11y.spec.ts` verde (run del developer, evidence-T027.json). Sorgenti corretti: `PdfFactCheckViewer.tsx:162` (`aria-label="Numero di pagina"`), `:291-293` (`role="region"`, `tabIndex`, `aria-label="Pagina PDF"`), `ChatMessageItem.tsx:63` (`it-IT`), contrasti in `LoginForm.tsx`, `ChatComposer.tsx`, `ChatMessageItem.tsx`, `RelatedDocumentsSection.tsx`, `ChatSidebar.tsx`, `BoundingBoxOverlay.tsx`. Esito della suite e2e completa (tester, ciclo 1, T027): exit 0, 17 passed.
 - Stato: done (T027)
 
 ### P2-07 — Tema scuro
@@ -345,8 +410,83 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 - Dipendenze: P1-09
 - Stima: S
 - Criteri di accettazione:
-  - [x] Con `colorScheme: 'dark'` in Playwright, lo sfondo di `body` è scuro e il contrasto testo/sfondo dei messaggi è ≥ 4.5:1 (axe `color-contrast`: 0 violazioni). Evidenza: `e2e/dark-theme.spec.ts:14` (body con sfondo scuro esplicito), `:24` (login), `:31` (chat, modale documenti, viewer); `app/globals.css:3-19` (`color-scheme: light dark`, body `#020618`/`#f1f5f9` in `prefers-color-scheme: dark`). Prima del fix: body `rgba(0,0,0,0)` e 9 nodi `color-contrast` nella modale documenti (ID documento slate-400 su bianco, 2.63:1); dopo il fix `npx playwright test e2e/dark-theme.spec.ts e2e/a11y.spec.ts` exit 0 (evidence-T028.json). Correzione collaterale in tema chiaro: ID documento `slate-500` su bianco 4.76:1. Limiti: alcuni hover dark senza variazione visibile; stati di errore/upload non coperti dallo spec dark. La conferma dell'intera suite e2e è in corso da parte del tester.
+  - [x] Con `colorScheme: 'dark'` in Playwright, lo sfondo di `body` è scuro e il contrasto testo/sfondo dei messaggi è ≥ 4.5:1 (axe `color-contrast`: 0 violazioni). Evidenza: `e2e/dark-theme.spec.ts:14` (body con sfondo scuro esplicito), `:24` (login), `:31` (chat, modale documenti, viewer); `app/globals.css:3-19` (`color-scheme: light dark`, body `#020618`/`#f1f5f9` in `prefers-color-scheme: dark`). Prima del fix: body `rgba(0,0,0,0)` e 9 nodi `color-contrast` nella modale documenti (ID documento slate-400 su bianco, 2.63:1); dopo il fix `npx playwright test e2e/dark-theme.spec.ts e2e/a11y.spec.ts` exit 0 (evidence-T028.json). Correzione collaterale in tema chiaro: ID documento `slate-500` su bianco 4.76:1. Limiti: alcuni hover dark senza variazione visibile; stati di errore/upload non coperti dallo spec dark (tracciati in P2-10). Esito della suite e2e completa (T028): `npx playwright test` exit 0, 20/20.
 - Stato: done (T028)
+
+### P2-08 — Precisione dell'highlight delle citazioni
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer`
+- Dipendenze: P2-01
+- Stima: S
+- Fonte: T021, T023 (report ciclo 1).
+- Findings: `isSameCitation` marca come attive insieme le citazioni duplicate restituite dal backend (low, T021); aprendo un secondo documento dopo un'interazione la card attiva sborda di 4,3 px (scrollTop 71 contro 83; low/medium, T023).
+- Criteri di accettazione:
+  - [ ] Con due citazioni identiche nella risposta, solo quella cliccata ha `aria-current` (unit su `isSameCitation`/identità per indice + integration).
+  - [ ] Aprendo un secondo documento la card attiva è interamente visibile nel suo contenitore (e2e: bounding box della card dentro quella della lista).
+- Stato: todo
+
+### P2-09 — Thumbnail: proporzioni e parsing condiviso
+- Criterio della specifica: "UX e micro-interazioni" / performance.
+- Owner: `frontend-developer`
+- Dipendenze: P2-02
+- Stima: S
+- Fonte: T029, README §7.
+- Findings: placeholder a misura fissa 140x180, le pagine orizzontali vengono tagliate; ogni card esegue un proprio parse pdf.js del Blob condiviso (un download per documento, un parse per card).
+- Criteri di accettazione:
+  - [ ] Una pagina orizzontale è mostrata intera nella thumbnail, senza layout shift dopo il caricamento (e2e o integration con dimensioni della pagina mockate).
+  - [ ] N card dello stesso documento producono 1 solo parse pdf.js (unit/integration con spy sul loader).
+- Stato: todo
+
+### P2-10 — Tema scuro: rifinitura
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer`
+- Dipendenze: P2-07
+- Stima: S
+- Fonte: T028 (`evidence-T028.json`).
+- Findings: alcuni hover in tema scuro senza variazione visibile (es. `dark:hover:text-indigo-300` uguale al colore base `dark:text-indigo-300` in `src/features/documents/components/DocumentListModal.tsx:154`); stati di errore e upload non coperti da `e2e/dark-theme.spec.ts`.
+- Criteri di accettazione:
+  - [ ] Nessuna classe `dark:hover:*` uguale alla corrispondente `dark:*` di base sullo stesso elemento (grep/unit).
+  - [ ] `e2e/dark-theme.spec.ts` copre errore di upload e upload in corso con 0 violazioni axe `color-contrast`.
+- Stato: todo
+
+### P2-11 — Igiene di proxy e console
+- Criterio della specifica: "Integrazione backend" / "Qualità del codice".
+- Owner: `frontend-developer`
+- Dipendenze: P0-03
+- Stima: S
+- Fonte: T007, T010, T015, T019, T020, T025.
+- Findings: `/favicon.ico` 404 (T010, T015, T020); path `/api/...` senza slash finale → 307 con Location assoluta `http://backend:8000/...` irraggiungibile dal browser (T007, T010); 1 errore console al primo load non analizzato (T019); richieste page-1 ripetute in dev (T025).
+- Criteri di accettazione:
+  - [ ] `GET /favicon.ico` (o l'icona dichiarata in `app/`) risponde 200 e la console del primo load è vuota (e2e su `page.on('console')` e `page.on('response')`).
+  - [ ] `GET /api/documents` senza slash non restituisce una Location verso l'host del backend (e2e o probe nel report del tester).
+  - [ ] In un caricamento della home con sessione valida c'è al massimo 1 richiesta per la prima pagina di storico e documenti (e2e su `page.on('request')`, build di produzione).
+- Stato: todo
+
+### P2-12 — Stabilità degli e2e e dell'avvio
+- Criterio della specifica: "Qualità del codice" (test).
+- Owner: `frontend-test-writer` (per `npm start`: `frontend-developer`)
+- Dipendenze: nessuna
+- Stima: S
+- Fonte: T011, T013, T025, T027.
+- Findings: residuo statistico sulla race del filechooser in `e2e/keyboard.spec.ts` (T027); gli e2e lasciano dati sul backend reale (upload duplicati, utenti `t25paged` con 45 chat e `t25`; T013, T025); avviso `"next start" does not work with "output: standalone"` (T011).
+- Criteri di accettazione:
+  - [ ] `npx playwright test e2e/keyboard.spec.ts --repeat-each=20 --workers=1` exit 0.
+  - [ ] Gli e2e usano `user_id` univoci per run e il README documenta i dati che restano sul backend (non esiste un endpoint di cancellazione).
+  - [ ] `npm run start` (o lo script documentato nel README) avvia il server standalone senza l'avviso.
+- Stato: todo
+
+### P2-13 — Viewer PDF: text layer e scroll continuo
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer`
+- Dipendenze: P1-08
+- Stima: M
+- Fonte: README §7.
+- Findings: text layer non implementato (testo non selezionabile); navigazione una pagina alla volta.
+- Criteri di accettazione:
+  - [ ] Il testo della pagina è selezionabile (e2e: `.textLayer` presente con testo non vuoto).
+  - [ ] Con lo scroll continuo il click su una citazione porta la regione nel viewport anche su pagine diverse da quella corrente (e2e).
+  - [ ] L'overlay dei bounding box resta allineato (test esistenti del viewer verdi).
+- Stato: todo
 
 ---
 
@@ -363,6 +503,17 @@ Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 | i18n multilingua | La specifica non lo chiede; basta una lingua coerente (P2-06). |
 | Storybook | Non migliora i criteri valutati; i test RTL coprono i componenti. |
 | Pulsante "copia risposta" / export | Nessun criterio della specifica collegato. |
+
+## Findings non trasformati in item (con motivo)
+
+| Finding | Fonte | Motivo |
+|---|---|---|
+| Documenti globali, `page_count` mock, `text_quote` placeholder, una chat = una coppia Q/A, risposte non tipizzate in OpenAPI | README §7, `docs/AUDIT.md` §2 | Limiti del backend, non correggibili dal frontend. |
+| Logout senza cancellazione del cookie | README §7 | Il backend non espone un endpoint di logout. |
+| "Annulla" sull'upload quando il backend ha già ricevuto il corpo | T026, README §7 | Limite intrinseco della cancellazione lato client. |
+| Suffisso "+" e pulsante extra con totale multiplo di 20 | T025 | Scelta documentata in `docs/adr/0005-paginazione-letterale.md`. |
+| Validazione `user_id` ASCII più restrittiva del backend | T004, README §7 | Scelta voluta. |
+| `pkill -f next-server` troppo largo nel tester; log della suite completa in `/tmp` non versionati | T015, T029 | Processo degli agenti: va in `.claude/agents/`, non nella roadmap. |
 
 ## Checklist di consegna manuale (utente)
 

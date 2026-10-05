@@ -8,6 +8,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Docs (T030)
+- `docs/ROADMAP.md`: nuovi item `todo` dai findings di T001–T029 (P0-09, P1-12…P1-15, P2-08…P2-13), sezione "Findings non trasformati in item (con motivo)", esito delle suite e2e complete in P2-06 (17 passed, T027) e P2-07 (20/20, T028). README §7/§8 riallineati con rimandi per id; nessun finding aperto senza item.
+
 ### Added (T029, P2-02)
 - Mini-thumbnail nelle card citazione: miniatura 140 px della pagina citata con le sole regioni di quella pagina (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`, caricata con `next/dynamic` `ssr: false`). Lazy: nessun download né parsing finché la card non entra nel viewport (`IntersectionObserver`, `rootMargin` 200 px); placeholder a dimensione fissa; in caso di errore di download lo stato resta `error` senza rompere la card.
 - Cache Blob per `document_id` (`useDocumentFile.ts`, chiave `queryKeys.documents.file`): un solo download per documento, condiviso tra miniature e viewer (`usePdfDocument.ts` la riusa).
