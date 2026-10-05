@@ -18,4 +18,15 @@ describe('isSameCitation', () => {
     expect(isSameCitation(base, undefined)).toBe(false);
     expect(isSameCitation(null, null)).toBe(false);
   });
+
+  it('with distinct occurrence_key, structurally identical citations are different', () => {
+    const a = { ...base, occurrence_key: 'm:0' };
+    expect(isSameCitation(a, { ...base, occurrence_key: 'm:1' })).toBe(false);
+    expect(isSameCitation(a, { ...base, occurrence_key: 'm:0' })).toBe(true);
+  });
+  it('falls back to the structural comparison when either side has no key', () => {
+    expect(isSameCitation({ ...base, occurrence_key: 'm:0' }, base)).toBe(true);
+    expect(isSameCitation(base, { ...base, occurrence_key: 'm:1' })).toBe(true);
+    expect(isSameCitation({ ...base, occurrence_key: 'm:0' }, { ...base, page_number: 9 })).toBe(false);
+  });
 });

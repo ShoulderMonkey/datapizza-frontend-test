@@ -51,6 +51,12 @@ const c2: CitationReference = {
   bounding_regions: [{ page_number: 1, rects_in: [[1, 3, 2, 0.5], [1, 4, 2, 0.5]] }] as CitationReference['bounding_regions'],
 };
 
+const twin = (): CitationReference => ({
+  document_id: 'd1', filename: 'a.pdf', page_number: 1, text_quote: 'identica',
+  bounding_regions: [{ page_number: 1, rects_in: [[1, 6, 2, 0.5]] }] as CitationReference['bounding_regions'],
+});
+let streamRefs: CitationReference[] = [c1, c2];
+
 const enc = new TextEncoder();
 const ndjson = (o: unknown) => enc.encode(JSON.stringify(o) + '\n');
 
@@ -59,6 +65,7 @@ let originalMatchMedia: typeof window.matchMedia | undefined;
 let scrollMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
+  streamRefs = [c1, c2];
   originalScroll = Element.prototype.scrollIntoView;
   originalMatchMedia = window.matchMedia;
   window.matchMedia = vi.fn().mockImplementation((q: string) => ({
@@ -73,7 +80,7 @@ beforeEach(() => {
       const body = new ReadableStream<Uint8Array>({
         start(c) {
           c.enqueue(ndjson({ type: 'content', delta: 'Risposta' }));
-          c.enqueue(ndjson({ type: 'citations', references: [c1, c2] }));
+          c.enqueue(ndjson({ type: 'citations', references: streamRefs }));
           c.enqueue(ndjson({ type: 'done' }));
           c.close();
         },
@@ -156,5 +163,34 @@ describe('P2-01 bidirectional highlight citation <-> PDF', () => {
     expect(boxes.map((b) => b.getAttribute('data-highlighted'))).toEqual(['false', 'true', 'true']);
     await user.unhover(target);
     expect(boxes.every((b) => b.getAttribute('data-highlighted') === 'false')).toBe(true);
+  });
+});
+
+describe('P2-08 identical citations keep their own identity', () => {
+  it('clicking the second of two identical citations activates only that one (cards, viewer list, boxes)', async () => {
+    streamRefs = [twin(), twin()];
+    const user = userEvent.setup();
+    renderWithProviders(<ChatWorkspace userId="u1" onLogout={() => {}} />);
+    await user.type(screen.getByRole('textbox', { name: 'Domanda sui documenti' }), 'domanda{Enter}');
+    const cards = await screen.findAllByTestId('citation-card');
+    expect(cards).toHaveLength(2);
+
+    await user.click(cards[1]);
+    await waitFor(() => expect(screen.getAllByTestId('bbox')).toHaveLength(2));
+    expect(cards[1]).toHaveAttribute('aria-current', 'true');
+    expect(cards[0]).not.toHaveAttribute('aria-current');
+
+    const viewerCards = screen.getAllByTestId('viewer-citation-card');
+    expect(viewerCards).toHaveLength(2);
+    expect(viewerCards[0]).not.toHaveAttribute('aria-current');
+    expect(viewerCards[1]).toHaveAttribute('aria-current', 'true');
+
+    const boxes = screen.getAllByTestId('bbox');
+    const active = boxes.filter((b) => b.getAttribute('data-active') === 'true' || b.getAttribute('aria-current') === 'true');
+    expect(active).toHaveLength(1);
+
+    // hover highlights only the boxes of the hovered occurrence
+    await user.hover(cards[0]);
+    expect(boxes.filter((b) => b.getAttribute('data-highlighted') === 'true')).toHaveLength(1);
   });
 });

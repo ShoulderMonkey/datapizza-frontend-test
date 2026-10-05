@@ -53,6 +53,13 @@ describe('chatStreamReducer', () => {
     expect(chatStreamReducer(s, { type: 'citations', references: [] })).toBe(s);
   });
 
+  it('citations get stable incremental occurrence_key <msgId>:<i> across chunks', () => {
+    let s = streaming();
+    s = chatStreamReducer(s, { type: 'citations', references: [cite('d1'), cite('d1')] });
+    s = chatStreamReducer(s, { type: 'citations', references: [cite('d1')] });
+    expect(active(s).citations!.map((c) => c.occurrence_key)).toEqual(['a1:0', 'a1:1', 'a1:2']);
+  });
+
   it('error keeps partial text, sets status error and ends the stream', () => {
     let s = chatStreamReducer(streaming(), { type: 'delta', text: 'parz' });
     s = chatStreamReducer(s, { type: 'error', error: 'boom' });

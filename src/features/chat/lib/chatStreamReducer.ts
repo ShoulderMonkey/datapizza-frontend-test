@@ -86,10 +86,11 @@ export function chatStreamReducer(state: ChatStreamState, action: ChatStreamActi
     }
     case 'citations': {
       if (!state.isStreaming || action.references.length === 0) return state;
-      const messages = patchActive(state, (m) => ({
-        ...m,
-        citations: [...(m.citations ?? []), ...action.references],
-      }));
+      const messages = patchActive(state, (m) => {
+        const offset = m.citations?.length ?? 0;
+        const keyed = action.references.map((ref, i) => ({ ...ref, occurrence_key: `${m.id}:${offset + i}` }));
+        return { ...m, citations: [...(m.citations ?? []), ...keyed] };
+      });
       return messages === state.messages ? state : { ...state, messages };
     }
     case 'error':

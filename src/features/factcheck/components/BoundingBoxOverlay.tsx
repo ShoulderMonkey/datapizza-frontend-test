@@ -35,11 +35,7 @@ export function BoundingBoxOverlay({
     }> = [];
 
     citations.forEach((cit) => {
-      const isTargetCitation =
-        activeCitation &&
-        activeCitation.document_id === cit.document_id &&
-        activeCitation.page_number === cit.page_number &&
-        activeCitation.text_quote === cit.text_quote;
+      const isTargetCitation = isSameCitation(activeCitation, cit);
 
       if (!cit.bounding_regions || cit.bounding_regions.length === 0) {
         return;

@@ -39,6 +39,12 @@ export interface CitationReference {
   page_number: number;
   text_quote: string;
   bounding_regions?: BoundingRegion[];
+  /**
+   * Client-side occurrence identity `<message id>:<index in the message's citations>`, never sent by
+   * the backend. The backend repeats the same `text_quote`, so structural equality cannot tell
+   * two citations apart.
+   */
+  occurrence_key?: string;
 }
 
 // --- Documents --------------------------------------------------------------

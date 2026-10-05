@@ -84,19 +84,39 @@ export function PdfFactCheckViewer({
   // whenever the active citation changes. Focus is never moved.
   useEffect(() => {
     const list = citationListRef.current;
-    const card = list?.querySelector<HTMLElement>('[aria-current="true"]');
-    if (!list || !card) return;
-    const listRect = list.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    if (cardRect.top < listRect.top) {
-      list.scrollTop -= listRect.top - cardRect.top + 8;
-    } else if (cardRect.bottom > listRect.bottom) {
-      list.scrollTop += cardRect.bottom - listRect.bottom + 8;
+    if (!list) return;
+    const reveal = () => {
+      const card = list.querySelector<HTMLElement>('[aria-current="true"]');
+      if (!card) return;
+      const listRect = list.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      if (cardRect.top < listRect.top) {
+        list.scrollTop -= listRect.top - cardRect.top + 8;
+      } else if (cardRect.bottom > listRect.bottom) {
+        list.scrollTop += cardRect.bottom - listRect.bottom + 8;
+      }
+    };
+    reveal();
+    // The layout may still settle after mount (e.g. a second document opening): re-check after
+    // the next frames and while the list or its content changes size, for a short window.
+    const frame = requestAnimationFrame(() => requestAnimationFrame(reveal));
+    let observer: ResizeObserver | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(reveal);
+      observer.observe(list);
+      if (list.firstElementChild) observer.observe(list.firstElementChild);
+      timer = setTimeout(() => observer?.disconnect(), 600);
     }
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      if (timer) clearTimeout(timer);
+    };
   }, [activeCitation, showCitationList]);
 
   // Re-sync the page when the target page or the active citation changes (render-time adjustment).
-  const syncKey = `${initialPage}|${activeCitation?.document_id}|${activeCitation?.page_number}|${activeCitation?.text_quote}`;
+  const syncKey = `${initialPage}|${activeCitation?.document_id}|${activeCitation?.page_number}|${activeCitation?.text_quote}|${activeCitation?.occurrence_key}`;
   const [prevSyncKey, setPrevSyncKey] = useState<string>(syncKey);
   if (syncKey !== prevSyncKey) {
     setPrevSyncKey(syncKey);

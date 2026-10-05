@@ -30,6 +30,6 @@ describe('chatService.getChat with the real backend shape', () => {
     expect(chat.messages).toHaveLength(2);
     expect(chat.messages[0]).toMatchObject({ role: 'user', content: 'Che cosa dice il documento?' });
     expect(chat.messages[1]).toMatchObject({ role: 'assistant', content: 'Dice <strong>tanto</strong>.' });
-    expect(chat.messages[1].citations).toEqual([citation]);
+    expect(chat.messages[1].citations).toEqual([{ ...citation, occurrence_key: 'c3e4ccf3-0000-4000-8000-000000000001-msg-1:0' }]);
   });
 });

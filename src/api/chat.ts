@@ -97,7 +97,7 @@ function toTranscript(record: ChatRecord): ChatTranscript {
       id: `${record.id}-msg-1`,
       role: 'assistant',
       content: record.response,
-      citations: record.citations,
+      citations: record.citations?.map((ref, i) => ({ ...ref, occurrence_key: `${record.id}-msg-1:${i}` })),
       created_at: record.created_at,
     },
   ];

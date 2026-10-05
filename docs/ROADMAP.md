@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T036)
+## Stato attuale (aggiornato a T037)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034) e P1-15 (T036): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036) e P2-08 (T037): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -423,9 +423,9 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T021, T023 (report ciclo 1).
 - Findings: `isSameCitation` marca come attive insieme le citazioni duplicate restituite dal backend (low, T021); aprendo un secondo documento dopo un'interazione la card attiva sborda di 4,3 px (scrollTop 71 contro 83; low/medium, T023).
 - Criteri di accettazione:
-  - [ ] Con due citazioni identiche nella risposta, solo quella cliccata ha `aria-current` (unit su `isSameCitation`/identità per indice + integration).
-  - [ ] Aprendo un secondo documento la card attiva è interamente visibile nel suo contenitore (e2e: bounding box della card dentro quella della lista).
-- Stato: todo
+  - [x] Con due citazioni identiche nella risposta, solo quella cliccata ha `aria-current` (unit su `isSameCitation`/identità per indice + integration). Evidenza: identità per occorrenza `occurrence_key` (solo lato client, `src/api/types.ts:47`; il `text_quote` del backend è un placeholder uguale per tutte le citazioni), assegnata in `chatStreamReducer.ts:91` (`<msgId>:<i>`) e in `src/api/chat.ts:100` (`<id>-msg-1:<i>`); `isSameCitation` in `citations.ts:11` la confronta se presente, con fallback strutturale; usata da `BoundingBoxOverlay.tsx:38,73`; `syncKey` con `occurrence_key` in `PdfFactCheckViewer.tsx:119`. Test: `tests/unit/citations.test.ts:22`, `tests/unit/chatStreamReducer.test.ts:56`, `tests/unit/chat-get.test.ts:33`, `tests/integration/citation-highlight.test.tsx` (click sulla seconda di due citazioni identiche, hover); 4 test rossi su HEAD 0fc49db, verdi dopo; gate T037 typecheck, lint, test exit 0 (275 test). Tester su backend reale: click su una card, solo quella voce ha `aria-current` e 5 box attivi; storico riaperto, una sola card attiva per click.
+  - [x] Aprendo un secondo documento la card attiva è interamente visibile nel suo contenitore (e2e: bounding box della card dentro quella della lista). Evidenza: `e2e/citation-occurrence.spec.ts:5`; scroll della sola lista CITAZIONI (`list.scrollTop`) subito, dopo 2 rAF e con `ResizeObserver` per 600 ms (`PdfFactCheckViewer.tsx:94-106`). Nota: l'e2e passa anche su HEAD 0fc49db (x5), quindi non riproduce il residuo di T023 e resta come guardia; il tester ha misurato lo scenario T023 5/5 con la card dentro la lista (top 599,28, bottom 711,94 contro lista 546-720). `npx playwright test` exit 0, 32 passed. Log del tester non versionato.
+- Stato: done (T037)
 
 ### P2-09 — Thumbnail: proporzioni e parsing condiviso
 - Criterio della specifica: "UX e micro-interazioni" / performance.

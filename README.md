@@ -281,6 +281,7 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 - **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `src/features/factcheck/lib/pdfWorker.ts`, senza CDN.
 - **Layout e focus (P1-09)**: `FactCheckPanel.tsx` mostra il viewer come pannello laterale (`role="complementary"`) a ≥ 1024 px, con la conversazione ancora visibile e scrollabile (`useIsDesktop.ts`), e come dialog a schermo intero (`role="dialog"`, `aria-modal`, pulsante di chiusura) sotto. All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione. La card attiva (`aria-current` in `RelatedDocumentsSection.tsx`) e le sue regioni sul PDF (`data-active` in `BoundingBoxOverlay.tsx`) sono evidenziate. Test: `tests/integration/FactCheckPanel.test.tsx`, `e2e/layout.spec.ts`.
 - **Responsive layout (P1-13)**: sotto 1024 px il drawer applica un fit-to-width automatico alla pagina PDF (`autoFitWidth` in `FactCheckPanel.tsx`, `computeFitScale` con `ResizeObserver` in `PdfFactCheckViewer.tsx`); nel layout affiancato il pannello è `w-[46%] min-w-[320px] max-w-3xl` e la conversazione ha `xl:min-w-[480px]` (`ChatWorkspace.tsx`). Il placeholder del composer è "Fai una domanda..." e le scorciatoie sono nel testo di aiuto collegato con `aria-describedby` (`ChatComposer.tsx`). Test: `e2e/responsive.spec.ts`. Limite noto: a 1024 px con sidebar e viewer aperti la colonna chat è stretta (P2-09).
+- **Citation identity per occurrence (P2-08)**: since the backend returns the same placeholder `text_quote` for every citation, structural equality would mark all citations of the same document and page as active together. Each citation therefore gets a client-only `occurrence_key` (`<msgId>:<index>` in `chatStreamReducer.ts`, `<id>-msg-1:<index>` for history in `src/api/chat.ts`; field in `src/api/types.ts`), and `isSameCitation` (`src/features/factcheck/lib/citations.ts`) compares it when present, falling back to the structural comparison. Tests: `tests/unit/citations.test.ts`, `tests/integration/citation-highlight.test.tsx`, `e2e/citation-occurrence.spec.ts`.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
 
 - **Citation thumbnails (P2-02)**: each citation card shows a 140 px thumbnail of the cited page with only that page's regions (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`). It is lazy: nothing is downloaded or parsed until the card is near the viewport (`IntersectionObserver`, `rootMargin` 200 px). The PDF Blob is cached per `document_id` (`useDocumentFile.ts`): one download per document, shared with the viewer (`usePdfDocument.ts`). Tests: `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts`.
@@ -381,7 +382,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-08 to P2-12 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-09 to P2-13 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -409,8 +410,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 and P1-15 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P2-08**: highlight precision (duplicate backend citations highlighted together, active card overflowing by 4.3 px).
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15 and P2-08 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P2-09**: thumbnails (landscape pages cropped, one pdf.js parse per card).
 - **P2-10**: dark theme polish (hover without visible change, error/upload states not covered by e2e).
 - **P2-11**: proxy and console hygiene (`/favicon.ico` 404, 307 with absolute backend Location, repeated page-1 requests in dev).

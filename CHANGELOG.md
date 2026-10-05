@@ -8,6 +8,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T037, P2-08)
+- Citazioni identiche attivate insieme: il backend restituisce lo stesso `text_quote` placeholder per tutte, quindi l'uguaglianza strutturale evidenziava tutte le citazioni dello stesso documento e pagina. Ora identità per occorrenza con `occurrence_key` lato client (`src/api/types.ts`, `chatStreamReducer.ts`, `src/api/chat.ts`), confrontata da `isSameCitation` (`citations.ts`) con fallback strutturale; usata in `BoundingBoxOverlay.tsx` e nel `syncKey` di `PdfFactCheckViewer.tsx`.
+- Scroll della lista CITAZIONI più robusto all'apertura di un secondo documento (subito, dopo 2 rAF e con `ResizeObserver` per 600 ms; solo `list.scrollTop`).
+- Test: unit `citations`, `chatStreamReducer`, `chat-get`, integration `citation-highlight` (4 rossi su 0fc49db, verdi dopo; 275 test), `e2e/citation-occurrence.spec.ts` (passa anche su 0fc49db: guardia, non riproduce il residuo di T023); e2e completa 32 passed.
+
 ### Added (T036, P1-15)
 - Composer: limite di 10000 caratteri lato client (`QUERY_MAX_LENGTH` in `src/api/chat.ts`, fonte backend), contatore "N/10000 caratteri" oltre 9000, messaggio in italiano con `role="alert"`, "Invia" disabilitato e nessuna richiesta oltre il limite (`ChatComposer.tsx`).
 - Upload: messaggio di successo persistente con `role="status"` nel tab lista (`DocumentListModal.tsx`, `DocumentUploadDropzone.tsx`).
