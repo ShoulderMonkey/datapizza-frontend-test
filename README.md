@@ -322,7 +322,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Keyboard path:** login, open the documents modal, upload (the dropzone is `role="button"`, Enter/Space open the file picker: `DocumentUploadDropzone.tsx`), send a question, open a citation, close the viewer. Covered by `e2e/keyboard.spec.ts`.
 - **Language and axe (P2-06):** `<html lang="it">` (`app/layout.tsx`); `e2e/a11y.spec.ts` (`@axe-core/playwright`) checks 0 serious/critical violations on login, chat and PDF viewer. Run: `npx playwright test e2e/a11y.spec.ts` (requires backend). Timestamps use the `it-IT` format.
-- **Dark theme (P2-07):** the theme follows `prefers-color-scheme` (`app/globals.css`, Tailwind `dark:` variants); there is deliberately no manual toggle. The PDF page stays on a white background. `e2e/dark-theme.spec.ts` checks the dark body background and 0 axe `color-contrast` violations. Run: `npx playwright test e2e/dark-theme.spec.ts` (requires backend).
+- **Dark theme (P2-07):** the theme follows `prefers-color-scheme` (`app/globals.css`, Tailwind `dark:` variants); there is deliberately no manual toggle. The PDF page stays on a white background. `e2e/dark-theme.spec.ts` checks the dark body background and 0 axe `color-contrast` violations, including the upload error and upload in progress states; `tests/unit/dark-hover.test.ts` guards against `dark:hover:*` classes identical to the base `dark:*` class (static class names only). Run: `npx playwright test e2e/dark-theme.spec.ts` (requires backend).
 - **Escape and focus:** Escape closes the documents modal (`DocumentListModal.tsx`) and the fact-check viewer (`FactCheckPanel.tsx`); when the viewer closes, focus returns to the citation card.
 - **Live region:** the message area is `role="log"` with `aria-live="polite"` and `aria-busy` (`ChatConversation.tsx`).
 - **Focus while streaming:** the textarea is `readOnly` + `aria-disabled` (not `disabled`), so focus stays on the input after sending and is not stolen at the end of the stream (`ChatComposer.tsx`, ADR 0003).
@@ -382,7 +382,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-10 to P2-13 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-11 to P2-13 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -410,8 +410,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08 and P2-09 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P2-10**: dark theme polish (hover without visible change, error/upload states not covered by e2e).
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08, P2-09 and P2-10 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P2-11**: proxy and console hygiene (`/favicon.ico` 404, 307 with absolute backend Location, repeated page-1 requests in dev).
 - **P2-12**: e2e and startup stability (filechooser race, data left on the backend, `next start` warning with `output: standalone`).
 - **P2-13**: PDF text layer and continuous scrolling.

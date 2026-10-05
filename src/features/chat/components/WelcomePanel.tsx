@@ -60,7 +60,7 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
             <span>3. Verifica Bounding Box</span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-            I box in pollici <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
+            I box in pollici <code className="bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
           </p>
         </div>
       </div>

@@ -127,7 +127,7 @@ export function DocumentUploadDropzone({ onUploadSuccess }: DocumentUploadDropzo
           Trascina qui i tuoi documenti PDF o <span className="text-indigo-600 dark:text-indigo-300 underline">sfoglia</span>
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Supporta uno o più file PDF (multipart/form-data, campo <code className="text-xs bg-slate-200 dark:bg-slate-700 px-1 rounded">files</code>)
+          Supporta uno o più file PDF (multipart/form-data, campo <code className="text-xs bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100 px-1 rounded">files</code>)
         </p>
       </div>
 

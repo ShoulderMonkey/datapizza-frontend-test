@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T038)
+## Stato attuale (aggiornato a T039)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037) e P2-09 (T038): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038) e P2-10 (T039): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -447,11 +447,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Dipendenze: P2-07
 - Stima: S
 - Fonte: T028 (`evidence-T028.json`).
-- Findings: alcuni hover in tema scuro senza variazione visibile (es. `dark:hover:text-indigo-300` uguale al colore base `dark:text-indigo-300` in `src/features/documents/components/DocumentListModal.tsx:154`); stati di errore e upload non coperti da `e2e/dark-theme.spec.ts`.
+- Findings: alcuni hover in tema scuro senza variazione visibile (es. `dark:hover:text-indigo-300` uguale al colore base `dark:text-indigo-300` in `src/features/documents/components/DocumentListModal.tsx:174` e in `src/components/ui/MarkdownRenderer.tsx:98`); stati di errore e upload non coperti da `e2e/dark-theme.spec.ts`.
 - Criteri di accettazione:
-  - [ ] Nessuna classe `dark:hover:*` uguale alla corrispondente `dark:*` di base sullo stesso elemento (grep/unit).
-  - [ ] `e2e/dark-theme.spec.ts` copre errore di upload e upload in corso con 0 violazioni axe `color-contrast`.
-- Stato: todo
+  - [x] Nessuna classe `dark:hover:*` uguale alla corrispondente `dark:*` di base sullo stesso elemento (grep/unit). Evidenza: `dark:hover:text-indigo-200` (base `dark:text-indigo-300`) in `DocumentListModal.tsx:174` e `MarkdownRenderer.tsx:98`; unit `tests/unit/dark-hover.test.ts:78` (detector) e `:84` (nessun duplicato in `src/**/*.tsx`; limite: non vede classi calcolate a runtime), rosso prima del fix sui due offender, verde dopo (`npx vitest run tests/unit/dark-hover.test.ts` exit 0; `npm run test` exit 0). Tester: hover "Aggiorna" `oklch(0.785 0.115 274.713)` -> `oklch(0.87 0.065 274.039)`, link Markdown idem (risposta mockata).
+  - [x] `e2e/dark-theme.spec.ts` copre errore di upload e upload in corso con 0 violazioni axe `color-contrast`. Evidenza: `e2e/dark-theme.spec.ts:84` (errore di upload) e `:93` (upload in corso); prima del fix 3 nodi `color-contrast` (testo secondario sidebar 3.74, `code` 3.93). Fix: testo secondario `text-slate-500` -> `text-slate-400` in `ChatSidebar.tsx:189,208-211`; `code` `bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100` in `WelcomePanel.tsx:63` e `DocumentUploadDropzone.tsx:130` (corretto anche il contrasto in chiaro, 3.86:1 nel `code` del WelcomePanel). Contrasti dark misurati dal tester: code 7.27-9.45, sidebar 6.46, upload in corso 6.33, errore upload 6.33; chiaro invariato. `npx playwright test e2e/dark-theme.spec.ts --repeat-each=2 --workers=1` exit 0; gate T039 typecheck, lint, test exit 0. Log del tester non versionato.
+- Stato: done (T039)
 
 ### P2-11 — Igiene di proxy e console
 - Criterio della specifica: "Integrazione backend" / "Qualità del codice".

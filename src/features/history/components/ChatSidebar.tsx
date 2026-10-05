@@ -186,7 +186,7 @@ export function ChatSidebar({
           </div>
 
           {isLoading && chats.length === 0 ? (
-            <div role="status" className="py-8 text-center text-xs text-slate-500 space-y-2">
+            <div role="status" className="py-8 text-center text-xs text-slate-400 space-y-2">
               <div aria-hidden="true" className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
               <span>Caricamento cronologia…</span>
             </div>
@@ -205,10 +205,10 @@ export function ChatSidebar({
               </button>
             </div>
           ) : chats.length === 0 ? (
-            <div className="py-8 text-center px-4 text-xs text-slate-500">
+            <div className="py-8 text-center px-4 text-xs text-slate-400">
               <MessageSquare className="w-6 h-6 mx-auto mb-2 text-slate-600" />
               <p className="font-medium text-slate-400">Nessuna chat precedente</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 Inizia una nuova conversazione per salvare la sessione sul server.
               </p>
             </div>

@@ -171,7 +171,7 @@ export function DocumentListModal({
                   type="button"
                   onClick={refreshDocuments}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium cursor-pointer disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                   <span>Aggiorna</span>

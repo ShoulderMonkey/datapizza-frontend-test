@@ -59,6 +59,53 @@ test.describe('dark theme', () => {
 
     expect(failures, `color-contrast violations:\n${failures.join('\n')}`).toEqual([]);
   });
+
+  // P2-10: upload states (error alert and in-progress button) in dark mode.
+  const MINIMAL_PDF = Buffer.from(
+    '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n' +
+      '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n'
+  );
+
+  async function openUploadWithFile(page: Page, user: string) {
+    await page.goto('/');
+    await page.locator('#user_id').fill(user);
+    await page.getByRole('button', { name: /accedi all/i }).click();
+    await expect(page.getByRole('button', { name: /invia messaggio/i })).toBeVisible();
+    await page.getByRole('button', { name: /libreria pdf/i }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('button', { name: /carica nuovi pdf/i }).click();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'non-ammesso.pdf',
+      mimeType: 'application/pdf',
+      buffer: MINIMAL_PDF,
+    });
+  }
+
+  test('upload error state has no color-contrast violations', async ({ page }) => {
+    await openUploadWithFile(page, `dark-t039-err-${Date.now()}`);
+    await page.getByRole('button', { name: /carica 1 file/i }).click();
+    await expect(page.getByText(/«non-ammesso\.pdf»/)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Errore caricamento:')).toBeVisible();
+    const bad = await collect(page, 'upload-error');
+    expect(bad, `color-contrast violations:\n${bad}`).toBe('');
+  });
+
+  test('upload in progress state has no color-contrast violations', async ({ page }) => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    await page.route('**/api/documents/', async (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      await gate;
+      await route.fallback();
+    });
+    await openUploadWithFile(page, `dark-t039-up-${Date.now()}`);
+    await page.getByRole('button', { name: /carica 1 file/i }).click();
+    await expect(page.getByRole('button', { name: 'Annulla' })).toBeVisible();
+    await expect(page.getByText('Caricamento in corso...')).toBeVisible();
+    const bad = await collect(page, 'upload-in-progress');
+    release();
+    expect(bad, `color-contrast violations:\n${bad}`).toBe('');
+  });
 });
 
 function parseColor(css: string): { r: number; g: number; b: number; a: number } {

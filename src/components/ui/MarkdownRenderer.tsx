@@ -95,7 +95,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
                 href={isSafe ? href : undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-300 underline font-medium"
+                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 underline font-medium"
               >
                 {children}
               </a>

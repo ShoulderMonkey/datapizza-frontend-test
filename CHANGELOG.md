@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T039, P2-10)
+- Hover in tema scuro con variazione visibile: `dark:hover:text-indigo-200` al posto di un valore uguale alla base `dark:text-indigo-300` nel pulsante "Aggiorna" (`DocumentListModal.tsx:174`) e nei link Markdown (`MarkdownRenderer.tsx:98`).
+- Contrasti in tema scuro: testo secondario della sidebar `text-slate-500` -> `text-slate-400` (`ChatSidebar.tsx`) e `code` con `dark:bg-slate-700 dark:text-slate-100` nel pannello di upload (`DocumentUploadDropzone.tsx:130`) e nel `WelcomePanel.tsx:63`; in chiaro il `code` usa `bg-slate-200 text-slate-700` (contrasto 3.86:1 corretto).
+
+### Added (T039, P2-10)
+- Test: `tests/unit/dark-hover.test.ts` (nessun `dark:hover:<utility>` uguale al `dark:<utility>` di base sullo stesso elemento; non vede classi calcolate a runtime) e due scenari in `e2e/dark-theme.spec.ts` (errore di upload e upload in corso, 0 violazioni axe `color-contrast`); gate exit 0.
+
 ### Added (T038, P2-09)
 - Thumbnail delle citazioni: pagina adattata al box fisso 140x180 con scala `min(140/pageW, 180/pageH)`, centrata, con i rect alla stessa scala (`CitationThumbnailPage.tsx`); le pagine orizzontali non sono più tagliate.
 - Proxy pdf.js condiviso per documento (`useDocumentProxy.ts`, `queryKeys.documents.proxy`): un solo parse per documento, le card usano `<Page pdf={proxy}>`; il proxy viene distrutto su refetch e rimozione dalla cache. Il viewer fa ancora il proprio parse.
