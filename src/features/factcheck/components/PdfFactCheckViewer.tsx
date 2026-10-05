@@ -9,6 +9,7 @@ import { useCitationHighlight } from '../hooks/useCitationHighlight';
 import { getFirstRegionPage, getPagesWithRegions } from '../lib/regions';
 
 // react-pdf touches browser-only APIs (DOMMatrix, workers): load it client-side only.
+// PdfPageView renders every page of the document in a continuous, lazily drawn column.
 const PdfPageView = dynamic(() => import('./PdfPageView').then((m) => m.PdfPageView), {
   ssr: false,
   loading: () => <p className="m-auto text-sm text-slate-400">Caricamento del motore PDF...</p>,
@@ -26,6 +27,13 @@ import {
   ExternalLink,
   List,
 } from 'lucide-react';
+
+/** Explicit navigation request; `seq` changes on every request so a repeated one scrolls again. */
+interface PageNavigation {
+  page: number;
+  toRegion: boolean;
+  seq: number;
+}
 
 interface PdfFactCheckViewerProps {
   documentId: string;
@@ -70,11 +78,21 @@ export function PdfFactCheckViewer({
   const [renderError, setRenderError] = useState<string | null>(null);
   const error = downloadError ?? renderError;
 
-  // Page state: with an active citation, start from its first bounding region.
-  const [currentPage, setCurrentPage] = useState<number>(
-    getFirstRegionPage(activeCitation) ?? initialPage
-  );
+  // Continuous scroll (P2-13): `currentPage` is the page under the centre of the viewport,
+  // reported by PdfPageView while scrolling; `navigation` is the last explicit request (toolbar,
+  // "Pag. N", citation) that PdfPageView scrolls to. With an active citation, start from its
+  // first bounding region.
+  const startPage = getFirstRegionPage(activeCitation) ?? initialPage;
+  const [currentPage, setCurrentPage] = useState<number>(startPage);
+  const [navigation, setNavigation] = useState<PageNavigation>({ page: startPage, toRegion: true, seq: 0 });
+  // Width of the widest page in points (fit-to-width).
   const [pageWidthPt, setPageWidthPt] = useState<number>(612);
+
+  /** Scrolls to `page`: to its active/first region when `toRegion`, else to the page top. */
+  const navigateTo = (page: number, toRegion: boolean) => {
+    setCurrentPage(page);
+    setNavigation((prev) => ({ page, toRegion, seq: prev.seq + 1 }));
+  };
 
   // Controls & Display state
   const [scale, setScale] = useState<number>(1.2);
@@ -120,7 +138,7 @@ export function PdfFactCheckViewer({
   const [prevSyncKey, setPrevSyncKey] = useState<string>(syncKey);
   if (syncKey !== prevSyncKey) {
     setPrevSyncKey(syncKey);
-    setCurrentPage(getFirstRegionPage(activeCitation) ?? initialPage);
+    navigateTo(startPage, true);
   }
 
   // Pages that have highlighted regions: those of the active citation, else of all citations.
@@ -130,15 +148,11 @@ export function PdfFactCheckViewer({
 
   // Navigation handlers
   const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) navigateTo(currentPage - 1, false);
   };
 
   const handleNextPage = () => {
-    if (currentPage < numPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < numPages) navigateTo(currentPage + 1, false);
   };
 
   const handleZoomIn = () => setScale((s) => Math.min(3.0, +(s + 0.2).toFixed(1)));
@@ -230,7 +244,7 @@ export function PdfFactCheckViewer({
                   onChange={(e) => {
                     const val = parseInt(e.target.value, 10);
                     if (!isNaN(val) && val >= 1 && val <= numPages) {
-                      setCurrentPage(val);
+                      navigateTo(val, false);
                     }
                   }}
                   className="w-10 text-center bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-white"
@@ -335,7 +349,7 @@ export function PdfFactCheckViewer({
             <button
               key={page}
               type="button"
-              onClick={() => setCurrentPage(page)}
+              onClick={() => navigateTo(page, true)}
               aria-current={page === currentPage ? 'page' : undefined}
               className={`px-2 py-0.5 rounded border cursor-pointer transition-colors ${
                 page === currentPage
@@ -414,12 +428,17 @@ export function PdfFactCheckViewer({
 
           {!isLoading && !error && file && (
             <PdfPageView
+              documentId={documentId}
               file={file}
-              pageNumber={currentPage}
+              pageNumber={navigation.page}
+              navigationSeq={navigation.seq}
+              alignToRegion={navigation.toRegion}
               scale={scale}
               citations={citations}
               activeCitation={activeCitation}
               onSelectCitation={onSelectCitation}
+              scrollContainerRef={containerRef}
+              onCurrentPageChange={setCurrentPage}
               onNumPages={setNumPages}
               onPageWidthPt={setPageWidthPt}
               onLoadError={setRenderError}
@@ -476,7 +495,7 @@ export function PdfFactCheckViewer({
                       onBlur={() => setHighlighted(null)}
                       aria-current={isSelected ? 'true' : undefined}
                       onClick={() => {
-                        setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);
+                        navigateTo(getFirstRegionPage(citation) ?? citation.page_number, true);
                         onSelectCitation?.(citation);
                       }}
                       className={`block w-full text-left p-3 rounded-lg border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${

@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T043, P2-13)
+- Viewer PDF a scroll continuo con rendering lazy: pagine in colonna con segnaposto a misura esatta (`usePdfPageSizes.ts`, `PdfPageSlot.tsx`, `lib/pageLayout.ts`), disegnate solo entro un'altezza del contenitore sopra e sotto la vista; pagina corrente sotto il centro del contenitore; navigazione alle citazioni anche su pagine lontane, zoom che mantiene il punto al centro, proxy pdf.js condiviso con le thumbnail.
+- Text layer attivo (testo selezionabile e copiabile), box sopra di esso con `pointer-events` solo sui box; annotation layer spento.
+- Test: `tests/unit/pageLayout.test.ts`, `e2e/pdf-continuous.spec.ts`; `e2e/pdf-viewer.spec.ts` e `e2e/layout.spec.ts` verificano il bbox attivo. Rossi su 2de9f20 (3 failed); dopo: suite e2e 44 passed, `--repeat-each=5` 40 passed.
+- ADR `docs/adr/0008-viewer-scroll-continuo.md`. P2-13 `done`: tutti gli item P0/P1/P2 sono `done`.
+- Finding aperto (low): nome file nell'header del viewer troncato a 1 carattere a 1280 px (effetto di T040), rinviato.
+
 ### Fixed (T042, P2-12)
 - `npm run start` avvia il server standalone (`node .next/standalone/server.js`, `package.json:10`) senza l'avviso di `next start`; `postbuild` (`scripts/copy-standalone-assets.mjs`) copia `.next/static` e `public` nello standalone. Verificato: `/`, CSS, `/icon.svg` e login 200.
 - e2e: `user_id` univoci per run (`e2e/helpers/user.ts`, `uniqueUser`) al posto di costanti fisse, per non accumulare dati sullo stesso utente. Suite completa 41 passed. La race del filechooser in `e2e/keyboard.spec.ts` era già risolta da T027: `--repeat-each=20 --workers=1` 20/20.

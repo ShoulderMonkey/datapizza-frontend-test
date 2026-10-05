@@ -35,7 +35,7 @@ test.describe('desktop layout (1440x900)', () => {
     await expect(panel).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('dialog')).toHaveCount(0);
 
-    const bbox = page.locator('[data-testid="bbox"]').first();
+    const bbox = page.locator('[data-testid="bbox"][data-active="true"]').first();
     await expect(bbox).toBeVisible({ timeout: 30_000 });
     await expect(bbox).toBeInViewport({ timeout: 10_000 });
     await expect(assistant).toBeInViewport();

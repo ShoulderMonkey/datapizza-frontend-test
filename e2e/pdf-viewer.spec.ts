@@ -45,7 +45,7 @@ test('PDF viewer: no CDN requests, opens on first region page, bbox in viewport'
   await expect(nav.locator('[aria-current="page"]')).toHaveText(`Pag. ${expectedPage}`);
   await expect(page.getByText(`Pagina corrente: ${expectedPage}`)).toBeVisible();
 
-  const bbox = page.locator('[data-testid="bbox"]').first();
+  const bbox = page.locator('[data-testid="bbox"][data-active="true"]').first();
   await expect(bbox).toBeVisible({ timeout: 30_000 });
   await expect(bbox).toBeInViewport({ timeout: 10_000 });
 

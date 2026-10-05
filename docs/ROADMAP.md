@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T042)
+## Stato attuale (aggiornato a T043)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) P2-11 (T041) e P2-12 (T042): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. È aperto (`todo`) solo l'ultimo item P2 nato dai findings dei task T001–T029: P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) P2-11 (T041), P2-12 (T042) e P2-13 (T043): tutti gli item P0/P1/P2 sono `done`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -488,10 +488,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: README §7.
 - Findings: text layer non implementato (testo non selezionabile); navigazione una pagina alla volta.
 - Criteri di accettazione:
-  - [ ] Il testo della pagina è selezionabile (e2e: `.textLayer` presente con testo non vuoto).
-  - [ ] Con lo scroll continuo il click su una citazione porta la regione nel viewport anche su pagine diverse da quella corrente (e2e).
-  - [ ] L'overlay dei bounding box resta allineato (test esistenti del viewer verdi).
-- Stato: todo
+  - [x] Il testo della pagina è selezionabile (e2e: `.textLayer` presente con testo non vuoto). Evidenza: `PdfPageSlot.tsx:7,70`; `e2e/pdf-continuous.spec.ts` (text layer non vuoto, triple-click seleziona "Attention Is All You Need"); rosso su 2de9f20 (3 failed), verde dopo.
+  - [x] Con lo scroll continuo il click su una citazione porta la regione nel viewport anche su pagine diverse da quella corrente (e2e). Evidenza: `e2e/pdf-continuous.spec.ts` (citazione a pagina 5: bbox attivo nel container, pagina corrente 5); scroll 1->5 aggiorna "Pagina corrente"; `tests/unit/pageLayout.test.ts`.
+  - [x] L'overlay dei bounding box resta allineato (test esistenti del viewer verdi). Evidenza: `e2e/pdf-viewer.spec.ts` e `e2e/layout.spec.ts` (ora sul bbox attivo); zoom 160%/100%/adatta mantengono il bbox visibile; suite e2e 44 passed, `--repeat-each=5` 40 passed, build di produzione ok; typecheck, lint e test exit 0.
+- Decisione: `docs/adr/0008-viewer-scroll-continuo.md`.
+- Stato: done (T043)
 
 ---
 
@@ -520,6 +521,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | Validazione `user_id` ASCII più restrittiva del backend | T004, README §7 | Scelta voluta. |
 | Regione "Pagina PDF" raggiungibile solo con 13-14 Tab | T032 | Fuori criterio; lo skip link porta alla lista citazioni, che è il percorso principale. |
 | `pkill -f next-server` troppo largo nel tester; log della suite completa in `/tmp` non versionati | T015, T029 | Processo degli agenti: va in `.claude/agents/`, non nella roadmap. |
+| Nome del file nell'header del viewer troncato a 1 carattere a 1280 px (sidebar e viewer aperti) | T043 (effetto della toolbar compatta di T040) | Aperto, severità low: rinviato per non riaprire il layout della toolbar a fine roadmap. |
 
 ## Checklist di consegna manuale (utente)
 
