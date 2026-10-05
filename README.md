@@ -315,6 +315,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 ### Keyboard Accessibility (P1-10)
 
 - **Keyboard path:** login, open the documents modal, upload (the dropzone is `role="button"`, Enter/Space open the file picker: `DocumentUploadDropzone.tsx`), send a question, open a citation, close the viewer. Covered by `e2e/keyboard.spec.ts`.
+- **Language and axe (P2-06):** `<html lang="it">` (`app/layout.tsx`); `e2e/a11y.spec.ts` (`@axe-core/playwright`) checks 0 serious/critical violations on login, chat and PDF viewer. Run: `npx playwright test e2e/a11y.spec.ts` (requires backend). Timestamps use the `it-IT` format.
 - **Escape and focus:** Escape closes the documents modal (`DocumentListModal.tsx`) and the fact-check viewer (`FactCheckPanel.tsx`); when the viewer closes, focus returns to the citation card.
 - **Live region:** the message area is `role="log"` with `aria-live="polite"` and `aria-busy` (`ChatConversation.tsx`).
 - **Focus while streaming:** the textarea is `readOnly` + `aria-disabled` (not `disabled`), so focus stays on the input after sending and is not stolen at the end of the stream (`ChatComposer.tsx`, ADR 0003).
@@ -410,8 +411,6 @@ All P1 items are done; this section lists only work not yet done.
 - `/favicon.ico` returns 404.
 
 **Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
-
-**Accessibility and language (P2-06):** Set `<html lang="it">`; audit with axe-core for WCAG violations.
 
 **Dark mode (P2-07):** Implement color scheme toggle with 4.5:1 contrast ratio for text.
 

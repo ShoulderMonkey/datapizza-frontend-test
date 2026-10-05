@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type FileChooser, type Page } from '@playwright/test';
 import path from 'node:path';
 
 // Keyboard-only journey against the real backend. Forbidden here: click(), mouse.*, dispatchEvent('click').
@@ -31,6 +31,12 @@ test.describe('keyboard-only journey (1440x900)', () => {
   test('login, upload, ask, open citation and close it without a mouse', async ({ page }) => {
     const tabCounts: Record<string, number> = {};
 
+    // Subscribe to the file chooser from the start. Playwright enables the dialog interception asynchronously
+    // when a listener is added: a `waitForEvent('filechooser')` created right before `keyboard.press('Enter')`
+    // can lose that race, the native dialog opens instead and no event arrives (T027 c1: the page log showed the
+    // trusted Enter keydown and the input.click() dispatched correctly, yet no chooser was reported).
+    const chooserPromise = new Promise<FileChooser>((resolve) => page.once('filechooser', resolve));
+
     // Login: Tab until the user id field, type, Enter submits the form.
     await page.goto('/');
     await expect(page.locator('#user_id')).toBeVisible();
@@ -58,9 +64,8 @@ test.describe('keyboard-only journey (1440x900)', () => {
     await expect(dropzone).toBeVisible();
     tabCounts.dropzone = await tabTo(page, /scegli i documenti pdf/i);
     await expect(dropzone).toBeFocused();
-    const chooserPromise = page.waitForEvent('filechooser');
     await page.keyboard.press('Enter');
-    const chooser = await chooserPromise;
+    const chooser = await chooserPromise; // bounded by the test timeout; the event comes from the Enter above
     await chooser.setFiles(PDF);
     await expect(page.getByText('File selezionati (1)')).toBeVisible();
     tabCounts.uploadSubmit = await tabTo(page, /carica 1 file/i);
@@ -123,7 +128,15 @@ test.describe('keyboard-only journey (1440x900)', () => {
     expect(await list.count()).toBeGreaterThan(1);
     // The backend may return duplicate citations (same document, page and quote): they share the selection
     // by design (isSameCitation), so the target is the first entry whose text differs from the current one.
-    const texts = await list.evaluateAll((els) => els.map((e) => (e as HTMLElement).innerText.split('\n').slice(0, -1).join('\n'))); // without the "Vai a pagina/Evidenziato" footer
+    // Identity key = page, quote, document: without the "Vai a pagina/Evidenziato" footer and without the
+    // "N boxes" line (the box count is not part of isSameCitation, and duplicates may differ in it).
+    const citationKey = (raw: string) =>
+      raw
+        .split('\n')
+        .slice(0, -1)
+        .filter((l) => !/^\d+ boxes?$/.test(l.trim()))
+        .join('\n');
+    const texts = (await list.evaluateAll((els) => els.map((e) => (e as HTMLElement).innerText))).map(citationKey);
     const currentIdx = await list.evaluateAll((els) => els.findIndex((e) => e.getAttribute('aria-current') === 'true'));
     expect(currentIdx).toBeGreaterThanOrEqual(0);
     const targetIdx = texts.findIndex((t) => t !== texts[currentIdx]);
@@ -139,11 +152,11 @@ test.describe('keyboard-only journey (1440x900)', () => {
     await page.keyboard.press('Enter');
     await expect(target).toHaveAttribute('aria-current', 'true');
     await expect(list.nth(currentIdx)).not.toHaveAttribute('aria-current', 'true');
-    const selected = await list.evaluateAll((els) =>
-      els
-        .filter((e) => e.getAttribute('aria-current') === 'true')
-        .map((e) => (e as HTMLElement).innerText.split('\n').slice(0, -1).join('\n'))
-    );
+    const selected = (
+      await list.evaluateAll((els) =>
+        els.filter((e) => e.getAttribute('aria-current') === 'true').map((e) => (e as HTMLElement).innerText)
+      )
+    ).map(citationKey);
     expect(selected.length).toBeGreaterThan(0);
     expect(new Set(selected)).toEqual(new Set([texts[targetIdx]]));
     await expect(page.locator('[data-testid="bbox"][data-active="true"]').first()).toBeVisible({ timeout: 30_000 });

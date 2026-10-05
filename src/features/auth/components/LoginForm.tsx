@@ -81,7 +81,7 @@ export function LoginForm({ onLoginSuccess, notice }: LoginFormProps) {
                 placeholder="es. test_user"
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all font-mono"
               />
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-[11px] text-slate-400 mt-1">
                 Caratteri ammessi: lettere e numeri ASCII, max 100, trattino (<code className="text-slate-400">-</code>) e underscore (<code className="text-slate-400">_</code>).
               </p>
             </div>
@@ -155,7 +155,7 @@ export function LoginForm({ onLoginSuccess, notice }: LoginFormProps) {
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 text-center text-xs text-slate-500">
+          <div className="mt-6 pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
             La sessione utilizza un cookie HTTP sicuro <code className="text-slate-400 font-mono">user_id</code> gestito direttamente dal browser e inviato al backend.
           </div>
         </div>

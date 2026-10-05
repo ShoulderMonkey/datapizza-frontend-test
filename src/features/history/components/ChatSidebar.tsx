@@ -230,7 +230,7 @@ export function ChatSidebar({
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate leading-snug">{chat.query}</p>
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
                       {chat.created_at ? (
                         <time dateTime={chat.created_at}>{formatEntryDate(chat.created_at)}</time>
                       ) : (

@@ -112,7 +112,7 @@ export function BoundingBoxOverlay({
             <span
               className={`absolute -top-3 -left-1 px-1.5 py-0.2 text-[10px] font-bold rounded shadow-xs pointer-events-none transition-transform group-hover:scale-110 ${
                 item.isActive
-                  ? 'bg-amber-600 text-white ring-1 ring-amber-700'
+                  ? 'bg-amber-800 text-white ring-1 ring-amber-900'
                   : 'bg-indigo-600 text-white'
               }`}
             >

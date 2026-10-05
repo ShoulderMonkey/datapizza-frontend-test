@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T026)
+## Stato attuale (aggiornato a T027)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-06, P2-07; P2-01, P2-03, P2-04 e P2-05 sono `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-07; P2-01, P2-03, P2-04, P2-05 e P2-06 sono `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-06, P2
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T026); e2e 14/14 (T021) | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T027); e2e: suite e2e + `e2e/a11y.spec.ts` | P0-01, P0-02 |
 
 ---
 
@@ -335,9 +335,9 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-06, P2
 - Dipendenze: P1-10
 - Stima: S
 - Criteri di accettazione:
-  - [ ] `<html lang="it">` (oggi `lang="en"` in `app/layout.tsx:21`).
-  - [ ] e2e con `@axe-core/playwright` su login, chat e viewer: 0 violazioni `serious` o `critical`.
-- Stato: todo
+  - [x] `<html lang="it">` (`app/layout.tsx:21`). Evidenza: `grep -n` su `app/layout.tsx:21`; test `e2e/a11y.spec.ts:12` (`html has lang="it"`), rosso prima del fix (lang=en), verde dopo (T027).
+  - [x] e2e con `@axe-core/playwright` su login, chat e viewer: 0 violazioni `serious` o `critical`. Evidenza: `e2e/a11y.spec.ts:17` (login), `:24` (chat con citazioni e viewer PDF aperto), helper AxeBuilder a `:51`; prima del fix 2 nodi `color-contrast` su login, 10 su chat, 10 + `label` + `scrollable-region-focusable` sul viewer; dopo il fix `a11y.spec.ts` verde (run del developer, evidence-T027.json). Sorgenti corretti: `PdfFactCheckViewer.tsx:162` (`aria-label="Numero di pagina"`), `:291-293` (`role="region"`, `tabIndex`, `aria-label="Pagina PDF"`), `ChatMessageItem.tsx:63` (`it-IT`), contrasti in `LoginForm.tsx`, `ChatComposer.tsx`, `ChatMessageItem.tsx`, `RelatedDocumentsSection.tsx`, `ChatSidebar.tsx`, `BoundingBoxOverlay.tsx`. La conferma dell'intera suite e2e è in corso da parte del tester.
+- Stato: done (T027)
 
 ### P2-07 — Tema scuro
 - Criterio della specifica: "UX e micro-interazioni" (layout e leggibilità).

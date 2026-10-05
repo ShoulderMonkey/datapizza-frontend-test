@@ -159,6 +159,7 @@ export function PdfFactCheckViewer({
               <div className="px-2 font-mono flex items-center gap-1">
                 <input
                   type="number"
+                  aria-label="Numero di pagina"
                   min={1}
                   max={numPages}
                   value={currentPage}
@@ -287,6 +288,9 @@ export function PdfFactCheckViewer({
         {/* PDF Canvas Viewport Container */}
         <div
           ref={containerRef}
+          role="region"
+          tabIndex={0}
+          aria-label="Pagina PDF"
           className="flex-1 overflow-auto bg-slate-950 flex items-start justify-center p-4 sm:p-6"
         >
           {isLoading && (

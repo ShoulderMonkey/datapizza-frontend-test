@@ -59,8 +59,8 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
               {isUser ? 'Tu' : 'Assistente'}
             </span>
             {message.created_at && (
-              <span className="text-[11px] text-slate-400">
-                {new Date(message.created_at).toLocaleTimeString([], {
+              <span className="text-[11px] text-slate-600">
+                {new Date(message.created_at).toLocaleTimeString("it-IT", {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}

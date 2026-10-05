@@ -8,6 +8,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T027, P2-06)
+- Nuova devDependency `@axe-core/playwright` (`package.json`) e spec `e2e/a11y.spec.ts`: controllo `lang="it"` e 0 violazioni axe `serious`/`critical` (WCAG 2.1 A/AA) su login, chat con citazioni e viewer PDF aperto.
+
+### Fixed (T027, P2-06)
+- `app/layout.tsx:21`: `<html lang="it">` (prima `en`).
+- Contrasto colori (`color-contrast`) in `LoginForm.tsx`, `ChatComposer.tsx`, `ChatMessageItem.tsx`, `RelatedDocumentsSection.tsx`, `ChatSidebar.tsx`, `BoundingBoxOverlay.tsx` (badge attivo `amber-800`).
+- `PdfFactCheckViewer.tsx`: `aria-label="Numero di pagina"` sull'input pagina; contenitore PDF `role="region"`, `tabIndex={0}`, `aria-label="Pagina PDF"` (area scrollabile raggiungibile da tastiera).
+
+### Changed (T027, P2-06)
+- `ChatMessageItem.tsx`: orario dei messaggi in formato `it-IT` (`toLocaleTimeString("it-IT")`).
+
 ### Added (T026, P2-05)
 - Annullamento dell'upload in corso: `useDocumentUpload.ts` usa un `AbortController` (`cancel()`, abort anche allo smontaggio); `DocumentUploadDropzone.tsx` mostra "Annulla" solo durante l'upload; `uploadDocuments(files, signal?)` in `src/api/documents.ts`. Dopo l'annullamento nessun messaggio di successo o errore, nessun refetch della lista, file ancora selezionati.
 - Test: `tests/integration/document-upload-cancel.test.tsx` (33 file / 246 test).

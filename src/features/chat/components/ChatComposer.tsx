@@ -122,7 +122,7 @@ export function ChatComposer({
         </div>
       </form>
 
-      <div className="mt-2 text-center text-[11px] text-slate-400">
+      <div className="mt-2 text-center text-[11px] text-slate-600">
         Le risposte sono groundate sui PDF tramite streaming NDJSON e verificate con bounding region.
       </div>
     </div>

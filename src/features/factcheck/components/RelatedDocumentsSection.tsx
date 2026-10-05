@@ -62,7 +62,7 @@ export function RelatedDocumentsSection({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 text-slate-400 group-hover:text-slate-600">
+        <div className="flex items-center gap-1 text-slate-600 group-hover:text-slate-800">
           <span className="text-[11px] font-normal">{isExpanded ? 'Comprimi' : 'Espandi'}</span>
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
@@ -117,7 +117,7 @@ export function RelatedDocumentsSection({
                 </span>
 
                 <span className="mt-2.5 pt-2 border-t border-slate-100 flex w-full items-center justify-between text-[11px]">
-                  <span className="text-slate-400">
+                  <span className="text-slate-600">
                     {rectCount > 0 ? `${rectCount} box verificati` : 'Riferimento'}
                   </span>
                   <span className="inline-flex items-center gap-1 font-medium text-indigo-600 group-hover:text-indigo-700 group-hover:translate-x-0.5 transition-transform">
