@@ -9,7 +9,7 @@ interface ChatHeaderProps {
   isSidebarOpen: boolean;
   onOpenSidebar: () => void;
   onOpenDocuments: () => void;
-  documentCount?: number;
+  documentCount?: number | string;
 }
 
 export function ChatHeader({
@@ -48,7 +48,7 @@ export function ChatHeader({
         >
           <FileText className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Libreria PDF</span>
-          {typeof documentCount === 'number' && (
+          {documentCount !== undefined && (
             <span className="bg-indigo-200/80 text-indigo-900 px-1 rounded-full text-[10px]">
               {documentCount}
             </span>

@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (T025, P2-04)
+- `src/api/pagination.ts`: `fetchAllPages` (limit=100, tutte le pagine) rimosso; ora `fetchPage` (limit 20) e `nextOffset`. `useChatList` e `useDocuments` usano `useInfiniteQuery`.
+- Decisione "letterale" documentata in `docs/adr/0005-paginazione-letterale.md`.
+
+### Added (T025, P2-04)
+- `ChatSidebar.tsx`: pulsante "Carica altre" (offset=20, ...) e suffisso `+` sul conteggio; `DocumentListModal.tsx`: "Carica altri" e badge `20+`; errore della pagina successiva in `role="alert"`.
+- Test: `tests/integration/chat-list-pagination.test.tsx`, `tests/unit/pagination.test.ts`, `tests/unit/api-client.test.ts` (32 file / 244 test).
+
 ### Fixed (T024, P2-03)
 - `src/components/ui/streamingMarkdown.ts`: `stripIncompleteTrailingTag` rimuove in coda il tag HTML non ancora chiuso, così durante lo stream non compare testo HTML letterale (`<t`, `<ul`); applicato in `MarkdownRenderer.tsx`, sanitizzazione invariata.
 - Test: `tests/unit/MarkdownRenderer.streaming.test.tsx` (ogni prefisso carattere per carattere di `MOCK_RESPONSE_TABLE` e `MOCK_RESPONSE_UL`).

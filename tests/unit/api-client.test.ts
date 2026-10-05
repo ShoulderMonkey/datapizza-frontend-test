@@ -66,7 +66,7 @@ describe('API client uses the same-origin /api proxy', () => {
   it('documentService.listDocuments', async () => {
     await documentService.listDocuments();
     expectAllSameOriginApi();
-    expect(String((fetchSpy.mock.calls[0] as FetchArgs)[0])).toBe('/api/documents/?limit=100&offset=0');
+    expect(String((fetchSpy.mock.calls[0] as FetchArgs)[0])).toBe('/api/documents/?limit=20&offset=0');
   });
 
   it('documentService.uploadDocuments', async () => {
@@ -87,7 +87,7 @@ describe('API client uses the same-origin /api proxy', () => {
     expectAllSameOriginApi();
     expect(chats).toEqual([]);
     const [url, init] = fetchSpy.mock.calls[0] as FetchArgs;
-    expect(String(url)).toBe('/api/chat/?limit=100&offset=0');
+    expect(String(url)).toBe('/api/chat/?limit=20&offset=0');
     expect(init?.method).toBe('GET');
     expect(fetchSpy).toHaveBeenCalledTimes(1); // empty page: stop after one request
   });

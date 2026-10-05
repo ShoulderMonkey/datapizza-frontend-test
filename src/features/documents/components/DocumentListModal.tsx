@@ -28,7 +28,17 @@ export function DocumentListModal({
   onOpenPdfViewer,
 }: DocumentListModalProps) {
   const [activeTab, setActiveTab] = useState<'list' | 'upload'>('list');
-  const { documents, isLoading, error, refresh: refreshDocuments } = useDocuments({ enabled: isOpen });
+  const {
+    documents,
+    isLoading,
+    error,
+    refresh: refreshDocuments,
+    hasNextPage,
+    isFetchingNextPage,
+    loadMoreError,
+    loadMore,
+  } = useDocuments({ enabled: isOpen });
+  const countLabel = `${documents.length}${hasNextPage ? '+' : ''}`;
 
   // Opening the library always revalidates the list. A request still in flight (started by the
   // workspace, possibly before the session changed) is cancelled first: react-query would
@@ -108,7 +118,7 @@ export function DocumentListModal({
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <span>Documenti ({documents.length})</span>
+            <span>Documenti ({countLabel})</span>
           </button>
           <button
             type="button"
@@ -136,7 +146,7 @@ export function DocumentListModal({
           ) : (
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>{documents.length} file disponibili sul backend</span>
+                <span>{countLabel} file disponibili sul backend</span>
                 <button
                   type="button"
                   onClick={refreshDocuments}
@@ -220,6 +230,20 @@ export function DocumentListModal({
                     );
                   })}
                 </div>
+              )}
+
+              {!isLoading && !error && documents.length > 0 && loadMoreError && (
+                <p role="alert" className="text-xs text-red-600">{loadMoreError}</p>
+              )}
+              {!isLoading && !error && documents.length > 0 && hasNextPage && (
+                <button
+                  type="button"
+                  onClick={() => void loadMore()}
+                  disabled={isFetchingNextPage}
+                  className="w-full py-2 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-default"
+                >
+                  {isFetchingNextPage ? 'Caricamento…' : 'Carica altri'}
+                </button>
               )}
             </div>
           )}

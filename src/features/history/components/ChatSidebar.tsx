@@ -28,7 +28,11 @@ interface ChatSidebarProps {
   userId: string;
   isOpen: boolean;
   onToggleOpen: () => void;
-  documentCount?: number;
+  documentCount?: number | string;
+  hasMoreChats?: boolean;
+  isLoadingMoreChats?: boolean;
+  loadMoreChatsError?: string | null;
+  onLoadMoreChats?: () => void;
 }
 
 /**
@@ -59,6 +63,10 @@ export function ChatSidebar({
   isOpen,
   onToggleOpen,
   documentCount,
+  hasMoreChats = false,
+  isLoadingMoreChats = false,
+  loadMoreChatsError = null,
+  onLoadMoreChats,
 }: ChatSidebarProps) {
   // Both layouts stay mounted and CSS (`hidden`) picks one: toggling or the post-hydration viewport
   // update never unmounts the buttons (a remount detached them while e2e clicked them).
@@ -150,7 +158,7 @@ export function ChatSidebar({
               <FolderOpen className="w-4 h-4 text-indigo-400" />
               <span>Documenti PDF</span>
             </div>
-            {typeof documentCount === 'number' && (
+            {documentCount !== undefined && (
               <span className="px-1.5 py-0.2 rounded-full bg-slate-700 text-slate-300 text-[10px] font-mono">
                 {documentCount}
               </span>
@@ -161,7 +169,7 @@ export function ChatSidebar({
         {/* Chat History Section */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            <span>Cronologia Chat ({chats.length})</span>
+            <span>Cronologia Chat ({chats.length}{hasMoreChats ? '+' : ''})</span>
             <button
               onClick={onRefreshChats}
               disabled={isLoading}
@@ -233,6 +241,22 @@ export function ChatSidebar({
                 </button>
               );
             })
+          )}
+
+          {!error && chats.length > 0 && loadMoreChatsError && (
+            <p role="alert" className="px-2 text-[11px] text-red-400/90 leading-tight">
+              {loadMoreChatsError}
+            </p>
+          )}
+          {!error && chats.length > 0 && hasMoreChats && (
+            <button
+              type="button"
+              onClick={onLoadMoreChats}
+              disabled={isLoadingMoreChats}
+              className="w-full mt-1 py-2 px-3 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-800 text-slate-200 text-xs font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-default"
+            >
+              {isLoadingMoreChats ? 'Caricamento…' : 'Carica altre'}
+            </button>
           )}
         </div>
 

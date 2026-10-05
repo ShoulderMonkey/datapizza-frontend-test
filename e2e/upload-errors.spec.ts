@@ -15,13 +15,13 @@ test('upload of a non-admitted PDF shows a friendly message and leaves the docum
   await page.getByRole('button', { name: /libreria pdf/i }).click();
   const dialogTitle = page.getByRole('heading', { name: 'Libreria Documenti PDF' });
   await expect(dialogTitle).toBeVisible();
-  const countText = page.getByText(/\d+ file disponibili sul backend/);
+  const countText = page.getByText(/\d+\+? file disponibili sul backend/);
   // Loaded list only: spinner gone and a non-zero count consistent with the rendered rows.
   await expect(page.getByText('Recupero documenti dal server...')).toHaveCount(0, { timeout: 15_000 });
-  await expect(countText).toHaveText(/^[1-9]\d* file disponibili sul backend$/, { timeout: 15_000 });
+  await expect(countText).toHaveText(/^[1-9]\d*\+? file disponibili sul backend$/, { timeout: 15_000 });
   const rows = page.getByRole('button', { name: /visualizza pdf/i });
   const before = (await countText.textContent())!;
-  const beforeItems = Number(/^(\d+)/.exec(before)![1]);
+  const beforeItems = parseInt(before, 10);
   await expect(rows).toHaveCount(beforeItems);
 
   await page.getByRole('button', { name: /carica nuovi pdf/i }).click();
@@ -36,7 +36,7 @@ test('upload of a non-admitted PDF shows a friendly message and leaves the docum
   const body = await page.locator('body').innerText();
   expect(body).not.toMatch(/is not recognized|Please upload one of/i);
 
-  await page.getByRole('button', { name: /^documenti \(\d+\)$/i }).click();
+  await page.getByRole('button', { name: /^documenti \(\d+\+?\)$/i }).click();
   await expect(page.getByText('Recupero documenti dal server...')).toHaveCount(0);
   await expect(countText).toHaveText(before);
   await page.getByRole('button', { name: 'Aggiorna', exact: true }).click();

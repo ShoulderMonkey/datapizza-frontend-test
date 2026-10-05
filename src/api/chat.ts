@@ -1,5 +1,5 @@
 import { request, requestStream } from './client';
-import { fetchAllPages } from './pagination';
+import { fetchPage } from './pagination';
 import { ApiError, createApiError, toApiError } from './errors';
 import { parseNDJSONStream } from './ndjson';
 import type {
@@ -14,9 +14,9 @@ import type {
 const CHAT_ENDPOINT = '/api/chat/';
 
 export const chatService = {
-  /** GET /api/chat/: every page (limit=100) of chat records, bare arrays (docs/AUDIT.md §2). */
-  async listChats(signal?: AbortSignal): Promise<ChatRecord[]> {
-    return fetchAllPages<ChatRecord>(CHAT_ENDPOINT, { signal, validate: asChatRecord });
+  /** GET /api/chat/?limit&offset: one page of chat records, bare array (docs/AUDIT.md §2). */
+  async listChats(offset = 0, signal?: AbortSignal): Promise<ChatRecord[]> {
+    return fetchPage<ChatRecord>(CHAT_ENDPOINT, { offset, signal, validate: asChatRecord });
   },
 
   /** GET /api/chat/{id}, converted into a transcript of user/assistant messages. */

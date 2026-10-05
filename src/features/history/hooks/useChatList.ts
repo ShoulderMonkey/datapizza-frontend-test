@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { chatService, logError, toUserMessage } from '@/src/api';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { chatService, logError, nextOffset, toUserMessage } from '@/src/api';
 import { queryKeys } from '../../queryKeys';
 import type { ChatRecord } from '../types';
 
@@ -12,15 +12,20 @@ export function sortChatsByCreatedAtDesc(chats: ChatRecord[]): ChatRecord[] {
   return [...chats].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
 }
 
-/** Chat history (GET /api/chat/), ordered by `created_at` descending. */
+/**
+ * Chat history (GET /api/chat/), loaded 20 at a time. The backend lists in insertion order without a
+ * total, so "Carica altre" asks for the next offset; the loaded entries are shown newest first.
+ */
 export function useChatList() {
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: queryKeys.chats.list(),
-    queryFn: () => chatService.listChats(),
-    select: sortChatsByCreatedAtDesc,
+    queryFn: ({ pageParam, signal }) => chatService.listChats(pageParam, signal),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => nextOffset(lastPage, allPages.length),
+    select: (data) => sortChatsByCreatedAtDesc(data.pages.flat()),
   });
 
-  const { refetch } = query;
+  const { refetch, fetchNextPage } = query;
 
   // Technical detail to the console only; the UI gets the mapped message.
   const failure = query.isError ? query.error : null;
@@ -30,12 +35,19 @@ export function useChatList() {
   const refresh = useCallback(async () => {
     await refetch();
   }, [refetch]);
+  const loadMore = useCallback(async () => {
+    await fetchNextPage();
+  }, [fetchNextPage]);
 
   return {
     chats: query.data ?? [],
     isLoading: query.isFetching && query.data === undefined,
     isRefreshing: query.isFetching,
-    error: query.isError ? toUserMessage(query.error, 'chat_list') : null,
+    error: query.isError && query.data === undefined ? toUserMessage(query.error, 'chat_list') : null,
+    loadMoreError: query.isError && query.data !== undefined ? toUserMessage(query.error, 'chat_list') : null,
+    hasNextPage: query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    loadMore,
     refresh,
   };
 }

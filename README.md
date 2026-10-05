@@ -305,7 +305,7 @@ Both active live chat sessions and previously stored sessions loaded from `GET /
 Una chat del backend è una sola coppia domanda/risposta, quindi ogni voce dello storico ha titolo = `query` e data = `created_at` (con ora), ordinate dalla più recente (`src/features/history/components/ChatSidebar.tsx`); la voce selezionata ha `aria-current`. Selezionare una voce mostra domanda, risposta e "Documenti correlati" con le citazioni salvate. Una nuova domanda (o Riprova) con una voce selezionata avvia una nuova sessione locale: la selezione viene annullata, la voce non cambia e a fine stream compare una nuova voce in cima, non selezionata. Una nota (`HistoryEntryNotice.tsx`) lo spiega sopra il composer. La conversazione multi-turno esiste solo nel client; `history` viene inviato ma il backend lo ignora. Vedi `docs/adr/0004-modello-storico.md`.
 
 ### Server State with TanStack Query
-Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`, `useChatDetail`). Le query key sono condivise in `src/features/queryKeys.ts`, quindi badge e modale dei documenti leggono la stessa cache. Un upload riuscito invalida `queryKeys.documents.all` (`useDocumentUpload.ts`); a fine stream la lista chat viene ricaricata (`onStreamEnd` in `ChatWorkspace.tsx`). Lo storico e ordinato per `created_at` decrescente. La sidebar mostra loading (`role="status"`), errore e pulsante "Riprova". `QueryProvider` (`src/components/providers/QueryProvider.tsx`) crea un `QueryClient` per montaggio con retry massimo 1, nessun retry sugli errori 4xx e `refetchOnWindowFocus: false`. La modale documenti non mostra `page_count`, perche il backend lo restituisce come mock fisso a 5 (limite del backend, `docs/AUDIT.md` §2). Il backend pagina le liste con `limit` 1–100 (default 20) in ordine crescente; per non perdere le chat più recenti il client scarica tutte le pagine con `fetchAllPages` (`src/api/pagination.ts`: `limit=100`, `offset` crescente, stop alla prima pagina incompleta, tetto di 50 pagine), usato da `listChats` e `listDocuments`.
+Documenti e storico usano `@tanstack/react-query` (`useDocuments`, `useChatList`, `useChatDetail`). Le query key sono condivise in `src/features/queryKeys.ts`, quindi badge e modale dei documenti leggono la stessa cache. Un upload riuscito invalida `queryKeys.documents.all` (`useDocumentUpload.ts`); a fine stream la lista chat viene ricaricata (`onStreamEnd` in `ChatWorkspace.tsx`). Lo storico e ordinato per `created_at` decrescente. La sidebar mostra loading (`role="status"`), errore e pulsante "Riprova". `QueryProvider` (`src/components/providers/QueryProvider.tsx`) crea un `QueryClient` per montaggio con retry massimo 1, nessun retry sugli errori 4xx e `refetchOnWindowFocus: false`. La modale documenti non mostra `page_count`, perche il backend lo restituisce come mock fisso a 5 (limite del backend, `docs/AUDIT.md` §2). Il backend pagina le liste con `limit` 1–100 (default 20) in ordine crescente e senza totale; il client usa una paginazione letterale (`fetchPage` e `nextOffset` in `src/api/pagination.ts`, `useInfiniteQuery`, 20 voci per pagina, pulsante "Carica altre"/"Carica altri"). Vedi `docs/adr/0005-paginazione-letterale.md`.
 
 ### Error Handling
 Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERROR_MESSAGES` (`src/api/errorMessages.ts`). `messageKeyFor` sceglie la chiave dal `code` normalizzato di `ApiError`, dall'endpoint e dal testo `detail` del backend (ad esempio query vuota e troppo lunga su `POST /api/chat/` hanno messaggi distinti). Per l'upload rifiutato con 400 "not recognized", `extractRejectedFilename` estrae il nome del file dal `detail` e il messaggio lo cita. `toUserMessage` (`src/api/errors.ts`) restituisce il messaggio della mappa oppure un fallback per contesto, senza mostrare status code, `detail`, stack o URL del backend (unica cifra ammessa: il limite 100 del `user_id`). I dettagli tecnici restano in `ApiError.cause` e vengono scritti solo in `console` da `logError`. Test: `tests/unit/errorMessages.test.ts`, `tests/integration/error-messages-ui.test.tsx` ed e2e `e2e/upload-errors.spec.ts` (upload di un PDF non ammesso).
@@ -383,8 +383,8 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 - **Validation details:**
   - Client `user_id` validation is more restrictive than the backend: only ASCII `[a-zA-Z0-9_-]` (max 100 chars), vs backend `str.isalnum()` which accepts Unicode. The backend is lenient; the client enforces stricter rules.
 
-- **Full-list loading:**
-  - The client downloads every page of chats and documents (`src/api/pagination.ts`). With very long histories this should be replaced by incremental pagination (P2-04).
+- **Literal pagination:**
+  - The backend lists items in ascending order without a total, so with more than 20 chats the most recent ones may appear only after "Carica altre"; a new chat shows on top only if it falls within the loaded pages; the "+" suffix appears when the total is an exact multiple of 20 (the next page is then empty). See `docs/adr/0005-paginazione-letterale.md`.
 
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
@@ -407,8 +407,6 @@ All P1 items are done; this section lists only work not yet done.
 - `/favicon.ico` returns 404.
 
 **Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
-
-**Chat and document pagination (P2-04):** Implement `limit`/`offset` for lists with "Load more" buttons.
 
 **Upload cancellation (P2-05):** Add an abort button during multipart upload.
 

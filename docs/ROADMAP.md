@@ -5,16 +5,16 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T024)
+## Stato attuale (aggiornato a T025)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-04..P2-07; P2-01 e P2-03 sono `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-05..P2-07; P2-01, P2-03 e P2-04 sono `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
 | 1. Login mock + cookie | ✅ | `src/api/client.ts` (proxy same-origin, credentials: 'same-origin'); `e2e/proxy-cookie.spec.ts` | P0-03 |
 | 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `src/api/auth.ts` (USER_ID_MAX_LENGTH = 100); `tests/unit/auth-service.test.ts`; `tests/integration/LoginForm.test.tsx` | P0-06 |
 | 2. Upload multiplo, stato, errori | ✅ | `src/features/documents/components/DocumentUploadDropzone.tsx`; `src/api/errorMessages.ts`; `e2e/upload-errors.spec.ts` | P1-04 |
-| 2. Lista documenti | ⚠️ | `src/features/documents/hooks/useDocuments.ts`; `tests/integration/history-documents-query.test.tsx`; la lista scarica tutte le pagine | P1-06, P2-04 |
+| 2. Lista documenti | ✅ | `src/features/documents/hooks/useDocuments.ts`; `tests/integration/history-documents-query.test.tsx`; paginazione letterale a 20 con "Carica altri" (`src/api/pagination.ts`, ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P2-04 |
 | 3. Layout chat + Invia | ✅ | `src/features/chat/components/ChatWorkspace.tsx`, `ChatComposer.tsx` | P1-01 |
 | 3. Streaming NDJSON incrementale | ✅ | `src/api/ndjson.ts`; `src/features/chat/lib/chatStreamReducer.ts` + batching rAF in `useChatStream.ts`; `tests/integration/ChatWorkspace.batching.test.tsx` | P1-03 |
 | 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `src/api/ndjson.ts` (NDJSONParseError); `tests/integration/ChatWorkspace.stream-errors.test.tsx` | P0-05 |
@@ -22,13 +22,13 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-04..P2
 | 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx` | — |
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
-| 5. Storico chat lista + dettaglio | ⚠️ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; la lista scarica tutte le pagine | P1-06, P1-07, P2-04 |
+| 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester in README §8 | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 32 file / 236 test; e2e 14/14 (T021) | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 32 file / 244 test (T025); e2e 14/14 (T021) | P0-01, P0-02 |
 
 ---
 
@@ -314,10 +314,10 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-04..P2
 - Owner: `frontend-developer`
 - Dipendenze: P1-06
 - Stima: S
-- Nota (T014): il client oggi scarica tutte le pagine con limit=100 (src/api/pagination.ts); P2-04 dovrà passare a una paginazione incrementale ("Carica altre") mantenendo la chat più recente in cima.
+- Nota (T014): il client scaricava tutte le pagine con limit=100; in T025 `fetchAllPages` è stato sostituito da una paginazione letterale (limit 20, "Carica altre"), vedi `docs/adr/0005-paginazione-letterale.md`.
 - Criteri di accettazione:
-  - [ ] Con 25 chat (MSW) la sidebar mostra 20 voci e un pulsante "Carica altre" che richiede `offset=20` (verifica della query string nel test).
-- Stato: todo
+  - [x] Con 25 chat (MSW) la sidebar mostra 20 voci e un pulsante "Carica altre" che richiede `offset=20` (verifica della query string nel test). Evidenza: `tests/integration/chat-list-pagination.test.tsx:40` (20 di 25, richieste `{20,0}` poi `{20,20}`, 25 voci, pulsante assente), `:68` (nessun pulsante con <20), `:75` (errore pagina successiva), `:104`/`:110` (documenti, badge `20+`, "Carica altri" offset=20); sorgente `src/api/pagination.ts:5` (`PAGE_SIZE = 20`), `:32` (`nextOffset`), `src/features/history/components/ChatSidebar.tsx:172` (suffisso `+`), `:251-258` ("Carica altre"); gate T025: typecheck, lint, test exit 0 (32 file / 244 test).
+- Stato: done (T025)
 
 ### P2-05 — Annullamento dell'upload in corso
 - Criterio della specifica: "UX › Stati di loading chiari (… upload documenti)"; "Obiettivo › concorrenza lato client".

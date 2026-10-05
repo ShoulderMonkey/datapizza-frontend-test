@@ -51,7 +51,10 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
   const chat = useChatStream({ onStreamEnd: history.refresh });
   const { endRef, onScroll } = useAutoScroll(chat.messages);
 
-  const documentCount = documents.hasLoaded ? documents.documents.length : undefined;
+  // Only the first page may be loaded: with more pages the count is a lower bound ("20+").
+  const documentCount = documents.hasLoaded
+    ? `${documents.documents.length}${documents.hasNextPage ? '+' : ''}`
+    : undefined;
 
   // The transcript belongs to the chat selected last (query key = chat id), so a slow response
   // for a superseded chat can never overwrite the visible conversation.
@@ -130,6 +133,10 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         isOpen={isSidebarOpen}
         onToggleOpen={toggleSidebar}
         documentCount={documentCount}
+        hasMoreChats={history.hasMoreChats}
+        isLoadingMoreChats={history.isLoadingMoreChats}
+        loadMoreChatsError={history.loadMoreChatsError}
+        onLoadMoreChats={history.loadMoreChats}
       />
 
       <main className="flex-1 flex flex-col h-full min-w-0 bg-white relative">
