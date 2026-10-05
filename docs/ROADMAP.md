@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T028)
+## Stato attuale (aggiornato a T029)
 
-Tutti gli item P1 sono `done`; resta aperto solo l'item P2-02 (P2-01, P2-03, P2-04, P2-05, P2-06 e P2-07 sono `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P0, P1 e P2 sono `done`. Nessuna riga della tabella è ⚠️.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -20,7 +20,7 @@ Tutti gli item P1 sono `done`; resta aperto solo l'item P2-02 (P2-01, P2-03, P2-
 | 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `src/api/ndjson.ts` (NDJSONParseError); `tests/integration/ChatWorkspace.stream-errors.test.tsx` | P0-05 |
 | 3. Interruzione pulita | ✅ | `src/features/chat/hooks/useChatStream.ts`; `tests/integration/ChatWorkspace.abort.test.tsx` | P1-03 |
 | 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
-| 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx` | — |
+| 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx`; mini-thumbnail lazy con regioni (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`) e cache per `document_id` (`useDocumentFile.ts`); `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts` | P2-02 |
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; resta aperto solo l'item P2-02 (P2-01, P2-03, P2-
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T028); e2e: suite e2e + `e2e/a11y.spec.ts` + `e2e/dark-theme.spec.ts` | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 34 file / 250 test (T029); e2e: suite e2e + `e2e/a11y.spec.ts` + `e2e/dark-theme.spec.ts` + `e2e/thumbnails.spec.ts` | P0-01, P0-02 |
 
 ---
 
@@ -296,9 +296,9 @@ Tutti gli item P1 sono `done`; resta aperto solo l'item P2-02 (P2-01, P2-03, P2-
 - Dipendenze: P1-08
 - Stima: M
 - Criteri di accettazione:
-  - [ ] Ogni card mostra una miniatura della pagina citata con i rettangoli disegnati, renderizzata in modo lazy (solo quando visibile, con `IntersectionObserver`).
-  - [ ] e2e: con 5 citazioni vengono scaricati al massimo N PDF distinti (cache per `document_id`).
-- Stato: todo
+  - [x] Ogni card mostra una miniatura della pagina citata con i rettangoli disegnati, renderizzata in modo lazy (solo quando visibile, con `IntersectionObserver`). Evidenza: `tests/integration/CitationThumbnail.test.tsx:70` (nessuna GET prima dell'intersezione; poi 1 GET, `data-state` rendered, solo i rect della pagina citata scalati a 140 px); `CitationThumbnail.tsx:46-57` (IntersectionObserver, `rootMargin`, disconnect), `:13` (`next/dynamic` con `ssr: false`), `:78` (`data-state`); `CitationThumbnailPage.tsx:8` (larghezza 140 px).
+  - [x] e2e: con 5 citazioni vengono scaricati al massimo N PDF distinti (cache per `document_id`). Evidenza: `e2e/thumbnails.spec.ts:5` (GET `/api/documents/*/file` distinte pari ai `document_id` del chunk citations e totali <= N, anche dopo l'apertura del viewer; `npx playwright test e2e/thumbnails.spec.ts` exit 0, evidence-T029.json); integration `CitationThumbnail.test.tsx:90` (due card dello stesso documento, 1 GET) e `:98` (viewer su documento in cache, nessuna nuova GET); cache in `useDocumentFile.ts:21-22` (`staleTime: Infinity`, `gcTime`), riusata da `usePdfDocument.ts:6,14`; gate T029: typecheck, lint, test exit 0 (34 file / 250 test). La conferma dell'intera suite e2e è in corso da parte del tester.
+- Stato: done (T029)
 
 ### P2-03 — Rendering stabile del Markdown durante lo stream
 - Criterio della specifica: "Gestione dello streaming › Aggiornamento incrementale della UI".

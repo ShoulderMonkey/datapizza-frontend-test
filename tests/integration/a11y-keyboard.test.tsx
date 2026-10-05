@@ -72,7 +72,7 @@ describe('cards are real buttons', () => {
   it('RelatedDocumentsSection citation card is a button activated by keyboard', async () => {
     const user = userEvent.setup();
     const onInspect = vi.fn();
-    render(<RelatedDocumentsSection citations={[citation]} onInspectCitation={onInspect} />);
+    renderWithProviders(<RelatedDocumentsSection citations={[citation]} onInspectCitation={onInspect} />);
     const card = screen.getByRole('button', { name: /Verifica nel PDF/ });
     card.focus();
     await user.keyboard('{Enter}');

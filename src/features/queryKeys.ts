@@ -3,6 +3,8 @@ export const queryKeys = {
   documents: {
     all: ['documents'] as const,
     list: () => ['documents', 'list'] as const,
+    /** Downloaded PDF Blob, shared by citation thumbnails and the viewer. */
+    file: (id: string) => ['documents', 'file', id] as const,
   },
   chats: {
     all: ['chats'] as const,

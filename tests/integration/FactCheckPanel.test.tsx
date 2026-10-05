@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithProviders as render } from '@/src/test/render';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import type { CitationReference } from '@/src/api';

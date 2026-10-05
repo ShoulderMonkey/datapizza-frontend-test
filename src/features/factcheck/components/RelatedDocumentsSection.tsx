@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CitationReference } from '../types';
 import { isSameCitation } from '../lib/citations';
+import { CitationThumbnail } from './CitationThumbnail';
 import { useCitationHighlight } from '../hooks/useCitationHighlight';
 import { FileText, ChevronDown, ChevronUp, ExternalLink, Bookmark } from 'lucide-react';
 
@@ -111,8 +112,11 @@ export function RelatedDocumentsSection({
                     </span>
                   </span>
 
-                  <span className="block text-[12px] text-slate-600 dark:text-slate-400 italic line-clamp-3 leading-snug bg-slate-50/80 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-800">
-                    &ldquo;{citation.text_quote}&rdquo;
+                  <span className="flex items-start gap-2.5">
+                    <CitationThumbnail citation={citation} />
+                    <span className="block min-w-0 flex-1 text-[12px] text-slate-600 dark:text-slate-400 italic line-clamp-6 leading-snug bg-slate-50/80 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-800">
+                      &ldquo;{citation.text_quote}&rdquo;
+                    </span>
                   </span>
                 </span>
 

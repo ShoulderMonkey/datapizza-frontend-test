@@ -172,8 +172,8 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   ├── lib/             # chatStreamReducer (pure reducer, no React)
 │   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
 │   │   ├── factcheck/
-│   │   │   ├── components/      # FactCheckPanel, PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection
-│   │   │   ├── hooks/           # usePdfDocument, usePdfViewer, useIsDesktop
+│   │   │   ├── components/      # FactCheckPanel, PdfFactCheckViewer, PdfPageView, BoundingBoxOverlay, RelatedDocumentsSection, CitationThumbnail, CitationThumbnailPage
+│   │   │   ├── hooks/           # usePdfDocument, useDocumentFile, usePdfViewer, useIsDesktop
 │   │   │   ├── lib/             # coordinates.ts (inchesRectToPx, 72 pt/inch), pdfWorker.ts, regions.ts
 │   │   │   └── types.ts         # BoundingRegion, RectInches domain types
 │   │   └── history/
@@ -281,6 +281,8 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 - **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `src/features/factcheck/lib/pdfWorker.ts`, senza CDN.
 - **Layout e focus (P1-09)**: `FactCheckPanel.tsx` mostra il viewer come pannello laterale (`role="complementary"`) a ≥ 1024 px, con la conversazione ancora visibile e scrollabile (`useIsDesktop.ts`), e come dialog a schermo intero (`role="dialog"`, `aria-modal`, pulsante di chiusura) sotto. All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione. La card attiva (`aria-current` in `RelatedDocumentsSection.tsx`) e le sue regioni sul PDF (`data-active` in `BoundingBoxOverlay.tsx`) sono evidenziate. Test: `tests/integration/FactCheckPanel.test.tsx`, `e2e/layout.spec.ts`.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
+
+- **Citation thumbnails (P2-02)**: each citation card shows a 140 px thumbnail of the cited page with only that page's regions (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`). It is lazy: nothing is downloaded or parsed until the card is near the viewport (`IntersectionObserver`, `rootMargin` 200 px). The PDF Blob is cached per `document_id` (`useDocumentFile.ts`): one download per document, shared with the viewer (`usePdfDocument.ts`). Tests: `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts`.
 
 ### Safe Markdown and HTML Rendering
 
@@ -393,6 +395,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Testing note:**
   - E2E tests (Playwright) require a running backend instance. Unit and integration tests (Vitest + MSW) do not.
+- **Citation thumbnails:** the placeholder has a fixed size (140x180), so landscape pages are cropped; each card runs its own pdf.js parse of the shared Blob (one download per document, but one parse per card).
 
 ---
 
@@ -400,7 +403,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-All P1 items are done; this section lists only work not yet done.
+All P0, P1 and P2 items are done; this section lists only work not yet done.
 
 **Open issues found by the testers (not yet fixed):**
 - PDF clipped in the mobile drawer at 120% zoom.
@@ -410,8 +413,6 @@ All P1 items are done; this section lists only work not yet done.
 - The context of the previous entry has no label in the new session.
 - Duplicate citations from the backend are highlighted together.
 - `/favicon.ico` returns 404.
-
-**Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
 
 ---
 

@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T029, P2-02)
+- Mini-thumbnail nelle card citazione: miniatura 140 px della pagina citata con le sole regioni di quella pagina (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`, caricata con `next/dynamic` `ssr: false`). Lazy: nessun download né parsing finché la card non entra nel viewport (`IntersectionObserver`, `rootMargin` 200 px); placeholder a dimensione fissa; in caso di errore di download lo stato resta `error` senza rompere la card.
+- Cache Blob per `document_id` (`useDocumentFile.ts`, chiave `queryKeys.documents.file`): un solo download per documento, condiviso tra miniature e viewer (`usePdfDocument.ts` la riusa).
+- Test: `tests/integration/CitationThumbnail.test.tsx`, helper `src/test/intersectionObserver.ts`, `e2e/thumbnails.spec.ts`.
+
+### Changed (T029, P2-02)
+- `usePdfDocument.ts`: il viewer segue ora la policy di retry dell'app, essendo basato su `useDocumentFile`.
+
 ### Added (T028, P2-07)
 - Tema scuro che segue `prefers-color-scheme` (`app/globals.css`: `color-scheme: light dark`, sfondo/testo del body in dark) e varianti `dark:` in chat, documenti, citazioni e storico (`ChatComposer.tsx`, `ChatConversation.tsx`, `ChatHeader.tsx`, `ChatMessageItem.tsx`, `ChatWorkspace.tsx`, `WelcomePanel.tsx`, `MarkdownRenderer.tsx`, `DocumentListModal.tsx`, `DocumentUploadDropzone.tsx`, `RelatedDocumentsSection.tsx`, `HistoryEntryNotice.tsx`). Nessun toggle manuale; sidebar, login e viewer PDF invariati, la pagina PDF resta su sfondo bianco.
 - Spec `e2e/dark-theme.spec.ts`: sfondo scuro del body e 0 violazioni axe `color-contrast` su login, chat, modale documenti e viewer in dark.
