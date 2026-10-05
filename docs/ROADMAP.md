@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T027)
+## Stato attuale (aggiornato a T028)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-07; P2-01, P2-03, P2-04, P2-05 e P2-06 sono `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; resta aperto solo l'item P2-02 (P2-01, P2-03, P2-04, P2-05, P2-06 e P2-07 sono `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-07; P2
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T027); e2e: suite e2e + `e2e/a11y.spec.ts` | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 33 file / 246 test (T028); e2e: suite e2e + `e2e/a11y.spec.ts` + `e2e/dark-theme.spec.ts` | P0-01, P0-02 |
 
 ---
 
@@ -345,8 +345,8 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-07; P2
 - Dipendenze: P1-09
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Con `colorScheme: 'dark'` in Playwright, lo sfondo di `body` è scuro e il contrasto testo/sfondo dei messaggi è ≥ 4.5:1 (axe `color-contrast`: 0 violazioni).
-- Stato: todo
+  - [x] Con `colorScheme: 'dark'` in Playwright, lo sfondo di `body` è scuro e il contrasto testo/sfondo dei messaggi è ≥ 4.5:1 (axe `color-contrast`: 0 violazioni). Evidenza: `e2e/dark-theme.spec.ts:14` (body con sfondo scuro esplicito), `:24` (login), `:31` (chat, modale documenti, viewer); `app/globals.css:3-19` (`color-scheme: light dark`, body `#020618`/`#f1f5f9` in `prefers-color-scheme: dark`). Prima del fix: body `rgba(0,0,0,0)` e 9 nodi `color-contrast` nella modale documenti (ID documento slate-400 su bianco, 2.63:1); dopo il fix `npx playwright test e2e/dark-theme.spec.ts e2e/a11y.spec.ts` exit 0 (evidence-T028.json). Correzione collaterale in tema chiaro: ID documento `slate-500` su bianco 4.76:1. Limiti: alcuni hover dark senza variazione visibile; stati di errore/upload non coperti dallo spec dark. La conferma dell'intera suite e2e è in corso da parte del tester.
+- Stato: done (T028)
 
 ---
 

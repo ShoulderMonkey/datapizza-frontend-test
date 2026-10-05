@@ -118,7 +118,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
 
   return (
     <CitationHighlightProvider>
-    <div className="flex h-screen w-screen overflow-hidden bg-white text-slate-900 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
       <ChatSidebar
         chats={history.chats}
         activeChatId={history.activeChatId}
@@ -139,7 +139,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         onLoadMoreChats={history.loadMoreChats}
       />
 
-      <main className="flex-1 flex flex-col h-full min-w-0 bg-white relative">
+      <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 relative">
         <ChatHeader
           title={history.activeChatTitle}
           isStreaming={chat.isStreaming}
@@ -166,7 +166,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
           }
         />
 
-        <div className="shrink-0 bg-white border-t border-slate-100 pt-3">
+        <div className="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pt-3">
           {isViewingHistoryEntry && <HistoryEntryNotice />}
           <ChatComposer
             onSendMessage={handleSend}

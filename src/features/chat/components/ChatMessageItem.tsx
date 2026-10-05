@@ -36,7 +36,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
       data-status={message.status}
       data-role={message.role}
       className={`group w-full py-4 sm:py-5 px-3 sm:px-6 transition-colors ${
-        isUser ? 'bg-transparent' : 'bg-slate-50/70 border-y border-slate-100'
+        isUser ? 'bg-transparent' : 'bg-slate-50/70 dark:bg-slate-900/60 border-y border-slate-100 dark:border-slate-800'
       }`}
     >
       <div className="max-w-4xl mx-auto flex items-start gap-3 sm:gap-4">
@@ -45,7 +45,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
           className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium select-none shadow-2xs ${
             isUser
               ? 'bg-slate-800 text-white'
-              : 'bg-indigo-600 text-white ring-2 ring-indigo-100'
+              : 'bg-indigo-600 text-white ring-2 ring-indigo-100 dark:ring-indigo-900'
           }`}
         >
           {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -55,11 +55,11 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
         <div className="flex-1 min-w-0">
           {/* Header Info */}
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-semibold text-slate-800">
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
               {isUser ? 'Tu' : 'Assistente'}
             </span>
             {message.created_at && (
-              <span className="text-[11px] text-slate-600">
+              <span className="text-[11px] text-slate-600 dark:text-slate-400">
                 {new Date(message.created_at).toLocaleTimeString("it-IT", {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -67,7 +67,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
               </span>
             )}
             {isStreaming && (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
                 Elaborazione in corso...
               </span>
@@ -83,7 +83,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
               )}
             </div>
           ) : isStreaming ? (
-            <div className="flex items-center gap-2 text-sm text-slate-500 italic py-2">
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 italic py-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-100" />
               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-200" />
@@ -93,11 +93,11 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
 
           {/* Error Banner */}
           {isError && (
-            <div role="alert" className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+            <div role="alert" className="mt-3 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2.5 text-xs text-red-700 dark:text-red-300">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500 dark:text-red-400 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-red-800">{ERROR_MESSAGES.stream_error_title}</p>
-                <p className="text-red-600 mt-0.5">
+                <p className="font-semibold text-red-800 dark:text-red-300">{ERROR_MESSAGES.stream_error_title}</p>
+                <p className="text-red-600 dark:text-red-400 mt-0.5">
                   {message.error || ERROR_MESSAGES.stream_error_fallback}
                 </p>
                 {onRetry && (
@@ -115,15 +115,15 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
 
           {/* Aborted Banner */}
           {isAborted && (
-            <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between gap-2 text-xs text-amber-800">
+            <div className="mt-3 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between gap-2 text-xs text-amber-800 dark:text-amber-300">
               <div className="flex items-center gap-2">
-                <StopCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <StopCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>{ERROR_MESSAGES.aborted}</span>
               </div>
               {onRetry && (
                 <button
                   onClick={() => onRetry(message)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 text-amber-900 hover:text-black font-semibold underline text-xs cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-amber-900 dark:text-amber-200 hover:text-black font-semibold underline text-xs cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Riprova</span>

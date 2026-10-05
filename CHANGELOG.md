@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T028, P2-07)
+- Tema scuro che segue `prefers-color-scheme` (`app/globals.css`: `color-scheme: light dark`, sfondo/testo del body in dark) e varianti `dark:` in chat, documenti, citazioni e storico (`ChatComposer.tsx`, `ChatConversation.tsx`, `ChatHeader.tsx`, `ChatMessageItem.tsx`, `ChatWorkspace.tsx`, `WelcomePanel.tsx`, `MarkdownRenderer.tsx`, `DocumentListModal.tsx`, `DocumentUploadDropzone.tsx`, `RelatedDocumentsSection.tsx`, `HistoryEntryNotice.tsx`). Nessun toggle manuale; sidebar, login e viewer PDF invariati, la pagina PDF resta su sfondo bianco.
+- Spec `e2e/dark-theme.spec.ts`: sfondo scuro del body e 0 violazioni axe `color-contrast` su login, chat, modale documenti e viewer in dark.
+
+### Fixed (T028, P2-07)
+- Contrasto dell'ID documento in tema chiaro (`DocumentListModal.tsx`): `slate-500` su bianco, 4.76:1 (prima `slate-400`, 2.63:1).
+
 ### Added (T027, P2-06)
 - Nuova devDependency `@axe-core/playwright` (`package.json`) e spec `e2e/a11y.spec.ts`: controllo `lang="it"` e 0 violazioni axe `serious`/`critical` (WCAG 2.1 A/AA) su login, chat con citazioni e viewer PDF aperto.
 

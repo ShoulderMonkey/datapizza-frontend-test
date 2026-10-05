@@ -49,12 +49,12 @@ export function ChatConversation({
       {isLoading ? (
         <div className="py-20 text-center space-y-3">
           <Spinner className="w-8 h-8 mx-auto" />
-          <p className="text-sm font-medium text-slate-600">Caricamento conversazione in corso...</p>
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Caricamento conversazione in corso...</p>
         </div>
       ) : loadError ? (
-        <div className="max-w-md mx-auto my-12 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
-          <p className="text-sm font-semibold text-red-800">Errore di caricamento</p>
-          <p className="text-xs text-red-600">{loadError}</p>
+        <div className="max-w-md mx-auto my-12 p-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-2xl text-center space-y-3">
+          <p className="text-sm font-semibold text-red-800 dark:text-red-300">Errore di caricamento</p>
+          <p className="text-xs text-red-600 dark:text-red-400">{loadError}</p>
           <button
             onClick={onRetryLoad}
             className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium cursor-pointer"

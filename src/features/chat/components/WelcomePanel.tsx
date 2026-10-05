@@ -14,13 +14,13 @@ interface WelcomePanelProps {
 export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelProps) {
   return (
     <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4 text-center select-none">
-      <div className="inline-flex p-4 bg-indigo-50 text-indigo-600 rounded-3xl mb-4 shadow-sm ring-1 ring-indigo-100">
+      <div className="inline-flex p-4 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 rounded-3xl mb-4 shadow-sm ring-1 ring-indigo-100 dark:ring-indigo-900">
         <Sparkles className="w-8 h-8" />
       </div>
-      <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
         Benvenuto in DocFact Assistant
       </h2>
-      <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
         Poni domande sui documenti PDF caricati. L&apos;assistente genera risposte verificate in streaming NDJSON con citazioni esatte e regioni visive evidenziate.
       </p>
 
@@ -29,13 +29,13 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
         <button
           type="button"
           onClick={onOpenDocuments}
-          className="text-left p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+          className="text-left p-3.5 bg-slate-50 dark:bg-slate-900 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 rounded-xl transition-all cursor-pointer group"
         >
-          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
-            <FileText className="w-4 h-4 text-indigo-500" />
+          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 mb-1">
+            <FileText className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             <span>1. Carica PDF</span>
           </span>
-          <span className="block text-[11px] text-slate-500 leading-snug">
+          <span className="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
             Carica i documenti di test del backend tramite multipart/form-data.
           </span>
         </button>
@@ -43,24 +43,24 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
         <button
           type="button"
           onClick={() => onAskQuestion(SUGGESTED_QUESTION)}
-          className="text-left p-3.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer group"
+          className="text-left p-3.5 bg-slate-50 dark:bg-slate-900 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 rounded-xl transition-all cursor-pointer group"
         >
-          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 group-hover:text-indigo-600 mb-1">
-            <Layers className="w-4 h-4 text-indigo-500" />
+          <span className="flex items-center gap-2 font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 mb-1">
+            <Layers className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             <span>2. Fai una domanda</span>
           </span>
-          <span className="block text-[11px] text-slate-500 leading-snug">
+          <span className="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
             &quot;Quali sono i punti principali trattati nei documenti?&quot;
           </span>
         </button>
 
-        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 mb-1">
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
+        <div className="p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+          <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 dark:text-slate-100 mb-1">
+            <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
             <span>3. Verifica Bounding Box</span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-snug">
-            I box in pollici <code className="bg-slate-200 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+            I box in pollici <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
           </p>
         </div>
       </div>

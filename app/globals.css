@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+/* P2-07: tema scuro basato su prefers-color-scheme (le varianti `dark:` di Tailwind v4 lo seguono di default). */
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: #ffffff;
+  color: #0f172b;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #020618; /* slate-950 */
+    color: #f1f5f9; /* slate-100 */
+  }
+}
