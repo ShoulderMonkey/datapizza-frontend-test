@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T023)
+## Stato attuale (aggiornato a T024)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02..P2-07; P2-01 è `done`). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02, P2-04..P2-07; P2-01 e P2-03 sono `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02..P2-07; P2
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 31 file / 234 test; e2e 14/14 (T021) | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 32 file / 236 test; e2e 14/14 (T021) | P0-01, P0-02 |
 
 ---
 
@@ -306,8 +306,8 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02..P2-07; P2
 - Dipendenze: P0-04, P1-03
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Test: lo stream carattere per carattere della risposta con `<table>` non mostra mai testo HTML letterale (`&lt;table` o `<tr>` come testo) in nessuno snapshot intermedio campionato.
-- Stato: todo
+  - [x] Test: lo stream carattere per carattere della risposta con `<table>` non mostra mai testo HTML letterale (`&lt;table` o `<tr>` come testo) in nessuno snapshot intermedio campionato. Evidenza: `tests/unit/MarkdownRenderer.streaming.test.tsx:24` (table) e `:28` (ul), tutti i prefissi; fix in `src/components/ui/streamingMarkdown.ts:10` (`stripIncompleteTrailingTag`) applicato in `src/components/ui/MarkdownRenderer.tsx:106`, con `rehypeRaw` + `rehypeSanitize` invariati (`:24`); gate T024: typecheck, lint, test exit 0 (32 file / 236 test).
+- Stato: done (T024)
 
 ### P2-04 — Paginazione di storico e documenti
 - Criterio della specifica: "Utilizzo del backend › Corretta comprensione degli endpoint" (`limit`/`offset`, `BE:src/routes/chat.py:250-251`).

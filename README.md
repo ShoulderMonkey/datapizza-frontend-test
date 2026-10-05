@@ -408,8 +408,6 @@ All P1 items are done; this section lists only work not yet done.
 
 **Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
 
-**Markdown stability (P2-03):** Test that streaming HTML tables never render as escaped text in snapshots.
-
 **Chat and document pagination (P2-04):** Implement `limit`/`offset` for lists with "Load more" buttons.
 
 **Upload cancellation (P2-05):** Add an abort button during multipart upload.

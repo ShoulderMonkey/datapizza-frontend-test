@@ -8,6 +8,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T024, P2-03)
+- `src/components/ui/streamingMarkdown.ts`: `stripIncompleteTrailingTag` rimuove in coda il tag HTML non ancora chiuso, così durante lo stream non compare testo HTML letterale (`<t`, `<ul`); applicato in `MarkdownRenderer.tsx`, sanitizzazione invariata.
+- Test: `tests/unit/MarkdownRenderer.streaming.test.tsx` (ogni prefisso carattere per carattere di `MOCK_RESPONSE_TABLE` e `MOCK_RESPONSE_UL`).
+
 ### Added (T023, P2-01)
 - `src/features/factcheck/hooks/useCitationHighlight.tsx`: context locale (`CitationHighlightProvider` in `ChatWorkspace.tsx`) per l'highlight bidirezionale citazione e PDF.
 - Click su un box: la card ha `aria-current="true"` e viene portata in vista con `scrollIntoView` senza spostare il focus.

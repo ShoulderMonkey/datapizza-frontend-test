@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { Check, Copy } from 'lucide-react';
+import { stripIncompleteTrailingTag } from './streamingMarkdown';
 
 const SAFE_LINK = /^(https?:|mailto:)/i;
 
@@ -102,7 +103,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           },
         }}
       >
-        {content}
+        {stripIncompleteTrailingTag(content)}
       </ReactMarkdown>
     </div>
   );
