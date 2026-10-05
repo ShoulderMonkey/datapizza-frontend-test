@@ -5,28 +5,30 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T011)
+## Stato attuale (aggiornato a T022)
+
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-01..P2-07). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
-| 1. Login mock + cookie | ✅ | `services/api-client.ts` (proxy same-origin, credentials: 'same-origin') | P0-03 |
-| 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `services/auth-service.ts:12` (USER_ID_MAX_LENGTH = 100) | P0-06 |
-| 2. Upload multiplo, stato, errori | ⚠️ | `components/documents/DocumentUploadDropzone.tsx:70-85`; messaggi backend non mappati | P1-04 |
-| 2. Lista documenti | ⚠️ | `components/documents/DocumentListModal.tsx:33-70,202` | P1-06 |
-| 3. Layout chat + Invia | ✅ | `components/chat/ChatWorkspace.tsx:359-524` | — |
-| 3. Streaming NDJSON incrementale | ⚠️ | `utils/ndjson.ts` ✅; un render per carattere in `components/chat/ChatWorkspace.tsx:216-223` | P1-03 |
-| 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `utils/ndjson.ts:5-34` (NDJSONParseError, parseLine con try-catch); `components/chat/ChatWorkspace.tsx:247` (status: 'error' non sovrascritto da completed) | P0-05 |
-| 3. Interruzione pulita | ✅ | `components/chat/ChatWorkspace.tsx:114-127` | — |
+| 1. Login mock + cookie | ✅ | `src/api/client.ts` (proxy same-origin, credentials: 'same-origin'); `e2e/proxy-cookie.spec.ts` | P0-03 |
+| 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `src/api/auth.ts` (USER_ID_MAX_LENGTH = 100); `tests/unit/auth-service.test.ts`; `tests/integration/LoginForm.test.tsx` | P0-06 |
+| 2. Upload multiplo, stato, errori | ✅ | `src/features/documents/components/DocumentUploadDropzone.tsx`; `src/api/errorMessages.ts`; `e2e/upload-errors.spec.ts` | P1-04 |
+| 2. Lista documenti | ⚠️ | `src/features/documents/hooks/useDocuments.ts`; `tests/integration/history-documents-query.test.tsx`; la lista scarica tutte le pagine | P1-06, P2-04 |
+| 3. Layout chat + Invia | ✅ | `src/features/chat/components/ChatWorkspace.tsx`, `ChatComposer.tsx` | P1-01 |
+| 3. Streaming NDJSON incrementale | ✅ | `src/api/ndjson.ts`; `src/features/chat/lib/chatStreamReducer.ts` + batching rAF in `useChatStream.ts`; `tests/integration/ChatWorkspace.batching.test.tsx` | P1-03 |
+| 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `src/api/ndjson.ts` (NDJSONParseError); `tests/integration/ChatWorkspace.stream-errors.test.tsx` | P0-05 |
+| 3. Interruzione pulita | ✅ | `src/features/chat/hooks/useChatStream.ts`; `tests/integration/ChatWorkspace.abort.test.tsx` | P1-03 |
 | 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx` | — |
-| 4. Bounding box sul PDF | ⚠️ | `src/features/factcheck/components/BoundingBoxOverlay.tsx` ✅; worker locale (`lib/pdfWorker.ts`) e scroll alla regione (`PdfPageView.tsx:50`) risolti da P1-08 (T015) | P1-09 |
-| 5. Storico chat lista + dettaglio | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx`; `src/api/chat.ts:128-139` (`normalizeChatDetail`) | P1-06, P1-07 |
-| Qualità: struttura / TS / separazione API-UI | ⚠️ | `src/features/chat/components/ChatWorkspace.tsx` (133 righe dopo T012, prima 559); BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ⚠️ | `src/api/client.ts`, `src/api/errors.ts`; viewer PDF affiancato ≥1024 px e drawer sotto (P1-09 ✅, T020; P1-10 ✅ tastiera, T021) | P1-04, P1-06, P1-10 |
-| Uso backend: cookie, metodi, header, body | ⚠️ | P0-03 ✅ proxy same-origin; P0-05 ✅ stream error; P0-06 ✅ validazione user_id; P1-02 ✅ body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`); P1-07 ✅ done (T019) | P0-03, P0-05, P0-06, P1-02, P1-07 |
+| 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
+| 5. Storico chat lista + dettaglio | ⚠️ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; la lista scarica tutte le pagine | P1-06, P1-07, P2-04 |
+| Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester in README §8 | P1-04, P1-06, P1-09, P1-10 |
+| Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW; e2e 3/3 passed | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 30 file / 230 test; e2e 14/14 (T021) | P0-01, P0-02 |
 
 ---
 

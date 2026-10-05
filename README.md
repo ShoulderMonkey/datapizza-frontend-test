@@ -167,7 +167,7 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 │   │   │   ├── hooks/           # useDocumentUpload, useDocuments
 │   │   │   └── types.ts         # Document domain types
 │   │   ├── chat/
-│   │   │   ├── components/      # ChatWorkspace (184 lines), ChatComposer, ChatMessageItem, ChatConversation
+│   │   │   ├── components/      # ChatWorkspace (186 lines), ChatComposer, ChatMessageItem, ChatConversation
 │   │   │   ├── hooks/           # useChatStream (useReducer + rAF batching), useAutoScroll
 │   │   │   ├── lib/             # chatStreamReducer (pure reducer, no React)
 │   │   │   └── types.ts         # StreamChunk, ChatMessage domain types
@@ -201,7 +201,7 @@ The project uses a **feature-based structure** (P1-01, ADR 0002) that decouples 
 **Key structure notes:**
 
 **API layer** (`src/api/`):
-- **Unico `fetch`**: `client.ts:48` contiene l'unica dichiarazione `fetch` nel progetto. Verificato con ESLint `no-restricted-globals`.
+- **Unico `fetch`**: `client.ts:47` contiene l'unica dichiarazione `fetch` nel progetto. Verificato con ESLint `no-restricted-globals`.
 - **URL relativi**: tutte le funzioni usano `/api/...`, il proxy `next.config.ts` le invia al backend.
 - **Errori normalizzati**: tutte le risposte HTTP, i timeout e gli abort diventano `ApiError { status, code, userMessage, cause, detail }`.
 
@@ -276,9 +276,9 @@ The backend returns bounding box coordinates in `rects_in: [[x, y, width, height
 - In `src/features/factcheck/lib/coordinates.ts` la funzione pura `inchesRectToPx(rect, pageWidthPt, renderedWidthPx)` converte `[x, y, w, h]` in pollici in `{left, top, width, height}` in **pixel**. Esempio (test unit): `[1,1,2,0.5]` su 612 pt a 612 px → `{left:72, top:72, width:144, height:36}`; a 1224 px i valori raddoppiano.
 - `BoundingBoxOverlay.tsx` (`data-testid="bbox"`) posiziona i rettangoli in modo assoluto sopra la pagina renderizzata usando questi pixel.
 - **Origine top-left**: `y` cresce verso il basso, quindi non c'è inversione dell'asse; l'origine è quella documentata in `BE:tests/bbox_visualization.py:48`. Il selettore di origine (top-left/bottom-left) è stato rimosso.
-- **Scroll alla regione**: aprendo una citazione la pagina mostrata è `bounding_regions[0].page_number` e la vista scorre alla prima regione (`PdfPageView.tsx:50`).
+- **Scroll alla regione**: aprendo una citazione la pagina mostrata è `bounding_regions[0].page_number` e la vista scorre alla prima regione (`scrollToFirstBox` in `PdfPageView.tsx:45-51`).
 - **Pagine con regioni**: se la citazione ha regioni su più pagine, `PdfFactCheckViewer.tsx` mostra l'elenco "Pagine con regioni" con navigazione (raggruppamento in `lib/regions.ts`).
-- **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `lib/pdfWorker.ts`, senza CDN.
+- **Worker locale**: il worker pdf.js è risolto con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` in `src/features/factcheck/lib/pdfWorker.ts`, senza CDN.
 - **Layout e focus (P1-09)**: `FactCheckPanel.tsx` mostra il viewer come pannello laterale (`role="complementary"`) a ≥ 1024 px, con la conversazione ancora visibile e scrollabile (`useIsDesktop.ts`), e come dialog a schermo intero (`role="dialog"`, `aria-modal`, pulsante di chiusura) sotto. All'apertura il focus va al pannello; `Escape` lo chiude e il focus torna alla card della citazione. La card attiva (`aria-current` in `RelatedDocumentsSection.tsx`) e le sue regioni sul PDF (`data-active` in `BoundingBoxOverlay.tsx`) sono evidenziate. Test: `tests/integration/FactCheckPanel.test.tsx`, `e2e/layout.spec.ts`.
 - **Graceful Degradation**: If a document binary fails to load, the viewer displays a structured fallback containing the page number, citation text quote, and coordinate metadata.
 
@@ -373,8 +373,8 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) is not implemented.
-  - Multi-page continuous scrolling is not implemented; users navigate one page at a time (P1-08).
-  - Automatic scroll to the first bounding region when opening a citation is not implemented (P1-08).
+  - Multi-page continuous scrolling is not implemented; users navigate one page at a time.
+  - Open issues found by the testers (see "With More Time"): PDF clipped in the mobile drawer at 120% zoom, focus lost after "Interrompi", 15 Tab presses to reach the citation list in the panel, no signal when the new history entry is saved, previous-entry context unlabeled in the new session, duplicate backend citations highlighted together.
 
 - **Minor issues (low severity):**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -395,17 +395,16 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-**Feature structure and API layer (P1-01):** Done (T012) — refactored into feature-based directories (`src/features/{auth,documents,chat,factcheck,history}/`) with dedicated hooks and typed API client (`src/api/`). `ChatWorkspace.tsx` reduced from 559 to 133 lines; stream logic moved to `useChatStream` hook. All HTTP requests normalized to `ApiError`. ESLint forbids `fetch` outside `src/api/`. See ADR 0002.
+All P1 items are done; this section lists only work not yet done.
 
-**API types from OpenAPI (P1-02):** Generate request types from `docs/api/openapi.json` with `openapi-typescript`; write response types by hand (OpenAPI lacks them). Add validation and remove speculative field normalization.
-
-**User-friendly error messages (P1-04):** Map backend error codes and network errors to Italian messages without exposing technical details (no status codes, no URLs, no stack traces).
-
-**Session and 401 handling (P1-05):** Done (T018) — redirect to login on any 401 and `localStorage` read after mount (see Cookie Authentication).
-
-**Chat history model (P1-07):** Done (T019) — one chat = one Q/A pair, new questions never modify a selected entry. See ADR 0004.
-
-**Keyboard navigation (P1-10):** Done (T021) — see Keyboard Accessibility.
+**Open issues found by the testers (not yet fixed):**
+- PDF clipped in the mobile drawer at 120% zoom.
+- Focus is lost after "Interrompi".
+- 15 Tab presses are needed to reach the citation list in the panel.
+- No signal when the new history entry is saved.
+- The context of the previous entry has no label in the new session.
+- Duplicate citations from the backend are highlighted together.
+- `/favicon.ico` returns 404.
 
 **Highlight bidirectional sync (P2-01):** Clicking a bounding box highlights its citation card; hovering a card highlights its boxes.
 

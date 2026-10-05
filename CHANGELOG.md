@@ -8,6 +8,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Docs (T022)
+- Tabella di stato di `docs/ROADMAP.md` e README riallineati dopo la chiusura degli item P1 (path in `src/`, limiti risolti rimossi, "With More Time" con solo lavoro aperto).
+
 ### Added (T021, P1-10)
 - `src/features/history/hooks/useSidebarOpen.ts`: stato della sidebar (chiusa di default sotto 768 px).
 - Test: `e2e/keyboard.spec.ts` (flusso da sola tastiera) e `tests/integration/a11y-keyboard.test.tsx`.
