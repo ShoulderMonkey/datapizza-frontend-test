@@ -8,6 +8,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T041, P2-11)
+- Proxy: `/api/documents` e `/api/chat` senza slash finale sono riscritte verso `${BACKEND_URL}/api/<x>/` (`next.config.ts:21-22`); prima FastAPI rispondeva 307 con `Location` assoluta verso l'host del backend. Dopo: nessuna `Location`, 401 senza cookie e 200 con cookie, POST `/api/chat` 200 NDJSON.
+- Console del primo load vuota: aggiunta l'icona `app/icon.svg` (marchio "DF"); l'errore era il 404 di `/favicon.ico`.
+
+### Added (T041, P2-11)
+- Test: `e2e/hygiene.spec.ts` (icona 200, console pulita su login e home, nessun redirect verso il backend, al massimo 1 richiesta per la prima pagina di storico e documenti in produzione, 2 in dev per StrictMode). Rossi su f250901 (5 failed).
+- `playwright.config.ts`: `PLAYWRIGHT_BASE_URL` punta la suite a un server già avviato (ad esempio una build di produzione) e disattiva il `webServer`; default invariato.
+- ADR 0001 aggiornato con le regole delle collezioni.
+
 ### Fixed (T040, P2-09)
 - Spec `e2e/pdf-viewer-overflow.spec.ts` instabile dopo T038 (bisect 10 ripetizioni: 10/10 prima di T038, 9/10 su 0a60755, 7/10 su e6d79c4). Causa: misura durante lo smooth scroll di `PdfPageView.tsx`; la toolbar `flex-wrap` di T038 portava l'header su due righe e riduceva il container "Pagina PDF" da 340 a 310 px a 1280x720.
 - Spec: `expect.poll` sullo `scrollTop` stabile per 3 campioni a 100 ms prima di misurare, asserzioni di contenimento invariate.

@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
+      // Collection routes: FastAPI answers 307 with an absolute backend Location when the
+      // slash is missing (leaks the backend host). A redirect rule would loop with
+      // /api/x/ (Next matches both forms), so rewrite straight to the slashed URL;
+      // method and body are preserved by the proxy.
+      {source: '/api/documents', destination: `${BACKEND_URL}/api/documents/`},
+      {source: '/api/chat', destination: `${BACKEND_URL}/api/chat/`},
       // Order matters: the slash-preserving rule must come first, otherwise
       // `:path*` drops the trailing slash and FastAPI answers 307 to an absolute URL.
       {source: '/api/:path*/', destination: `${BACKEND_URL}/api/:path*/`},

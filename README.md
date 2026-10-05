@@ -78,6 +78,9 @@ npm run test
 # End-to-end tests (requires running backend)
 npm run e2e
 
+# E2E against an already running server (e.g. a production build): no webServer is started
+PLAYWRIGHT_BASE_URL=http://localhost:3300 npx playwright test e2e/hygiene.spec.ts
+
 # Regenerate API request types from docs/api/openapi.json
 npm run gen:api
 ```
@@ -235,12 +238,16 @@ The `next.config.ts` configures a same-origin proxy for `/api/*` endpoints:
 
 ```typescript
 rewrites: async () => [
+  { source: '/api/documents', destination: `${BACKEND_URL}/api/documents/` },
+  { source: '/api/chat', destination: `${BACKEND_URL}/api/chat/` },
   { source: '/api/:path*/', destination: `${BACKEND_URL}/api/:path*/` },
   { source: '/api/:path*', destination: `${BACKEND_URL}/api/:path*` }
 ]
 ```
 
 **Why two rules?** With the sole `:path*` rule the trailing slash is dropped, and FastAPI answers with a 307 redirect to an absolute backend URL (`http://localhost:8000/api/chat/`), which escapes the proxy. The first rule (slash-preserving) must therefore come first. `skipTrailingSlashRedirect: true` (also in `next.config.ts`) stops Next.js from redirecting `/api/chat/` to `/api/chat`, which would break POST requests through the proxy.
+
+**Collection routes without slash (P2-11, T041):** `/api/documents` and `/api/chat` are rewritten straight to the slashed backend URL, before the generic rules. Without this FastAPI answers 307 with an absolute `Location` (`http://backend:8000/...`), which leaks the backend host and is unreachable from the browser. A `redirects()` rule (308) was discarded because it loops: Next matches both forms of the path when `skipTrailingSlashRedirect` is `true`. Method and body are preserved by the proxy. Guarded by `e2e/hygiene.spec.ts`.
 
 The client calls only relative URLs (`/api/auth/login`, `/api/documents/`, `/api/chat/`); the proxy transparently forwards them to `http://localhost:8000` (or the configured `BACKEND_URL`). The browser sees a single origin (`localhost:3000`) for cookies.
 
@@ -382,11 +389,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-11 to P2-13 (see "With More Time").
-
-- **Minor issues (low severity), tracked in P2-11:**
-  - `/favicon.ico` returns 404 (no favicon in the project).
-  - Requests to `/api/...` without trailing slash (e.g., `/api/documents` instead of `/api/documents/`) receive a 307 redirect with an absolute backend URL (`http://backend:8000/...`), which is unreachable from the browser. The application always uses the trailing slash, so this does not affect normal operation.
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P2-12 and P2-13 (see "With More Time").
 
 - **Validation details:**
   - Client `user_id` validation is more restrictive than the backend: only ASCII `[a-zA-Z0-9_-]` (max 100 chars), vs backend `str.isalnum()` which accepts Unicode. The backend is lenient; the client enforces stricter rules.
@@ -410,8 +413,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
-The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08, P2-09 and P2-10 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P2-11**: proxy and console hygiene (`/favicon.ico` 404, 307 with absolute backend Location, repeated page-1 requests in dev).
+The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09, P1-15, P2-08, P2-09, P2-10 and P2-11 are done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
 - **P2-12**: e2e and startup stability (filechooser race, data left on the backend, `next start` warning with `output: standalone`).
 - **P2-13**: PDF text layer and continuous scrolling.
 

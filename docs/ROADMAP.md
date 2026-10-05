@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T040)
+## Stato attuale (aggiornato a T041)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038) e P2-10 (T039): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) e P2-11 (T041): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -462,10 +462,10 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T007, T010, T015, T019, T020, T025.
 - Findings: `/favicon.ico` 404 (T010, T015, T020); path `/api/...` senza slash finale → 307 con Location assoluta `http://backend:8000/...` irraggiungibile dal browser (T007, T010); 1 errore console al primo load non analizzato (T019); richieste page-1 ripetute in dev (T025).
 - Criteri di accettazione:
-  - [ ] `GET /favicon.ico` (o l'icona dichiarata in `app/`) risponde 200 e la console del primo load è vuota (e2e su `page.on('console')` e `page.on('response')`).
-  - [ ] `GET /api/documents` senza slash non restituisce una Location verso l'host del backend (e2e o probe nel report del tester).
-  - [ ] In un caricamento della home con sessione valida c'è al massimo 1 richiesta per la prima pagina di storico e documenti (e2e su `page.on('request')`, build di produzione).
-- Stato: todo
+  - [x] `GET /favicon.ico` (o l'icona dichiarata in `app/`) risponde 200 e la console del primo load è vuota (e2e su `page.on('console')` e `page.on('response')`). Evidenza: `app/icon.svg`; `e2e/hygiene.spec.ts:38` e `:47`; tester: `<link rel=icon href=/icon.svg>` 200 `image/svg+xml`, 0 messaggi in console.
+  - [x] `GET /api/documents` senza slash non restituisce una Location verso l'host del backend (e2e o probe nel report del tester). Evidenza: `next.config.ts:21-22`; `e2e/hygiene.spec.ts:58`; curl del tester: 0 righe `Location`, 401 senza cookie, 200 con cookie (report del tester non versionato).
+  - [x] In un caricamento della home con sessione valida c'è al massimo 1 richiesta per la prima pagina di storico e documenti (e2e su `page.on('request')`, build di produzione). Evidenza: `e2e/hygiene.spec.ts:82`; `playwright.config.ts:3-9` (`PLAYWRIGHT_BASE_URL`); tester: produzione 5 passed (soglia 1), dev x2 10 passed, suite completa 41 passed.
+- Stato: done (T041)
 
 ### P2-12 — Stabilità degli e2e e dell'avvio
 - Criterio della specifica: "Qualità del codice" (test).

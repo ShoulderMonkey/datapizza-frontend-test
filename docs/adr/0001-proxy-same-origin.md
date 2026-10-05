@@ -36,6 +36,17 @@ Con la doppia regola (`/api/:path*/` e `/api/:path*`) e `skipTrailingSlashRedire
 
 Verifica: `.claude/reports/T007/probe-chat-slash.txt` (POST `/api/chat/` via proxy: 200 NDJSON, nessun 307).
 
+**Aggiornamento T041 (P2-11): rewrite espliciti delle collezioni**
+
+Le route collezione `/api/documents` e `/api/chat` senza slash finale sono riscritte direttamente verso l'URL del backend con slash, prima della regola `/api/:path*/` (`next.config.ts:21-22`):
+
+```typescript
+{ source: '/api/documents', destination: `${BACKEND_URL}/api/documents/` },
+{ source: '/api/chat', destination: `${BACKEND_URL}/api/chat/` },
+```
+
+Motivo: senza queste regole FastAPI risponde 307 con `Location` assoluta (`http://backend:8000/...` in Docker), che espone l'host del backend ed è irraggiungibile dal browser. Una regola `redirects()` (308) è stata scartata: Next abbina entrambe le forme del path e, con `skipTrailingSlashRedirect: true`, va in loop. Metodo e body sono preservati dal proxy; le route con `{id}` e `/api/auth/login` non cambiano. Verifica: `e2e/hygiene.spec.ts`.
+
 **Comportamento del client**
 
 Il client (`services/api-client.ts`) chiama sempre URL relativi:
