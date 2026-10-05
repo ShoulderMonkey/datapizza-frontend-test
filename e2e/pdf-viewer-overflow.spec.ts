@@ -59,6 +59,22 @@ test('PDF viewer: bbox near the left page margin is reachable in the side-by-sid
   await expect(bbox).toBeVisible({ timeout: 30_000 });
   await expect(bbox).toBeInViewport({ timeout: 10_000 });
 
+  // scrollIntoView({behavior:'smooth'}) is still animating here: wait until the
+  // container scrollTop is unchanged across consecutive samples before measuring.
+  let prev = Number.NaN;
+  let stableSamples = 0;
+  await expect
+    .poll(
+      async () => {
+        const top = await container.evaluate((el) => el.scrollTop);
+        stableSamples = top === prev ? stableSamples + 1 : 0;
+        prev = top;
+        return stableSamples;
+      },
+      { intervals: [100], timeout: 10_000 },
+    )
+    .toBeGreaterThanOrEqual(3);
+
   const c = (await container.boundingBox())!;
   const b = (await bbox.boundingBox())!;
   expect(b.x, `bbox.x=${b.x} must be >= container.x=${c.x}`).toBeGreaterThanOrEqual(c.x);

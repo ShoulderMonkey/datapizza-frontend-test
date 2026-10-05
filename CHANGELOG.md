@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T040, P2-09)
+- Spec `e2e/pdf-viewer-overflow.spec.ts` instabile dopo T038 (bisect 10 ripetizioni: 10/10 prima di T038, 9/10 su 0a60755, 7/10 su e6d79c4). Causa: misura durante lo smooth scroll di `PdfPageView.tsx`; la toolbar `flex-wrap` di T038 portava l'header su due righe e riduceva il container "Pagina PDF" da 340 a 310 px a 1280x720.
+- Spec: `expect.poll` sullo `scrollTop` stabile per 3 campioni a 100 ms prima di misurare, asserzioni di contenimento invariate.
+- Viewer: header con container query e toolbar su una sola riga (`PdfFactCheckViewer.tsx`), container "Pagina PDF" a 396 px a 1280x720; "Chiudi visualizzatore" resta nel viewport a 1024 px. Dopo: overflow x20 con 20 passed, suite e2e 36 passed.
+
+### Changed (T040)
+- ESLint ignora `.claude/**` (`eslint.config.mjs`): un file di probe in `.claude/reports` faceva fallire `eslint .`.
+
 ### Fixed (T039, P2-10)
 - Hover in tema scuro con variazione visibile: `dark:hover:text-indigo-200` al posto di un valore uguale alla base `dark:text-indigo-300` nel pulsante "Aggiorna" (`DocumentListModal.tsx:174`) e nei link Markdown (`MarkdownRenderer.tsx:98`).
 - Contrasti in tema scuro: testo secondario della sidebar `text-slate-500` -> `text-slate-400` (`ChatSidebar.tsx`) e `code` con `dark:bg-slate-700 dark:text-slate-100` nel pannello di upload (`DocumentUploadDropzone.tsx:130`) e nel `WelcomePanel.tsx:63`; in chiaro il `code` usa `bg-slate-200 text-slate-700` (contrasto 3.86:1 corretto).

@@ -188,15 +188,15 @@ export function PdfFactCheckViewer({
       )}
 
       {/* Top Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800 text-white select-none">
+      <div className="@container flex items-center justify-between gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800 text-white select-none">
         <div className="flex items-center gap-3 min-w-0">
           <div className="p-1.5 rounded-md bg-indigo-600/30 text-indigo-400 border border-indigo-500/30">
             <FileText className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold truncate text-slate-100 flex items-center gap-2">
-              <span>{filename}</span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+              <span className="truncate min-w-0">{filename}</span>
+              <span className="hidden @xl:inline shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
                 Fact-Checking Viewer
               </span>
             </h2>
@@ -207,7 +207,7 @@ export function PdfFactCheckViewer({
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center justify-end gap-1 @2xl:gap-2">
           {/* Page Navigation */}
           {numPages > 0 && (
             <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-1.5 py-1 text-xs">
@@ -295,7 +295,9 @@ export function PdfFactCheckViewer({
             title="Mostra / Nascondi citazioni"
           >
             <List className="w-4 h-4" />
-            <span className="hidden sm:inline">Citazioni ({citations.length})</span>
+            <span className="hidden @2xl:inline">Citazioni ({citations.length})</span>
+            <span className="@2xl:hidden text-[11px] font-mono" aria-hidden="true">{citations.length}</span>
+            <span className="sr-only @2xl:hidden">Citazioni ({citations.length})</span>
           </button>
 
           {/* Raw PDF link */}
