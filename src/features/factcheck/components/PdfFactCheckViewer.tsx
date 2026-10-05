@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { CitationReference } from '../types';
 import { usePdfDocument } from '../hooks/usePdfDocument';
 import { isSameCitation } from '../lib/citations';
+import { useCitationHighlight } from '../hooks/useCitationHighlight';
 import { getFirstRegionPage, getPagesWithRegions } from '../lib/regions';
 
 // react-pdf touches browser-only APIs (DOMMatrix, workers): load it client-side only.
@@ -46,6 +47,9 @@ export function PdfFactCheckViewer({
   onSelectCitation,
 }: PdfFactCheckViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const citationListRef = useRef<HTMLDivElement | null>(null);
+
+  const { setHighlighted } = useCitationHighlight();
 
   // PDF download lives in the hook; parsing/rendering in react-pdf (PdfPageView).
   const { file, isLoading, loadingMessage, error: downloadError, blobUrl: pdfBlobUrl } =
@@ -64,6 +68,21 @@ export function PdfFactCheckViewer({
   // Controls & Display state
   const [scale, setScale] = useState<number>(1.2);
   const [showCitationList, setShowCitationList] = useState<boolean>(true);
+
+  // Scroll the citation list (not the page) so the active card is fully visible, on mount and
+  // whenever the active citation changes. Focus is never moved.
+  useEffect(() => {
+    const list = citationListRef.current;
+    const card = list?.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!list || !card) return;
+    const listRect = list.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    if (cardRect.top < listRect.top) {
+      list.scrollTop -= listRect.top - cardRect.top + 8;
+    } else if (cardRect.bottom > listRect.bottom) {
+      list.scrollTop += cardRect.bottom - listRect.bottom + 8;
+    }
+  }, [activeCitation, showCitationList]);
 
   // Re-sync the page when the target page or the active citation changes (render-time adjustment).
   const syncKey = `${initialPage}|${activeCitation?.document_id}|${activeCitation?.page_number}|${activeCitation?.text_quote}`;
@@ -360,7 +379,7 @@ export function PdfFactCheckViewer({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div ref={citationListRef} className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
               {citations.length === 0 ? (
                 <div className="text-center py-8 text-slate-400 text-xs">
                   Nessuna citazione correlata registrata per questo documento.
@@ -380,6 +399,11 @@ export function PdfFactCheckViewer({
                     <button
                       type="button"
                       key={`cit-list-${index}`}
+                      data-testid="viewer-citation-card"
+                      onMouseEnter={() => setHighlighted(citation)}
+                      onMouseLeave={() => setHighlighted(null)}
+                      onFocus={() => setHighlighted(citation)}
+                      onBlur={() => setHighlighted(null)}
                       aria-current={isSelected ? 'true' : undefined}
                       onClick={() => {
                         setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);

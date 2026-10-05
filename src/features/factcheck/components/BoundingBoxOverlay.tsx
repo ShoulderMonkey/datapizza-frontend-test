@@ -3,6 +3,8 @@
 import React from 'react';
 import type { CitationReference } from '../types';
 import { inchesRectToPx } from '../lib/coordinates';
+import { isSameCitation } from '../lib/citations';
+import { useCitationHighlight } from '../hooks/useCitationHighlight';
 
 interface BoundingBoxOverlayProps {
   pageNumber: number;
@@ -22,6 +24,7 @@ export function BoundingBoxOverlay({
   activeCitation,
   onSelectCitation,
 }: BoundingBoxOverlayProps) {
+  const { highlighted } = useCitationHighlight();
   // Collect all bounding regions for this specific page
   const pageRegions = React.useMemo(() => {
     const list: Array<{
@@ -71,6 +74,7 @@ export function BoundingBoxOverlay({
       data-testid="bounding-box-overlay"
     >
       {pageRegions.map((item, index) => {
+        const isHighlighted = isSameCitation(highlighted, item.citation);
         const px = inchesRectToPx(item.rectInches, pageWidthPt, renderedWidthPx);
 
         return (
@@ -88,6 +92,7 @@ export function BoundingBoxOverlay({
             }}
             data-testid="bbox"
             data-active={item.isActive ? 'true' : 'false'}
+            data-highlighted={isHighlighted ? 'true' : 'false'}
             onClick={(e) => {
               e.stopPropagation();
               onSelectCitation?.(item.citation);
@@ -96,6 +101,10 @@ export function BoundingBoxOverlay({
               item.isActive
                 ? 'border-2 border-amber-500 bg-amber-400/30 ring-4 ring-amber-400/25 shadow-lg shadow-amber-500/20 z-20'
                 : 'border-2 border-indigo-500/80 bg-indigo-400/20 hover:border-indigo-600 hover:bg-indigo-400/35 z-10'
+            } ${
+              isHighlighted
+                ? 'border-amber-500 bg-amber-400/40 ring-4 ring-amber-400/40 shadow-lg shadow-amber-500/30 z-30'
+                : ''
             }`}
             title={`Citazione #${index + 1}: "${item.citation.text_quote.slice(0, 80)}..."`}
           >

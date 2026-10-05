@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DocumentListModal } from '@/src/features/documents/components/DocumentListModal';
 import { useDocuments } from '@/src/features/documents/hooks/useDocuments';
+import { CitationHighlightProvider } from '@/src/features/factcheck/hooks/useCitationHighlight';
 import { FactCheckPanel } from '@/src/features/factcheck/components/FactCheckPanel';
 import { usePdfViewer } from '@/src/features/factcheck/hooks/usePdfViewer';
 import { ChatSidebar } from '@/src/features/history/components/ChatSidebar';
@@ -113,6 +114,7 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
     activeChatId !== null && transcript !== undefined && !history.isChatLoading && !history.chatLoadError;
 
   return (
+    <CitationHighlightProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-white text-slate-900 font-sans">
       <ChatSidebar
         chats={history.chats}
@@ -182,5 +184,6 @@ export function ChatWorkspace({ userId, onLogout }: ChatWorkspaceProps) {
         onOpenPdfViewer={pdfViewer.openDocument}
       />
     </div>
+    </CitationHighlightProvider>
   );
 }

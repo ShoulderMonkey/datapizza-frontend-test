@@ -8,6 +8,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T023, P2-01)
+- `src/features/factcheck/hooks/useCitationHighlight.tsx`: context locale (`CitationHighlightProvider` in `ChatWorkspace.tsx`) per l'highlight bidirezionale citazione e PDF.
+- Click su un box: la card ha `aria-current="true"` e viene portata in vista con `scrollIntoView` senza spostare il focus.
+- Hover o focus su una card: i box della citazione hanno `data-highlighted="true"` (solo pagina visualizzata).
+- Test: `tests/integration/citation-highlight.test.tsx`.
+
 ### Docs (T022)
 - Tabella di stato di `docs/ROADMAP.md` e README riallineati dopo la chiusura degli item P1 (path in `src/`, limiti risolti rimossi, "With More Time" con solo lavoro aperto).
 

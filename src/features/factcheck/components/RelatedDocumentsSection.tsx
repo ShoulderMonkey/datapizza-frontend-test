@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { CitationReference } from '../types';
 import { isSameCitation } from '../lib/citations';
+import { useCitationHighlight } from '../hooks/useCitationHighlight';
 import { FileText, ChevronDown, ChevronUp, ExternalLink, Bookmark } from 'lucide-react';
 
 interface RelatedDocumentsSectionProps {
@@ -18,6 +19,17 @@ export function RelatedDocumentsSection({
   activeCitation,
 }: RelatedDocumentsSectionProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const { setHighlighted } = useCitationHighlight();
+  const activeCardRef = useRef<HTMLButtonElement | null>(null);
+  const hasActiveCard = citations.some((c) => isSameCitation(activeCitation, c));
+
+  // The active card (e.g. selected by clicking a box in the PDF) becomes visible. `nearest`
+  // does not move it if already visible; focus is never moved. jsdom has no scrollIntoView.
+  useEffect(() => {
+    if (hasActiveCard && isExpanded) {
+      activeCardRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'auto' });
+    }
+  }, [activeCitation, hasActiveCard, isExpanded]);
 
   if (!citations || citations.length === 0) {
     return null;
@@ -72,6 +84,12 @@ export function RelatedDocumentsSection({
               <button
                 type="button"
                 key={`citation-card-${index}`}
+                ref={isActive ? activeCardRef : undefined}
+                data-testid="citation-card"
+                onMouseEnter={() => setHighlighted(citation)}
+                onMouseLeave={() => setHighlighted(null)}
+                onFocus={() => setHighlighted(citation)}
+                onBlur={() => setHighlighted(null)}
                 onClick={() => onInspectCitation(citation)}
                 aria-current={isActive ? 'true' : undefined}
                 className={`group relative flex flex-col justify-between p-3 border rounded-lg transition-all cursor-pointer text-left ${

@@ -406,8 +406,6 @@ All P1 items are done; this section lists only work not yet done.
 - Duplicate citations from the backend are highlighted together.
 - `/favicon.ico` returns 404.
 
-**Highlight bidirectional sync (P2-01):** Clicking a bounding box highlights its citation card; hovering a card highlights its boxes.
-
 **Page thumbnail with regions (P2-02):** Show mini-previews of cited pages with bounding boxes rendered inline (lazy-loaded).
 
 **Markdown stability (P2-03):** Test that streaming HTML tables never render as escaped text in snapshots.

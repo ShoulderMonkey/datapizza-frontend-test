@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T022)
+## Stato attuale (aggiornato a T023)
 
-Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-01..P2-07). Le righe ⚠️ dipendono da un item P2.
+Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-02..P2-07; P2-01 è `done`). Le righe ⚠️ dipendono da un item P2.
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-01..P2-07). L
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 30 file / 230 test; e2e 14/14 (T021) | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 31 file / 234 test; e2e 14/14 (T021) | P0-01, P0-02 |
 
 ---
 
@@ -286,9 +286,9 @@ Tutti gli item P1 sono `done`; restano aperti solo gli item P2 (P2-01..P2-07). L
 - Dipendenze: P1-09
 - Stima: S
 - Criteri di accettazione:
-  - [ ] Click su un box nel PDF → la card corrispondente riceve `aria-current="true"` e diventa visibile (test integration).
-  - [ ] Hover o focus sulla card → i box di quella citazione ricevono la classe attiva (test integration).
-- Stato: todo
+  - [x] Click su un box nel PDF → la card corrispondente riceve `aria-current="true"` e diventa visibile (test integration). Evidenza: `tests/integration/citation-highlight.test.tsx`; `RelatedDocumentsSection.tsx:94` (aria-current), `:30` (scrollIntoView); `npm run test` exit 0 (234 test).
+  - [x] Hover o focus sulla card → i box di quella citazione ricevono l'attributo attivo `data-highlighted="true"` (test integration). Evidenza: `tests/integration/citation-highlight.test.tsx`; `RelatedDocumentsSection.tsx:89-92`, `BoundingBoxOverlay.tsx:95`; stato in `useCitationHighlight.tsx` (context locale, nessuna dipendenza nuova).
+- Stato: done (T023)
 
 ### P2-02 — Mini-thumbnail della pagina con le regioni nella card citazione
 - Criterio della specifica: "Funzionalità minime › 4. Visualizzazione (… mini-thumbnail …)"; "Obiettivo › presentazione del fact-checking".
