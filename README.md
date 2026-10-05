@@ -322,6 +322,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 - **Escape and focus:** Escape closes the documents modal (`DocumentListModal.tsx`) and the fact-check viewer (`FactCheckPanel.tsx`); when the viewer closes, focus returns to the citation card.
 - **Live region:** the message area is `role="log"` with `aria-live="polite"` and `aria-busy` (`ChatConversation.tsx`).
 - **Focus while streaming:** the textarea is `readOnly` + `aria-disabled` (not `disabled`), so focus stays on the input after sending and is not stolen at the end of the stream (`ChatComposer.tsx`, ADR 0003).
+- **Skip link and focus after "Interrompi" (P1-12):** the viewer starts with a "Vai alle citazioni" skip link (first tab stop, Enter focuses the first citation card: 2 key presses; `PdfFactCheckViewer.tsx`); after "Interrompi" or a natural end of stream the focus goes to the textarea (`ChatComposer.tsx`). Focus rings: indigo on "Interrompi", amber in the PDF panel. Covered by `tests/integration/focus-p1-12.test.tsx` and `e2e/focus.spec.ts`. Known gap: the "Pagina PDF" region takes 13-14 Tab to reach.
 - **Buttons:** suggestion cards, citation cards and bounding boxes are `<button>`; boxes have `tabIndex={-1}` (out of the tab order, the citation list is the keyboard path). The only non-interactive click target is the decorative mobile sidebar backdrop (`aria-hidden`; keyboard alternative: "Chiudi barra laterale").
 
 ---
@@ -377,7 +378,7 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 
 - **Frontend scope (not yet implemented / planned improvements):**
   - PDF text layer (selectable and copyable text) and multi-page continuous scrolling are not implemented; users navigate one page at a time (P2-13).
-  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-12 (focus), P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
+  - Open issues found by the testers are tracked in `docs/ROADMAP.md`: P1-13 (responsive layout), P1-14 (history feedback), P1-15 (microcopy and composer), P2-08 to P2-12 (see "With More Time").
 
 - **Minor issues (low severity), tracked in P2-11:**
   - `/favicon.ico` returns 404 (no favicon in the project).
@@ -406,7 +407,6 @@ Tutti i messaggi mostrati all'utente stanno in una sola mappa in italiano, `ERRO
 This section tracks planned improvements aligned with the evaluation criteria and UX enhancements (items from `docs/ROADMAP.md`):
 
 The original P0, P1 and P2 items are done; this section lists only work not yet done, one line per open item of `docs/ROADMAP.md` (all `todo`; P0-09 is done, see `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`):
-- **P1-12**: keyboard focus polish (focus lost after "Interrompi", 15 Tab presses to the citation list, low-visibility focus rings).
 - **P1-13**: responsive layout (PDF clipped in the mobile drawer at 120% zoom, narrow conversation at 1440 px, composer placeholder clipped with the viewer open).
 - **P1-14**: history feedback (no signal when the new entry is saved, previous-entry context unlabeled).
 - **P1-15**: microcopy and composer (English "boxes" in the citation panel, success message lost after upload, "0 file" while loading, no 10000-character limit).

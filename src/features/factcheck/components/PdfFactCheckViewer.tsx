@@ -49,6 +49,14 @@ export function PdfFactCheckViewer({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const citationListRef = useRef<HTMLDivElement | null>(null);
 
+  // Skip link (P1-12): the citation list sits after the toolbar and the PDF in tab order, so a
+  // first tab stop jumps straight to its first card (Tab, Enter) instead of ~15 tab stops.
+  const focusCitationList = () => {
+    const list = citationListRef.current;
+    const target = list?.querySelector<HTMLElement>('[data-testid="viewer-citation-card"]') ?? list;
+    target?.focus();
+  };
+
   const { setHighlighted } = useCitationHighlight();
 
   // PDF download lives in the hook; parsing/rendering in react-pdf (PdfPageView).
@@ -123,6 +131,16 @@ export function PdfFactCheckViewer({
 
   return (
     <div className="flex h-full w-full flex-col bg-slate-950 animate-in fade-in duration-200">
+      {showCitationList && (
+        <button
+          type="button"
+          onClick={focusCitationList}
+          className="sr-only focus-visible:not-sr-only focus-visible:m-2 focus-visible:self-start focus-visible:rounded-lg focus-visible:bg-slate-800 focus-visible:px-3 focus-visible:py-1.5 focus-visible:text-xs focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        >
+          Vai alle citazioni
+        </button>
+      )}
+
       {/* Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800 text-white select-none">
         <div className="flex items-center gap-3 min-w-0">
@@ -291,7 +309,7 @@ export function PdfFactCheckViewer({
           role="region"
           tabIndex={0}
           aria-label="Pagina PDF"
-          className="flex-1 overflow-auto bg-slate-950 flex items-start justify-center p-4 sm:p-6"
+          className="flex-1 overflow-auto bg-slate-950 flex items-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400 justify-center p-4 sm:p-6"
         >
           {isLoading && (
             <div className="m-auto text-center p-8 bg-slate-900/90 border border-slate-800 rounded-xl shadow-2xl max-w-sm">
@@ -383,7 +401,7 @@ export function PdfFactCheckViewer({
               </button>
             </div>
 
-            <div ref={citationListRef} className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+            <div ref={citationListRef} tabIndex={-1} className="outline-none flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
               {citations.length === 0 ? (
                 <div className="text-center py-8 text-slate-400 text-xs">
                   Nessuna citazione correlata registrata per questo documento.
@@ -413,7 +431,7 @@ export function PdfFactCheckViewer({
                         setCurrentPage(getFirstRegionPage(citation) ?? citation.page_number);
                         onSelectCitation?.(citation);
                       }}
-                      className={`block w-full text-left p-3 rounded-lg border transition-all cursor-pointer ${
+                      className={`block w-full text-left p-3 rounded-lg border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                         isSelected
                           ? 'bg-amber-950/40 border-amber-500/80 ring-2 ring-amber-500/20 shadow-md'
                           : isCurrentPage

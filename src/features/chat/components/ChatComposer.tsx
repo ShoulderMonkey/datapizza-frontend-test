@@ -35,6 +35,24 @@ export function ChatComposer({
     textareaRef.current?.focus();
   }, []);
 
+  // When the stream ends while the "Interrompi" button had focus, the button is unmounted and the
+  // focus would fall back to <body>: hand it to the textarea (P1-12).
+  const wasStreamingRef = useRef(false);
+  useEffect(() => {
+    if (wasStreamingRef.current && !isStreaming) {
+      const active = document.activeElement;
+      if (!active || active === document.body || active === document.documentElement) textareaRef.current?.focus();
+    }
+    wasStreamingRef.current = isStreaming;
+  }, [isStreaming]);
+
+  const handleCancel = () => {
+    // Move focus first, synchronously, while the button still exists (the textarea is readOnly,
+    // not disabled, during a stream: ADR 0003), so the result is deterministic.
+    textareaRef.current?.focus();
+    onCancelStream();
+  };
+
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     // ADR 0003: no new send while a stream is active (the Stop button replaces Send).
@@ -101,9 +119,10 @@ export function ChatComposer({
         <div className="absolute right-2.5 bottom-2.5">
           {isStreaming ? (
             <button
+              key="cancel"
               type="button"
-              onClick={onCancelStream}
-              className="p-2 rounded-xl bg-slate-900 text-white hover:bg-red-600 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm"
+              onClick={handleCancel}
+              className="p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 rounded-xl bg-slate-900 text-white hover:bg-red-600 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm"
               title="Interrompi risposta"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
@@ -111,6 +130,7 @@ export function ChatComposer({
             </button>
           ) : (
             <button
+              key="send"
               type="submit"
               disabled={disabled || !query.trim()}
               className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 text-white transition-all cursor-pointer disabled:cursor-not-allowed shadow-sm hover:shadow"

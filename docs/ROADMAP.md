@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T031)
+## Stato attuale (aggiornato a T032)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-12, P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031) e P1-12 (T032); nessuna riga della tabella è ⚠️. Sono aperti (`todo`) i nuovi item nati dai findings dei task T001–T029: P1-13, P1-14, P1-15, P2-08, P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-12, P1-13, P1-14, P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); limiti aperti dei tester tracciati in P1-13, P1-14, P1-15 (README §8) | P1-04, P1-06, P1-09, P1-10 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -297,10 +297,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T021 (report del tester), T027.
 - Findings: focus perso sul body dopo "Interrompi" (medium, T021); 15 Tab dal pannello alla lista CITAZIONI, container di scroll focalizzabile (medium, T021); focus ring di "Interrompi" poco visibile (low, T021); focus ring della regione PDF poco visibile (low, T027).
 - Criteri di accettazione:
-  - [ ] Dopo "Interrompi" (click o Enter) `document.activeElement` è la textarea del composer (integration + e2e).
-  - [ ] Dall'apertura del pannello la prima card della lista CITAZIONI si raggiunge con al massimo 3 Tab (e2e).
-  - [ ] Il focus ring di "Interrompi" e della regione PDF ha contrasto ≥ 3:1 con lo sfondo adiacente in tema chiaro e scuro (WCAG 1.4.11), verificato con screenshot nel report del tester.
-- Stato: todo
+  - [x] Dopo "Interrompi" (click o Enter) `document.activeElement` è la textarea del composer (integration + e2e). Evidenza: `ChatComposer.tsx:49-52` (`handleCancel`) e `:44` (effect a fine stream); `tests/integration/focus-p1-12.test.tsx:60,68,78`; `e2e/focus.spec.ts:36,49,64`. `npm run test` exit 0; `npx playwright test e2e/focus.spec.ts --workers=1` exit 0 (T032).
+  - [x] Dall'apertura del pannello la prima card della lista CITAZIONI si raggiunge con al massimo 3 pressioni di tasto: criterio verificato come ≤ 3 pressioni, non come ≤ 3 Tab letterali, perché si è scelto uno skip link "Vai alle citazioni" (primo tab stop del viewer, `PdfFactCheckViewer.tsx:138-140`) invece di riordinare il DOM (WCAG 2.4.3, ordine del focus coerente con l'ordine visivo). Tab + Enter = 2 pressioni. Evidenza: `tests/integration/focus-p1-12.test.tsx:96`; `e2e/focus.spec.ts:83`; tester: `npx playwright test e2e/focus.spec.ts e2e/keyboard.spec.ts --repeat-each=3 --workers=1` exit 0 (15 passed), suite completa `npx playwright test` exit 0 (25 passed).
+  - [x] Il focus ring di "Interrompi" e della regione PDF ha contrasto ≥ 3:1 con lo sfondo adiacente in tema chiaro e scuro (WCAG 1.4.11). Evidenza: `ChatComposer.tsx:125` (ring indigo-600 / indigo-400 con offset), `PdfFactCheckViewer.tsx:312` (ring amber-400 inset). Rapporti misurati dal tester (report T032, non versionato): indigo-600 su bianco 6.29:1; indigo-400 su slate-900 5.98:1; amber-400 su slate-950 12.08:1; amber-400 su slate-800 8.76:1 (il pannello PDF è scuro in entrambi i temi).
+- Nota (low, tester T032, fuori criterio): la regione "Pagina PDF" è raggiungibile solo con 13-14 Tab dall'ingresso nel pannello; lo skip link porta alla lista citazioni, che è il percorso principale.
+- Stato: done (T032)
 
 ### P1-13 — Layout responsive di viewer e chat
 - Criterio della specifica: "UX e micro-interazioni" (layout).
@@ -513,6 +514,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | "Annulla" sull'upload quando il backend ha già ricevuto il corpo | T026, README §7 | Limite intrinseco della cancellazione lato client. |
 | Suffisso "+" e pulsante extra con totale multiplo di 20 | T025 | Scelta documentata in `docs/adr/0005-paginazione-letterale.md`. |
 | Validazione `user_id` ASCII più restrittiva del backend | T004, README §7 | Scelta voluta. |
+| Regione "Pagina PDF" raggiungibile solo con 13-14 Tab | T032 | Fuori criterio; lo skip link porta alla lista citazioni, che è il percorso principale. |
 | `pkill -f next-server` troppo largo nel tester; log della suite completa in `/tmp` non versionati | T015, T029 | Processo degli agenti: va in `.claude/agents/`, non nella roadmap. |
 
 ## Checklist di consegna manuale (utente)

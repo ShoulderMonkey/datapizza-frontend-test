@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T032, P1-12)
+- Skip link "Vai alle citazioni" nel viewer (`PdfFactCheckViewer.tsx`): primo tab stop, Enter porta alla prima card citazione (2 pressioni di tasto, scelta motivata da WCAG 2.4.3 rispetto al riordino del DOM).
+- Test: `tests/integration/focus-p1-12.test.tsx`, `e2e/focus.spec.ts` (e2e mirati x3: 15 passed; suite completa 25 passed).
+
+### Fixed (T032, P1-12)
+- Dopo "Interrompi" (click o Enter) e a fine stream naturale il focus va sulla textarea invece di perdersi sul body o sul pulsante Invia disabilitato (`ChatComposer.tsx`).
+- Focus ring più visibili: "Interrompi" (indigo-600 / indigo-400, 6.29:1 e 5.98:1) e regione PDF, card e skip link (amber-400, 12.08:1 e 8.76:1), misurati dal tester.
+
 ### Security (T031, P0-09)
 - `package.json`: override `next > postcss ^8.5.28` (righe 55-59); `npm audit --omit=dev` passa da 2 vulnerabilità (1 high) a 0, senza Next 16. Restano 5 high solo-dev nella catena `braces` (nessun fix), accettati nell'ADR `docs/adr/0006-gestione-vulnerabilita-dipendenze.md`. Gate, e2e 21/21 e build exit 0.
 
