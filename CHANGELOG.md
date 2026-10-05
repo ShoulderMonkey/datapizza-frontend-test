@@ -8,6 +8,20 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Added (T038, P2-09)
+- Thumbnail delle citazioni: pagina adattata al box fisso 140x180 con scala `min(140/pageW, 180/pageH)`, centrata, con i rect alla stessa scala (`CitationThumbnailPage.tsx`); le pagine orizzontali non sono più tagliate.
+- Proxy pdf.js condiviso per documento (`useDocumentProxy.ts`, `queryKeys.documents.proxy`): un solo parse per documento, le card usano `<Page pdf={proxy}>`; il proxy viene distrutto su refetch e rimozione dalla cache. Il viewer fa ancora il proprio parse.
+- Test: `tests/integration/CitationThumbnail.p2-09.test.tsx`, `e2e/related-1024.spec.ts` (rossi su a54a285); gate exit 0 (278 test), e2e 34 passed.
+
+### Changed (T038, P2-09)
+- `RelatedDocumentsSection.tsx` e `ChatHeader.tsx` usano container query (`@container`): card a una o due colonne e thumbnail sopra o accanto alla citazione in base alla larghezza.
+- Toolbar del viewer con `flex-wrap` e `min-w-0` (`PdfFactCheckViewer.tsx`).
+
+### Fixed (T038, P2-09)
+- Dopo un upload viene invalidata solo `queryKeys.documents.list()` (prima `documents.all`, che causava ri-download e ri-parse dei PDF in cache; `useDocumentUpload.ts`).
+- Nome accessibile "Libreria PDF" sempre presente nell'header (testo `sr-only` sotto `@md`), senza sovrapposizione al titolo a 1024 px (`ChatHeader.tsx`).
+- A 1024 px con sidebar e viewer aperti: card dei documenti correlati non più sovrapposte e "Chiudi visualizzatore" dentro il viewport.
+
 ### Fixed (T037, P2-08)
 - Citazioni identiche attivate insieme: il backend restituisce lo stesso `text_quote` placeholder per tutte, quindi l'uguaglianza strutturale evidenziava tutte le citazioni dello stesso documento e pagina. Ora identità per occorrenza con `occurrence_key` lato client (`src/api/types.ts`, `chatStreamReducer.ts`, `src/api/chat.ts`), confrontata da `isSameCitation` (`citations.ts`) con fallback strutturale; usata in `BoundingBoxOverlay.tsx` e nel `syncKey` di `PdfFactCheckViewer.tsx`.
 - Scroll della lista CITAZIONI più robusto all'apertura di un secondo documento (subito, dopo 2 rAF e con `ResizeObserver` per 600 ms; solo `list.scrollTop`).

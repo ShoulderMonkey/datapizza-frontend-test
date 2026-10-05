@@ -207,7 +207,7 @@ export function PdfFactCheckViewer({
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
           {/* Page Navigation */}
           {numPages > 0 && (
             <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-1.5 py-1 text-xs">

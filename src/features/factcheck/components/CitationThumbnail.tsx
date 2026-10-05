@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FileText } from 'lucide-react';
 import { logError } from '@/src/api';
@@ -15,7 +15,7 @@ const CitationThumbnailPage = dynamic(
 
 /** Rendered page width and fixed placeholder size (no layout shift when the page appears). */
 export const THUMBNAIL_WIDTH_PX = 140;
-export const THUMBNAIL_HEIGHT_PX = 180;
+export const THUMBNAIL_HEIGHT_PX = 180; // same box as THUMBNAIL_BOX_* in CitationThumbnailPage
 const ROOT_MARGIN = '200px';
 
 type ThumbnailState = 'idle' | 'loading' | 'rendered' | 'error';
@@ -37,7 +37,6 @@ interface CitationThumbnailProps {
 export function CitationThumbnail({ citation }: CitationThumbnailProps) {
   const containerRef = useRef<HTMLSpanElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [pageWidthPt, setPageWidthPt] = useState(0);
   const [isRendered, setIsRendered] = useState(false);
   const [renderFailed, setRenderFailed] = useState(false);
 
@@ -65,10 +64,11 @@ export function CitationThumbnail({ citation }: CitationThumbnailProps) {
   else if (isRendered) state = 'rendered';
   else if (isVisible) state = 'loading';
 
-  const fail = (err: unknown) => {
+  const fail = useCallback((err: unknown) => {
     logError('Citation thumbnail failed:', err);
     setRenderFailed(true);
-  };
+  }, []);
+  const rendered = useCallback(() => setIsRendered(true), []);
 
   return (
     <span
@@ -88,9 +88,7 @@ export function CitationThumbnail({ citation }: CitationThumbnailProps) {
         <CitationThumbnailPage
           file={file}
           citation={citation}
-          pageWidthPt={pageWidthPt}
-          onPageWidth={setPageWidthPt}
-          onRendered={() => setIsRendered(true)}
+          onRendered={rendered}
           onFail={fail}
         />
       )}

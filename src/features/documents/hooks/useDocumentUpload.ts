@@ -47,7 +47,7 @@ export function useDocumentUpload() {
     try {
       await documentService.uploadDocuments(files, controller.signal);
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
       setSuccessMessage(`${files.length} documento/i caricato/i con successo!`);
       setStatus('success');
       return true;

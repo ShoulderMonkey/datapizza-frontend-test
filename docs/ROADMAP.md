@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T037)
+## Stato attuale (aggiornato a T038)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036) e P2-08 (T037): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-09, P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037) e P2-09 (T038): tutti i P0/P1 sono `done`; nessuna riga della tabella è ⚠️. Sono aperti (`todo`) solo i nuovi item P2 nati dai findings dei task T001–T029: P2-10, P2-11, P2-12, P2-13. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -435,10 +435,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: T029, T033, README §7.
 - Findings: placeholder a misura fissa 140x180, le pagine orizzontali vengono tagliate; ogni card esegue un proprio parse pdf.js del Blob condiviso (un download per documento, un parse per card); a 1024 px con sidebar e viewer aperti la colonna chat è ~265 px: card miniatura dei documenti correlati sovrapposte (link "Verifica nel PDF" coperti) e header con "Libreria PDF" sovrapposto al titolo (preesistente, tester T033).
 - Criteri di accettazione:
-  - [ ] Una pagina orizzontale è mostrata intera nella thumbnail, senza layout shift dopo il caricamento (e2e o integration con dimensioni della pagina mockate).
-  - [ ] N card dello stesso documento producono 1 solo parse pdf.js (unit/integration con spy sul loader).
-  - [ ] A 1024 px con sidebar e viewer aperti le card dei documenti correlati e gli elementi dell'header della chat non si sovrappongono (e2e: bounding box disgiunti) e i link "Verifica nel PDF" sono cliccabili.
-- Stato: todo
+  - [x] Una pagina orizzontale è mostrata intera nella thumbnail, senza layout shift dopo il caricamento (e2e o integration con dimensioni della pagina mockate). Evidenza: `CitationThumbnailPage.tsx:16` scala `min(140/pageW, 180/pageH)` da `getViewport({scale:1})` (riga 56), pagina centrata e rect alla stessa scala, box esterno fisso 140x180 (`THUMBNAIL_BOX_*` in `CitationThumbnailPage.tsx:10-11`, `THUMBNAIL_*` in `CitationThumbnail.tsx:17-18`). Nota: nessun PDF del backend è orizzontale (612x792, 595x842), quindi la verifica è in integration con pagina 800x600 mockata (`tests/integration/CitationThumbnail.p2-09.test.tsx:81`: box 140x180, pagina 140x105 centrata); la stabilità del box 140x180 in loading e rendered è misurata anche nel browser dal tester. Rosso su a54a285, verde dopo.
+  - [x] N card dello stesso documento producono 1 solo parse pdf.js (unit/integration con spy sul loader). Evidenza: `useDocumentProxy.ts` (`queryKeys.documents.proxy(id)` in `queryKeys.ts:9`, `staleTime` infinito, `getDocument` una volta per documento, `destroy` su refetch e rimozione); le card usano `<Page pdf={proxy}>`. Test: `tests/integration/CitationThumbnail.p2-09.test.tsx:104` (3 card, 1 parse; 2 documenti, 2 parse) e `:120` (un upload invalida solo `documents.list()`, `useDocumentUpload.ts:50`, nessun nuovo GET né parse); su a54a285 `getDocument` 3 volte. Tester: 1 GET /file per documento, 0 dopo upload. Limite: il viewer fa ancora il proprio parse (il parse singolo vale per le card).
+  - [x] A 1024 px con sidebar e viewer aperti le card dei documenti correlati e gli elementi dell'header della chat non si sovrappongono (e2e: bounding box disgiunti) e i link "Verifica nel PDF" sono cliccabili. Evidenza: `e2e/related-1024.spec.ts:8` (1024 e 1440 px); `RelatedDocumentsSection.tsx:48,96` (`@container`, card a una colonna sotto `@xl`, thumbnail sopra la citazione sotto `@[20rem]`), `ChatHeader.tsx:24,50` (titolo `truncate`, etichetta "Libreria PDF" `sr-only` sotto `@md`, nome accessibile sempre presente), `PdfFactCheckViewer.tsx:210` (toolbar `flex-wrap`, "Chiudi visualizzatore" nel viewport). Su a54a285 e2e rosso (thumbnail fuori card, pulsante a right 1043,95 > 1024). Tester: 1024 chiaro/scuro senza sovrapposizioni, click reale su "Verifica nel PDF" apre il viewer.
+- Gate T038: typecheck, lint, test exit 0 (278 test); `npx playwright test` exit 0 (34 passed). Log del tester non versionato.
+- Stato: done (T038)
 
 ### P2-10 — Tema scuro: rifinitura
 - Criterio della specifica: "UX e micro-interazioni".

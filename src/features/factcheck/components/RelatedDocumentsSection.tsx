@@ -45,14 +45,14 @@ export function RelatedDocumentsSection({
   }, 0);
 
   return (
-    <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
+    <div className="@container mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
       {/* Collapsible Header */}
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between text-left text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors py-1 cursor-pointer group"
+        className="w-full flex items-center justify-between gap-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors py-1 cursor-pointer group"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Bookmark className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 group-hover:scale-110 transition-transform" />
           <span className="tracking-wide uppercase text-[11px] text-slate-600 dark:text-slate-400 font-bold">
             Documenti correlati ({citations.length})
@@ -63,7 +63,7 @@ export function RelatedDocumentsSection({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-100">
+        <div className="flex shrink-0 items-center gap-1 text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-100">
           <span className="text-[11px] font-normal">{isExpanded ? 'Comprimi' : 'Espandi'}</span>
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
@@ -71,7 +71,7 @@ export function RelatedDocumentsSection({
 
       {/* Citations Grid / Cards */}
       {isExpanded && (
-        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in duration-150">
+        <div className="mt-2.5 grid grid-cols-1 @xl:grid-cols-2 gap-2.5 animate-in fade-in duration-150">
           {citations.map((citation, index) => {
             const rectCount =
               citation.bounding_regions?.reduce(
@@ -93,7 +93,7 @@ export function RelatedDocumentsSection({
                 onBlur={() => setHighlighted(null)}
                 onClick={() => onInspectCitation(citation)}
                 aria-current={isActive ? 'true' : undefined}
-                className={`group relative flex flex-col justify-between p-3 border rounded-lg transition-all cursor-pointer text-left ${
+                className={`@container group relative flex min-w-0 flex-col justify-between p-3 border rounded-lg transition-all cursor-pointer text-left ${
                   isActive
                     ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-400/40 shadow-xs'
                     : 'bg-white/90 dark:bg-slate-900/90 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/40 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 shadow-2xs hover:shadow-xs'
@@ -112,9 +112,9 @@ export function RelatedDocumentsSection({
                     </span>
                   </span>
 
-                  <span className="flex items-start gap-2.5">
+                  <span className="flex flex-col items-start gap-2.5 @[20rem]:flex-row">
                     <CitationThumbnail citation={citation} />
-                    <span className="block min-w-0 flex-1 text-[12px] text-slate-600 dark:text-slate-400 italic line-clamp-6 leading-snug bg-slate-50/80 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-800">
+                    <span className="block w-full min-w-0 @[20rem]:w-auto @[20rem]:flex-1 text-[12px] text-slate-600 dark:text-slate-400 italic line-clamp-6 leading-snug bg-slate-50/80 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-800">
                       &ldquo;{citation.text_quote}&rdquo;
                     </span>
                   </span>

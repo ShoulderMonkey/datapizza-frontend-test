@@ -8,19 +8,26 @@ import { server } from '@/src/mocks/server';
 import { renderWithProviders, createTestQueryClient } from '@/src/test/render';
 import { installIntersectionObserver } from '@/src/test/intersectionObserver';
 
-// react-pdf cannot run in jsdom: the mocked page reports a known width (600 pt) and "renders".
+// react-pdf cannot run in jsdom: pdfjs.getDocument resolves a fake proxy whose pages are 600x800 pt.
 vi.mock('react-pdf', async () => {
   const React = await import('react');
+  const makeProxy = () => {
+    const loadingTask = { destroy: vi.fn().mockResolvedValue(undefined) };
+    return {
+      loadingTask,
+      getPage: async () => ({ getViewport: () => ({ width: 600, height: 800 }) }),
+    };
+  };
   return {
-    pdfjs: { GlobalWorkerOptions: {} },
-    Document: ({ children }: { children: React.ReactNode }) => <div data-testid="pdf-document">{children}</div>,
-    Page: ({ pageNumber, onLoadSuccess, onRenderSuccess }: {
+    pdfjs: {
+      GlobalWorkerOptions: {},
+      getDocument: vi.fn(() => ({ promise: Promise.resolve(makeProxy()) })),
+    },
+    Page: ({ pageNumber, onRenderSuccess }: {
       pageNumber: number;
-      onLoadSuccess?: (p: { originalWidth: number }) => void;
       onRenderSuccess?: () => void;
     }) => {
       React.useEffect(() => {
-        onLoadSuccess?.({ originalWidth: 600 });
         onRenderSuccess?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
@@ -67,7 +74,7 @@ afterEach(() => io.restore());
 const thumbs = () => screen.getAllByTestId('citation-thumbnail');
 
 describe('CitationThumbnail (lazy, shared cache)', () => {
-  it('makes no GET before the intersection; afterwards 1 GET, state rendered and only rects of the cited page, scaled to 140px', async () => {
+  it('makes no GET before the intersection; afterwards 1 GET, state rendered and only rects of the cited page, scaled to fit the 140x180 box', async () => {
     serveFiles();
     renderWithProviders(<RelatedDocumentsSection citations={[cited]} onInspectCitation={() => {}} />);
     const [thumb] = thumbs();
@@ -81,10 +88,10 @@ describe('CitationThumbnail (lazy, shared cache)', () => {
     expect(fileGets).toEqual(['doc-a']);
     const rects = within(thumb).getAllByTestId('thumbnail-rect');
     expect(rects).toHaveLength(2); // page 3 only, not the page 7 region
-    // factor = 72 * 140 / 600 = 16.8 px per inch
-    expect(parseFloat(rects[0].style.left)).toBeCloseTo(16.8);
-    expect(parseFloat(rects[0].style.width)).toBeCloseTo(33.6);
-    expect(parseFloat(rects[1].style.top)).toBeCloseTo(33.6);
+    // scale = min(140/600, 180/800) = 0.225 -> 72 * 0.225 = 16.2 px per inch
+    expect(parseFloat(rects[0].style.left)).toBeCloseTo(16.2);
+    expect(parseFloat(rects[0].style.width)).toBeCloseTo(32.4);
+    expect(parseFloat(rects[1].style.top)).toBeCloseTo(32.4);
   });
 
   it('two cards of the same document trigger a single download', async () => {
