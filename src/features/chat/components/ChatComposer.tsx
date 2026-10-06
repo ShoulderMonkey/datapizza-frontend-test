@@ -164,7 +164,7 @@ export function ChatComposer({
       )}
 
       <div id="composer-shortcuts-hint" className="mt-2 text-center text-[11px] text-slate-600 dark:text-slate-400">
-        Invio per inviare, Shift+Invio per a capo. Le risposte sono groundate sui PDF tramite streaming NDJSON e verificate con bounding region.
+        Invio per inviare, Shift+Invio per a capo.
       </div>
     </div>
   );

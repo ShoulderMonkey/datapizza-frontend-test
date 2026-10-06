@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T043)
+## Stato attuale (aggiornato a T045)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042) e P2-13 (T043). P1-16, P1-17 e P1-18 (T044) sono `todo`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043) e P1-16 (T045). P1-17 e P1-18 (T044) sono `todo`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -351,10 +351,10 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: richiesta utente (T044).
 - Findings: l'hint sotto il composer espone dettagli implementativi (NDJSON, bounding region).
 - Criteri di accettazione:
-  - [ ] Il testo di `#composer-shortcuts-hint` è esattamente "Invio per inviare, Shift+Invio per a capo." (unit/integration RTL).
-  - [ ] `aria-describedby` della textarea continua a puntare a `composer-shortcuts-hint` (test esistenti del composer verdi).
-  - [ ] Gate typecheck, lint, test exit 0.
-- Stato: todo
+  - [x] Il testo di `#composer-shortcuts-hint` è esattamente "Invio per inviare, Shift+Invio per a capo." (unit/integration RTL). Evidenza: `src/features/chat/components/ChatComposer.tsx:166-168`; test in `tests/integration/p1-16-composer-hint.test.tsx`.
+  - [x] `aria-describedby` della textarea continua a puntare a `composer-shortcuts-hint` (test esistenti del composer verdi). Evidenza: `src/features/chat/components/ChatComposer.tsx:118`; test suite verdi.
+  - [x] Gate typecheck, lint, test exit 0. Evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0.
+- Stato: done (T045)
 
 ### P1-17 — Empty state della nuova chat: testi placeholder
 - Criterio della specifica: "UX e micro-interazioni".
