@@ -49,7 +49,7 @@ export function LoginForm({ onLoginSuccess, notice }: LoginFormProps) {
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">DocFact Assistant</h1>
           <p className="text-sm text-slate-400 mt-1.5 max-w-xs mx-auto">
-            Chat grounded su PDF con streaming NDJSON e fact-checking visuale
+            Fai domande sui tuoi PDF e verifica le risposte sulle fonti.
           </p>
         </div>
 

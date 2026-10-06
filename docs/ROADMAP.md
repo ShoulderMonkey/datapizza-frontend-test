@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T049)
+## Stato attuale (aggiornato a T050)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046) e P1-18 (T047). P1-19 (T049) è `todo`. Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047) e P1-19 (T050), quindi tutti gli item della roadmap sono `done`. Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
-| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); microcopy e limite del composer in `ChatComposer.tsx` (P1-15) | P1-04, P1-06, P1-09, P1-10, P1-15, P1-16, P1-17, P1-18 |
+| UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); microcopy e limite del composer in `ChatComposer.tsx` (P1-15) | P1-04, P1-06, P1-09, P1-10, P1-15, P1-16, P1-17, P1-18, P1-19 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
@@ -368,7 +368,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] Titolo, sottotitolo e le tre card hanno testi placeholder semplici in italiano, e le due card cliccabili mantengono il comportamento (apre documenti / invia `SUGGESTED_QUESTION`; test esistenti verdi). Evidenza: `src/features/chat/components/WelcomePanel.tsx` (testi in righe 24, 39, 60, 63), comportamento invariato, test verdi.
   - [x] `e2e/dark-theme.spec.ts` resta verde con 0 violazioni axe `color-contrast` sull'empty state (adeguato se il `<code>` viene rimosso). Evidenza: `e2e/dark-theme.spec.ts` 0 violazioni color-contrast (report frontend-tester), `<code>` rimosso da `WelcomePanel.tsx:63`.
   - [x] Gate typecheck, lint, test exit 0. Evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0 (frontend-developer).
-- Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON") → P1-19 (T049), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
+- Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON") → P1-19 (T050, risolto), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
 - Finding (low, non bloccante): la card 2 "Fai una domanda" mostra il testo "Quali sono i punti principali trattati nei documenti?" mentre invia il `SUGGESTED_QUESTION` "…nei documenti caricati?". Rinviato.
 - Stato: done (T046)
 
@@ -394,14 +394,14 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Dipendenze: P1-17
 - Stima: XS
 - Fonte: richiesta utente (T049).
-- Findings: il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) espone dettagli implementativi ("grounded", "streaming NDJSON").
+- Findings: il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) esponeva dettagli implementativi ("grounded", "streaming NDJSON").
 - Criteri di accettazione:
-  - [ ] Il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) non contiene (case-insensitive) "ndjson", "streaming", "grounded"; è un testo semplice in italiano rivolto all'utente (unit/integration RTL).
-  - [ ] Test esistenti del login (validazione `user_id`, sessione) verdi.
-  - [ ] e2e che fanno login (smoke, session) verdi.
-  - [ ] Gate typecheck, lint, test exit 0.
+  - [x] Il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) non contiene (case-insensitive) "ndjson", "streaming", "grounded"; è un testo semplice in italiano rivolto all'utente (unit/integration RTL). Evidenza: riga 52 "Fai domande sui tuoi PDF e verifica le risposte sulle fonti."; test `tests/integration/p1-19-login-subtitle.test.tsx` (2 test).
+  - [x] Test esistenti del login (validazione `user_id`, sessione) verdi. Evidenza: `tests/integration/LoginForm.test.tsx` e `tests/integration/session-401.test.tsx` inclusi nel `npm run test` exit 0 (45 file, 297 test).
+  - [x] e2e che fanno login (smoke, session) verdi. Evidenza: `npm run e2e -- e2e/smoke.spec.ts e2e/session.spec.ts e2e/a11y.spec.ts e2e/dark-theme.spec.ts` exit 0 (11 passed, `.claude/reports/T050/e2e-subset.txt`); `npm run e2e` completo exit 0 (48 passed, `.claude/reports/T050/e2e-full.txt`); screenshot `.claude/reports/T050/login-1280-light.png` e `login-375-light.png` (sottotitolo su due righe, nessun overflow).
+  - [x] Gate typecheck, lint, test exit 0. Evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0 (45 file, 297 test).
 - Nota: `app/layout.tsx:6,9,15` (metadata description) contiene ancora "NDJSON" ed è fuori perimetro (non richiesto dall'utente).
-- Stato: todo
+- Stato: done (T050)
 
 ---
 

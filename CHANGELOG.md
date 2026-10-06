@@ -8,6 +8,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (T050, P1-19)
+- Sottotitolo del login: testo semplice in italiano "Fai domande sui tuoi PDF e verifica le risposte sulle fonti." (`src/features/auth/components/LoginForm.tsx:52`), senza i riferimenti a "grounded" e "streaming NDJSON".
+- Test: `tests/integration/p1-19-login-subtitle.test.tsx` (2 test) verifica il testo atteso e l'assenza di ndjson/streaming/grounded; gate typecheck, lint, test exit 0 (45 file, 297 test). e2e: sottoinsieme smoke, session, a11y, dark-theme 11 passed; `npm run e2e` completo 48 passed.
+- Docs: `docs/ROADMAP.md` P1-19 aggiornato a `done` (T050), stato a T050. Nota: `app/layout.tsx:6,9,15` contiene ancora "NDJSON" nel metadata description, fuori perimetro.
+
 ### Docs (T049)
 - `docs/ROADMAP.md`: nuovo item P1-19 `todo` di UX e microcopy (login: sottotitolo senza dettagli implementativi) con stima XS e dipendenza P1-17. Nota di P1-17 aggiornata per puntare a P1-19. Nota: `app/layout.tsx:6,9,15` contiene ancora "NDJSON" nel metadata description, fuori dal perimetro della richiesta. Stato attuale aggiornato a T049.
 
