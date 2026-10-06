@@ -77,7 +77,14 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
           {/* Content */}
           {message.content ? (
             <div className="relative">
-              <MarkdownRenderer content={message.content} />
+              {isUser ? (
+                // User text is shown literally: a plain React text node, never parsed as Markdown/HTML.
+                <p className="whitespace-pre-wrap break-words text-slate-800 dark:text-slate-100 leading-relaxed text-[15px]">
+                  {message.content}
+                </p>
+              ) : (
+                <MarkdownRenderer content={message.content} />
+              )}
               {isStreaming && (
                 <span className="inline-block w-2 h-4 ml-1 bg-indigo-600 animate-pulse align-middle" />
               )}

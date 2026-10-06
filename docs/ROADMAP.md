@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T054)
+## Stato attuale (aggiornato a T055)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047) e P1-19 (T050). I quattro item P1-20, P1-21, P1-22 e P2-14 sono aperti (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050) e P1-20 (T055). I tre item P1-21, P1-22 e P2-14 sono aperti (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -19,7 +19,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 3. Streaming NDJSON incrementale | ✅ | `src/api/ndjson.ts`; `src/features/chat/lib/chatStreamReducer.ts` + batching rAF in `useChatStream.ts`; `tests/integration/ChatWorkspace.batching.test.tsx` | P1-03 |
 | 3. Errori di stream (`type:"error"`, righe malformate) | ✅ | `src/api/ndjson.ts` (NDJSONParseError); `tests/integration/ChatWorkspace.stream-errors.test.tsx` | P0-05 |
 | 3. Interruzione pulita | ✅ | `src/features/chat/hooks/useChatStream.ts`; `tests/integration/ChatWorkspace.abort.test.tsx` | P1-03 |
-| 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML) | P0-04 |
+| 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML); messaggi utente testo letterale (`ChatMessageItem.tsx:80-87`, `whitespace-pre-wrap break-words`, `tests/integration/p1-20-user-message-literal.test.tsx`) | P0-04, P1-20 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx`; mini-thumbnail lazy con regioni (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`) e cache per `document_id` (`useDocumentFile.ts`); `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts` | P2-02 |
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
 | 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
@@ -411,11 +411,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: report T053 (B3), decisione utente in T054: testo letterale.
 - Findings: `src/features/chat/components/ChatMessageItem.tsx:80` passa anche i messaggi `role: user` a `MarkdownRenderer` (rehype-raw + rehype-sanitize, `src/components/ui/MarkdownRenderer.tsx:24`): `<img src=x>` digitato diventa un'immagine reale (GET verso un URL arbitrario), `**bold**` e i link vengono formattati, `<script>` sparisce.
 - Criteri di accettazione:
-  - [ ] I messaggi `role: "user"` sono resi come testo letterale, senza `MarkdownRenderer`, con a-capo preservati e parole lunghe spezzate senza overflow orizzontale (integration RTL).
-  - [ ] Con l'input `<img src=x onerror=alert(1)> **bold** [l](javascript:alert(1))` la bolla utente non contiene elementi `img`, `strong` né `a`, e il suo testo visibile coincide con l'input (integration RTL).
-  - [ ] Le risposte dell'assistente continuano a usare `MarkdownRenderer` con HTML sanitizzato (i test esistenti di P0-04 restano verdi).
-  - [ ] Gate typecheck, lint, test exit 0; e2e che inviano messaggi verdi.
-- Stato: todo
+  - [x] I messaggi `role: "user"` sono resi come testo letterale, senza `MarkdownRenderer`, con a-capo preservati e parole lunghe spezzate senza overflow orizzontale (integration RTL). Evidenza: `src/features/chat/components/ChatMessageItem.tsx:80-87` (ramo isUser: `<p className="whitespace-pre-wrap break-words ...">{message.content}</p>`), `tests/integration/p1-20-user-message-literal.test.tsx` (3 passed); e2e tester: white-space pre-wrap, nessun overflow a 375 e 1280 px (`.claude/reports/T055/p1-20-multiriga-375.png`, `p1-20-multiriga-1280.png`).
+  - [x] Con l'input `<img src=x onerror=alert(1)> **bold** [l](javascript:alert(1))` la bolla utente non contiene elementi `img`, `strong` né `a`, e il suo testo visibile coincide con l'input (integration RTL). Evidenza: `tests/integration/p1-20-user-message-literal.test.tsx` (test 1: img=0, strong=0, a=0, testo identico all'input); e2e tester (`.claude/reports/T055/p1-20-letterale.png`): testo letterale con richieste /x=0, dialog=0.
+  - [x] Le risposte dell'assistente continuano a usare `MarkdownRenderer` con HTML sanitizzato (i test esistenti di P0-04 restano verdi). Evidenza: ramo else in `ChatMessageItem.tsx:80-87` usa `<MarkdownRenderer>`; test 3 di `tests/integration/p1-20-user-message-literal.test.tsx` (lato assistente: `strong` presente, nessun `script` né `onerror` su `img`) e `npm run test` 46 file, 300 test exit 0; e2e tester P1-20 (`.claude/reports/T055/p1-20-assistente.png`): H3, P, UL, LI, STRONG presenti, citazione apre pannello.
+  - [x] Gate typecheck, lint, test exit 0; e2e che inviano messaggi verdi. Evidenza: orchestratore gate `typecheck: 0, lint: 0, test: 0`; `npm run e2e` exit 0 (48 passed, 1.6m, `.claude/reports/T055/e2e.log`).
+- Stato: done (T055)
 
 ### P1-21 — Orari dello storico nel fuso locale
 - Criterio della specifica: "Storico chat", "UX e micro-interazioni".

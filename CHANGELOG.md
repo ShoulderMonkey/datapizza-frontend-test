@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (T055, P1-20)
+- Messaggi dell'utente resi come testo letterale: no Markdown, no HTML inline, no `MarkdownRenderer`. Ramo `isUser` in `ChatMessageItem.tsx:80-87` mostra `<p className="whitespace-pre-wrap break-words ...">{message.content}</p>` con a-capo preservati e parole lunghe spezzate senza overflow orizzontale.
+- Input pericolosi (`<img src=x onerror=alert>`, `**bold**`, `[link](javascript:...)`) sono resi come testo letterale: nessun elemento `img`, `strong`, `a` o attributi nel DOM (img=0, strong=0, a=0), il testo visibile coincide all'input.
+- Risposte dell'assistente continuano a usare `MarkdownRenderer` con sanitizzazione (`rehype-raw` + `rehype-sanitize`); test 3 di `tests/integration/p1-20-user-message-literal.test.tsx` (lato assistente: `strong` presente, nessun `script` né `onerror` su `img`) e `npm run test` 46 file, 300 test exit 0.
+- Test: `tests/integration/p1-20-user-message-literal.test.tsx` (3 passed su 300 test complessivi); e2e: 48 passed con messaggi utente e assistente verificati (tester: white-space pre-wrap su 375 e 1280 px, no overflow; letterale con img/strong/a=0; assistente con H3/P/UL/LI/STRONG, citazioni funzionanti).
+- Gate typecheck, lint, test exit 0.
+
 ### Changed (T050, P1-19)
 - Sottotitolo del login: testo semplice in italiano "Fai domande sui tuoi PDF e verifica le risposte sulle fonti." (`src/features/auth/components/LoginForm.tsx:52`), senza i riferimenti a "grounded" e "streaming NDJSON".
 - Test: `tests/integration/p1-19-login-subtitle.test.tsx` (2 test) verifica il testo atteso e l'assenza di ndjson/streaming/grounded; gate typecheck, lint, test exit 0 (45 file, 297 test). e2e: sottoinsieme smoke, session, a11y, dark-theme 11 passed; `npm run e2e` completo 48 passed.
