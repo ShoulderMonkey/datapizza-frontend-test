@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T050)
+## Stato attuale (aggiornato a T054)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047) e P1-19 (T050), quindi tutti gli item della roadmap sono `done`. Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047) e P1-19 (T050). I quattro item P1-20, P1-21, P1-22 e P2-14 sono aperti (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -403,6 +403,48 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Nota: `app/layout.tsx:6,9,15` (metadata description) contiene ancora "NDJSON" ed è fuori perimetro (non richiesto dall'utente).
 - Stato: done (T050)
 
+### P1-20 — Messaggio dell'utente mostrato come testo letterale
+- Criterio della specifica: "Sicurezza e UX" (rendering sicuro), "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P0-04
+- Stima: XS
+- Fonte: report T053 (B3), decisione utente in T054: testo letterale.
+- Findings: `src/features/chat/components/ChatMessageItem.tsx:80` passa anche i messaggi `role: user` a `MarkdownRenderer` (rehype-raw + rehype-sanitize, `src/components/ui/MarkdownRenderer.tsx:24`): `<img src=x>` digitato diventa un'immagine reale (GET verso un URL arbitrario), `**bold**` e i link vengono formattati, `<script>` sparisce.
+- Criteri di accettazione:
+  - [ ] I messaggi `role: "user"` sono resi come testo letterale, senza `MarkdownRenderer`, con a-capo preservati e parole lunghe spezzate senza overflow orizzontale (integration RTL).
+  - [ ] Con l'input `<img src=x onerror=alert(1)> **bold** [l](javascript:alert(1))` la bolla utente non contiene elementi `img`, `strong` né `a`, e il suo testo visibile coincide con l'input (integration RTL).
+  - [ ] Le risposte dell'assistente continuano a usare `MarkdownRenderer` con HTML sanitizzato (i test esistenti di P0-04 restano verdi).
+  - [ ] Gate typecheck, lint, test exit 0; e2e che inviano messaggi verdi.
+- Stato: todo
+
+### P1-21 — Orari dello storico nel fuso locale
+- Criterio della specifica: "Storico chat", "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-07
+- Stima: S
+- Fonte: report T053 (B2).
+- Findings: il backend restituisce `created_at` in UTC senza offset (es. `2026-10-06T13:03:46.422580`). `new Date(created_at)` lo legge come ora locale: in Europe/Rome sidebar e messaggi caricati dallo storico sono indietro di 2 ore rispetto al messaggio live. Punti: `src/features/history/components/ChatSidebar.tsx:47`, `src/features/chat/components/ChatMessageItem.tsx:63`.
+- Criteri di accettazione:
+  - [ ] Un'unica funzione condivisa interpreta come UTC i timestamp senza offset (`YYYY-MM-DDTHH:mm:ss[.frazione]`) e lascia invariati quelli con `Z` o con offset `±HH:MM` (unit, con TZ fissata a Europe/Rome: `2026-10-06T13:03:46.422580` → ore 15:03).
+  - [ ] Sidebar dello storico e orario del messaggio usano quella funzione; in `src/` non resta alcun `new Date(<created_at>)` diretto (verifica con grep riportata nell'evidenza).
+  - [ ] Un messaggio caricato dallo storico mostra lo stesso orario dello stesso messaggio visto live (integration con MSW e TZ fissata).
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
+### P1-22 — Identità coerente tra tab
+- Criterio della specifica: "Login mock + cookie", "Uso corretto del backend".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-05
+- Stima: S
+- Fonte: report T053 (B4).
+- Findings: l'identità mostrata viene da localStorage (`src/features/auth/hooks/useSession.ts`), mentre il cookie `user_id` è condiviso tra le tab. Passi: tab 1 login come x1; tab 2 "Esci" e login come x2; tab 1 continua a mostrare x1, ma le chat inviate da tab 1 vengono salvate dal backend come x2.
+- Criteri di accettazione:
+  - [ ] Se in un'altra tab l'utente esce, la tab corrente torna al login senza reload manuale (integration: evento `storage` o `BroadcastChannel` simulato).
+  - [ ] Se in un'altra tab entra un utente diverso, la tab corrente mostra il nuovo utente, azzera la conversazione aperta e ricarica storico e documenti del nuovo utente (integration).
+  - [ ] e2e con due pagine nello stesso browser context: dopo il login di x2 nella pagina 2, la pagina 1 non mostra più x1.
+  - [ ] Gate typecheck, lint, test exit 0; e2e di sessione (`e2e/session.spec.ts`) verdi.
+- Stato: todo
+
 ---
 
 ## P2 — Differenzianti
@@ -554,6 +596,20 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Decisione: `docs/adr/0008-viewer-scroll-continuo.md`.
 - Stato: done (T043)
 
+### P2-14 — Dev server stabile durante le verifiche nel browser
+- Criterio della specifica: "Qualità del codice" (tooling e affidabilità della verifica).
+- Owner: `frontend-developer` (configurazione: `frontend-tester` per la verifica)
+- Dipendenze: P2-12
+- Stima: S
+- Fonte: report T053 (B9/T2).
+- Findings: `.mcp.json` imposta `--output-dir .claude/reports`, dentro il repo. Durante T053 la scrittura dei log di Playwright MCP ha innescato un ciclo di Fast Refresh del dev server (circa 6 rebuild al secondo), pagine ricaricate a metà stream e una cache `.next` corrotta: TypeError "reading 'call'" in `CitationThumbnail.tsx:88`, 27 e2e su 48 falliti. Gli stessi e2e su un dev server fresco: 47 passati su 48.
+- Criteri di accettazione:
+  - [ ] Individuata e documentata la causa: quale watcher (webpack di Next, rilevamento sorgenti di Tailwind v4 o altro) reagisce ai file scritti in `.claude/`.
+  - [ ] Con `next dev` attivo, creare 20 file in `.claude/reports/probe/` non produce ricompilazioni né Fast Refresh nel log del dev server (verifica del tester con il log allegato).
+  - [ ] L'output di Playwright MCP non finisce più in una cartella osservata dal dev server; le istruzioni del tester (`.claude/agents/frontend-tester.md`) sono coerenti con il nuovo percorso.
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
 ---
 
 ## Idee scartate (con motivo)
@@ -582,6 +638,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | Regione "Pagina PDF" raggiungibile solo con 13-14 Tab | T032 | Fuori criterio; lo skip link porta alla lista citazioni, che è il percorso principale. |
 | `pkill -f next-server` troppo largo nel tester; log della suite completa in `/tmp` non versionati | T015, T029 | Processo degli agenti: va in `.claude/agents/`, non nella roadmap. |
 | Nome del file nell'header del viewer troncato a 1 carattere a 1280 px (sidebar e viewer aperti) | T043 (effetto della toolbar compatta di T040) | Aperto, severità low: rinviato per non riaprire il layout della toolbar a fine roadmap. |
+| Pulsante "Ripristina 100%" imposta lo zoom a 1.2 (`src/features/factcheck/components/PdfFactCheckViewer.tsx:160`) | T053 (B5) | Non richiesto dall'utente in T054, severità low. |
+| L'attributo `node="[object Object]"` finisce sul `<code>` inline per lo spread di props (`src/components/ui/MarkdownRenderer.tsx:70-78`) | T053 (B7) | Non richiesto dall'utente in T054, severità low. |
+| Nessuno stato nell'URL, quindi "indietro" esce dall'app e la chat aperta si perde al reload | T053 (B8) | Non richiesto dall'utente in T054, severità low. |
+| Il tab upload mostra "multipart/form-data, campo files"; il nome del documento nell'header del viewer si riduce a una lettera accanto al badge | T053 (B10) | Non richiesto dall'utente in T054, severità low. |
+| `e2e/hygiene.spec.ts:8` considera produzione qualsiasi `PLAYWRIGHT_BASE_URL`, quindi fallisce contro un dev server esterno | T053 (T1) | Non richiesto dall'utente in T054, severità low. |
 
 ## Checklist di consegna manuale (utente)
 
