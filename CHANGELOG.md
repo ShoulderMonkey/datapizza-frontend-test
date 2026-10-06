@@ -11,6 +11,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 ### Docs (T044)
 - `docs/ROADMAP.md`: aggiunti tre nuovi item `todo` di UX e microcopy: P1-16 (hint del composer senza dettagli implementativi NDJSON) e P1-17 (empty state della nuova chat con testi placeholder semplici, senza riferimenti alla specifica) con stima P1-16: XS e P1-17: S, dipendenza P1-15 per entrambi; P1-18 (sidebar collassata: un solo bottone per riaprirla) con stima XS e dipendenza P1-13, per evitare il duplicato del bottone "Espandi barra laterale" nella topbar a viewport ≥ 768 px. Nota: `src/features/auth/components/LoginForm.tsx:52` e `app/layout.tsx:6,9,15` contengono ancora riferimenti a "NDJSON" e metadata, fuori dal perimetro della richiesta.
 
+### Changed (T046, P1-17)
+- WelcomePanel: testi placeholder semplici in italiano senza riferimenti alla specifica o dettagli implementativi. Sottotitolo: "Fai una domanda sui tuoi documenti PDF: le risposte riportano le fonti e mostrano il punto esatto nel documento." (righe 24). Card 1: "Carica i PDF su cui vuoi fare domande." (riga 39). Card 3: "Controlla le fonti" / "Apri una citazione per vedere il passaggio evidenziato nella pagina del PDF." (righe 60, 63), `<code>` rimosso.
+- Test: `tests/integration/p1-17-welcome-panel.test.tsx` verifica che non compaia gergo tecnico (ndjson, multipart, form-data, bounding, rects_in, streaming); suite completa con gate typecheck, lint, test exit 0 (295 test). e2e `dark-theme.spec.ts` verde con 0 violazioni color-contrast.
+- Docs: `docs/ROADMAP.md` aggiornato, P1-17 `done` (T046), stato a T046, finding low sulla card 2 rinviato.
+
 ### Changed (T045, P1-16)
 - Hint del composer: testo ridotto a sole scorciatoie "Invio per inviare, Shift+Invio per a capo." (rimossi dettagli implementativi NDJSON e bounding region) (`src/features/chat/components/ChatComposer.tsx:166-168`).
 - Test: `tests/integration/p1-16-composer-hint.test.tsx`; suite completa con gate typecheck, lint, test exit 0.

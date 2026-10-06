@@ -21,7 +21,7 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
         Benvenuto in DocFact Assistant
       </h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-        Poni domande sui documenti PDF caricati. L&apos;assistente genera risposte verificate in streaming NDJSON con citazioni esatte e regioni visive evidenziate.
+        Fai una domanda sui tuoi documenti PDF: le risposte riportano le fonti e mostrano il punto esatto nel documento.
       </p>
 
       {/* Quick suggestions / cards */}
@@ -36,7 +36,7 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
             <span>1. Carica PDF</span>
           </span>
           <span className="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-            Carica i documenti di test del backend tramite multipart/form-data.
+            Carica i PDF su cui vuoi fare domande.
           </span>
         </button>
 
@@ -57,10 +57,10 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
         <div className="p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
           <div className="flex items-center gap-2 font-semibold text-xs text-slate-800 dark:text-slate-100 mb-1">
             <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-            <span>3. Verifica Bounding Box</span>
+            <span>3. Controlla le fonti</span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-            I box in pollici <code className="bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100 px-1 rounded text-[10px]">rects_in</code> vengono visualizzati graficamente sulla pagina PDF esatta.
+            Apri una citazione per vedere il passaggio evidenziato nella pagina del PDF.
           </p>
         </div>
       </div>

@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T045)
+## Stato attuale (aggiornato a T046)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043) e P1-16 (T045). P1-17 e P1-18 (T044) sono `todo`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045) e P1-17 (T046). P1-18 (T044) è `todo`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -364,12 +364,13 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: richiesta utente (T044).
 - Findings: i testi del WelcomePanel citano dettagli della specifica/implementazione (NDJSON, multipart/form-data, Bounding Box, rects_in) invece di testi rivolti all'utente.
 - Criteri di accettazione:
-  - [ ] Il testo renderizzato di WelcomePanel non contiene (case-insensitive) "ndjson", "multipart", "form-data", "bounding", "rects_in", "streaming" (unit/integration RTL).
-  - [ ] Titolo, sottotitolo e le tre card hanno testi placeholder semplici in italiano, e le due card cliccabili mantengono il comportamento (apre documenti / invia `SUGGESTED_QUESTION`; test esistenti verdi).
-  - [ ] `e2e/dark-theme.spec.ts` resta verde con 0 violazioni axe `color-contrast` sull'empty state (adeguato se il `<code>` viene rimosso).
-  - [ ] Gate typecheck, lint, test exit 0.
+  - [x] Il testo renderizzato di WelcomePanel non contiene (case-insensitive) "ndjson", "multipart", "form-data", "bounding", "rects_in", "streaming" (unit/integration RTL). Evidenza: `tests/integration/p1-17-welcome-panel.test.tsx` (test per gergo tecnico), `npm run test` exit 0.
+  - [x] Titolo, sottotitolo e le tre card hanno testi placeholder semplici in italiano, e le due card cliccabili mantengono il comportamento (apre documenti / invia `SUGGESTED_QUESTION`; test esistenti verdi). Evidenza: `src/features/chat/components/WelcomePanel.tsx` (testi in righe 24, 39, 60, 63), comportamento invariato, test verdi.
+  - [x] `e2e/dark-theme.spec.ts` resta verde con 0 violazioni axe `color-contrast` sull'empty state (adeguato se il `<code>` viene rimosso). Evidenza: `e2e/dark-theme.spec.ts` 0 violazioni color-contrast (report frontend-tester), `<code>` rimosso da `WelcomePanel.tsx:63`.
+  - [x] Gate typecheck, lint, test exit 0. Evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0 (frontend-developer).
 - Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON"), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
-- Stato: todo
+- Finding (low, non bloccante): la card 2 "Fai una domanda" mostra il testo "Quali sono i punti principali trattati nei documenti?" mentre invia il `SUGGESTED_QUESTION` "…nei documenti caricati?". Rinviato.
+- Stato: done (T046)
 
 ### P1-18 — Sidebar collassata: un solo bottone per riaprirla
 - Criterio della specifica: "UX e micro-interazioni".
