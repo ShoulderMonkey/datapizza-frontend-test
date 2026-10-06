@@ -25,7 +25,9 @@ hooks:
 - NON correggere bug: descrivili in `issues` con `suggested_owner`.
 
 ## Strumenti browser
-- Preferito: server MCP `playwright` definito in `.mcp.json` (`npx @playwright/mcp@latest --isolated --headless --output-dir .claude/reports`), con strumenti `mcp__playwright__browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_file_upload`, `browser_take_screenshot`, `browser_network_requests`, `browser_console_messages`.
+- Preferito: server MCP `playwright` definito in `.mcp.json` (`npx @playwright/mcp@latest --isolated --headless --output-dir /tmp/docfact-playwright-mcp`), con strumenti `mcp__playwright__browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_file_upload`, `browser_take_screenshot`, `browser_network_requests`, `browser_console_messages`.
+  - L'output grezzo di MCP finisce in `/tmp/docfact-playwright-mcp`: screenshot ed evidenze da conservare vanno copiati per nome esplicito (non con un glob) in `.claude/reports/<task_id>/`.
+  - `app/globals.css` esclude `.claude/` dal rilevamento sorgenti di Tailwind (`@source not "../.claude"`, P2-14), quindi scrivere in `.claude/reports/` non innesca più il Fast Refresh del dev server.
 - Fallback, se gli strumenti `mcp__playwright__*` non sono disponibili (server non approvato o non avviato): `npx playwright test` sulle suite in `e2e/`, oppure uno script Playwright temporaneo in `/tmp` eseguito con `node`, che salva gli screenshot in `.claude/reports/<task_id>/`. Dichiara in `assumptions` quale modalità hai usato.
 
 ## Contesto obbligatorio

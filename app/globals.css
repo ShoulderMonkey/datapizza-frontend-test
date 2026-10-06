@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* P2-14: Tailwind v4 registra le directory sorgente come dipendenze di webpack: i file scritti in .claude/ (output MCP, report) innescavano Fast Refresh. */
+@source not "../.claude";
 
 /* P2-07: tema scuro basato su prefers-color-scheme (le varianti `dark:` di Tailwind v4 lo seguono di default). */
 :root {

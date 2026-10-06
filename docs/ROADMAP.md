@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T057)
+## Stato attuale (aggiornato a T058)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050), P1-20 (T055), P1-21 (T056) e P1-22 (T057). Resta aperto solo P2-14 (stato `todo`, proveniente dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050), P1-20 (T055), P1-21 (T056), P1-22 (T057) e P2-14 (T058). Tutti gli item della roadmap sono `done` (45/45). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
 | Deliverable: Dockerfile | ✅ | `Dockerfile` (multi-stage, node:22-alpine, non-root uid 1001), `docker-compose.yml` (backend + frontend, health check), `.claude/reports/T010/03-curl.txt` (docker compose up, curl 200) | P0-07 |
 | Deliverable: README accurato | ✅ | README.md §1–9 (sezioni complete), `.claude/reports/T011/summary.md`, `03-dev-curl.txt`, `05-compose-curl.txt` | P0-08 |
-| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 34 file / 250 test (T029); e2e: suite e2e + `e2e/a11y.spec.ts` + `e2e/dark-theme.spec.ts` + `e2e/thumbnails.spec.ts` | P0-01, P0-02 |
+| Harness di test / quality gate | ✅ | `package.json` (typecheck, lint, test, e2e); `vitest.config.ts`; `playwright.config.ts`; MSW (`src/mocks/`); vitest 34 file / 250 test (T029); e2e: suite e2e + `e2e/a11y.spec.ts` + `e2e/dark-theme.spec.ts` + `e2e/thumbnails.spec.ts`; `app/globals.css` (`@source not "../.claude"`); `.mcp.json` (output MCP in `/tmp`) | P0-01, P0-02, P2-14 |
 
 ---
 
@@ -604,11 +604,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: report T053 (B9/T2).
 - Findings: `.mcp.json` imposta `--output-dir .claude/reports`, dentro il repo. Durante T053 la scrittura dei log di Playwright MCP ha innescato un ciclo di Fast Refresh del dev server (circa 6 rebuild al secondo), pagine ricaricate a metà stream e una cache `.next` corrotta: TypeError "reading 'call'" in `CitationThumbnail.tsx:88`, 27 e2e su 48 falliti. Gli stessi e2e su un dev server fresco: 47 passati su 48.
 - Criteri di accettazione:
-  - [ ] Individuata e documentata la causa: quale watcher (webpack di Next, rilevamento sorgenti di Tailwind v4 o altro) reagisce ai file scritti in `.claude/`.
-  - [ ] Con `next dev` attivo, creare 20 file in `.claude/reports/probe/` non produce ricompilazioni né Fast Refresh nel log del dev server (verifica del tester con il log allegato).
-  - [ ] L'output di Playwright MCP non finisce più in una cartella osservata dal dev server; le istruzioni del tester (`.claude/agents/frontend-tester.md`) sono coerenti con il nuovo percorso.
-  - [ ] Gate typecheck, lint, test exit 0.
-- Stato: todo
+  - [x] Individuata e documentata la causa: quale watcher (webpack di Next, rilevamento sorgenti di Tailwind v4 o altro) reagisce ai file scritti in `.claude/`. Evidenza: causa: il rilevamento automatico delle sorgenti di Tailwind v4 (`@tailwindcss/postcss`, `@import "tailwindcss"` in `app/globals.css`) registra le directory del repo, inclusa `.claude/`, come dipendenze di webpack; `.gitignore` non conta per il watcher. Non è il watcher di webpack di Next (`next.config.ts` invariato). Prima del fix un file in `.claude/reports/` produce "[Fast Refresh] rebuilding" per 6 estensioni su 6 (yml, png, md, log, txt, json), anche in `.claude/state/`; fix `app/globals.css:2-3` (`@source not "../.claude";`), dopo il fix 0 rebuild in `.claude/reports/` e `.claude/state/` (riproduzione del developer su copia con `next dev -p 3100`, exit 0).
+  - [x] Con `next dev` attivo, creare 20 file in `.claude/reports/probe/` non produce ricompilazioni né Fast Refresh nel log del dev server (verifica del tester con il log allegato). Evidenza: sonda del tester sul dev server :3000 del repo: 20 file (5 x .yml/.png/.md/.log) in `.claude/reports/probe/` → righe Compiling/Compiled 0, Fast Refresh 0, reload 0 (`.claude/reports/T058/probe.json`, `dev-server.log`, `probe-page.png`); controprova `touch app/page.tsx` → 1 "Compiled in 223ms", "[Fast Refresh] rebuilding" + "done in 232ms".
+  - [x] L'output di Playwright MCP non finisce più in una cartella osservata dal dev server; le istruzioni del tester (`.claude/agents/frontend-tester.md`) sono coerenti con il nuovo percorso. Evidenza: `.mcp.json` ora usa `--output-dir /tmp/docfact-playwright-mcp` (prima `.claude/reports`); `.claude/agents/frontend-tester.md` aggiornato in questo task con il nuovo percorso, la copia per nome esplicito delle evidenze in `.claude/reports/<task_id>/` e la nota su `@source not "../.claude"`.
+  - [x] Gate typecheck, lint, test exit 0. Evidenza: orchestratore `typecheck: 0, lint: 0, test: 0` (49 file, 310 test); `npm run e2e` exit 0, 50 passed (`.claude/reports/T058/e2e.log`).
+- Stato: done (T058)
 
 ---
 

@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T058, P2-14)
+- Dev server stabile durante le verifiche nel browser: causa nel rilevamento automatico delle sorgenti di Tailwind v4 (`@tailwindcss/postcss`, `@import "tailwindcss"` in `app/globals.css`), che registra le directory del repo, inclusa `.claude/`, come dipendenze di webpack; `.gitignore` non conta per il watcher. Non è il watcher di webpack di Next (`next.config.ts` invariato).
+- `app/globals.css:2-3`: `@source not "../.claude";`. Prima del fix un file in `.claude/reports/` produceva "[Fast Refresh] rebuilding" per 6 estensioni su 6 (yml, png, md, log, txt, json); dopo il fix 0 rebuild in `.claude/reports/` e `.claude/state/`.
+- `.mcp.json`: `--output-dir /tmp/docfact-playwright-mcp` (prima `.claude/reports`); `.claude/agents/frontend-tester.md` allineato.
+- Verifica del tester sul dev server :3000: 20 file in `.claude/reports/probe/` → Compiling/Compiled 0, Fast Refresh 0, reload 0; controprova `touch app/page.tsx` → 1 "Compiled in 223ms" e Fast Refresh. `npm run e2e` 50 passed. Gate typecheck, lint, test exit 0 (49 file, 310 test).
+- Docs: `docs/ROADMAP.md` P2-14 aggiornato a `done` (T058); tutti gli item della roadmap sono `done` (45/45).
+
 ### Fixed (T057, P1-22)
 - Identità coerente tra tab: `subscribeToStoredUserId` in `src/features/auth/lib/session-storage.ts` ascolta l'evento `storage` sulla chiave `docfact_auth_user_id` (`key === null` = `localStorage.clear` = logout), con cleanup; `AUTH_USER_KEY` è ora esportata.
 - `useSession.ts`: logout in un'altra tab → anonymous con avviso `signed_out_elsewhere` ("Sei uscito da un'altra scheda. Accedi di nuovo.", `src/api/errorMessages.ts`); utente diverso → `resetUnauthorizedGuard` e nuovo `userId` authenticated; stesso utente → nessun effetto.
