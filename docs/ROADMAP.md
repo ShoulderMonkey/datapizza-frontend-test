@@ -7,7 +7,7 @@
 
 ## Stato attuale (aggiornato a T043)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039) P2-11 (T041), P2-12 (T042) e P2-13 (T043): tutti gli item P0/P1/P2 sono `done`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042) e P2-13 (T043). P1-16, P1-17 e P1-18 (T044) sono `todo`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -342,6 +342,49 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] Durante il caricamento della lista la modale non mostra "0 file" ma uno stato di caricamento (integration). Evidenza: `DocumentListModal.tsx:166` ("Caricamento…"); `tests/integration/p1-15-microcopy.test.tsx`; tester S3 con GET ritardata, nessun "0 file".
   - [x] Il composer impedisce l'invio oltre 10000 caratteri e mostra il contatore o un messaggio in italiano prima della richiesta (integration). Evidenza: `src/api/chat.ts:17` (`QUERY_MAX_LENGTH = 10000`), `ChatComposer.tsx:23-24,65-66,161-162`, `errorMessages.ts:26`; `tests/integration/p1-15-microcopy.test.tsx`; tester S4 10001 caratteri: role=alert, Invia disabilitato, 0 POST (chiaro e scuro). Test nuovi 7/7 rossi su 1421d3a e verdi dopo; `npm run typecheck`, `lint`, `test` exit 0 (39 file, 271 test); `npx playwright test` exit 0 (31 passed); report tester non versionato.
 - Stato: done (T036)
+
+### P1-16 — Hint del composer: solo le scorciatoie
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-15
+- Stima: XS
+- Fonte: richiesta utente (T044).
+- Findings: l'hint sotto il composer espone dettagli implementativi (NDJSON, bounding region).
+- Criteri di accettazione:
+  - [ ] Il testo di `#composer-shortcuts-hint` è esattamente "Invio per inviare, Shift+Invio per a capo." (unit/integration RTL).
+  - [ ] `aria-describedby` della textarea continua a puntare a `composer-shortcuts-hint` (test esistenti del composer verdi).
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
+### P1-17 — Empty state della nuova chat: testi placeholder
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-15
+- Stima: S
+- Fonte: richiesta utente (T044).
+- Findings: i testi del WelcomePanel citano dettagli della specifica/implementazione (NDJSON, multipart/form-data, Bounding Box, rects_in) invece di testi rivolti all'utente.
+- Criteri di accettazione:
+  - [ ] Il testo renderizzato di WelcomePanel non contiene (case-insensitive) "ndjson", "multipart", "form-data", "bounding", "rects_in", "streaming" (unit/integration RTL).
+  - [ ] Titolo, sottotitolo e le tre card hanno testi placeholder semplici in italiano, e le due card cliccabili mantengono il comportamento (apre documenti / invia `SUGGESTED_QUESTION`; test esistenti verdi).
+  - [ ] `e2e/dark-theme.spec.ts` resta verde con 0 violazioni axe `color-contrast` sull'empty state (adeguato se il `<code>` viene rimosso).
+  - [ ] Gate typecheck, lint, test exit 0.
+- Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON"), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
+- Stato: todo
+
+### P1-18 — Sidebar collassata: un solo bottone per riaprirla
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-13
+- Stima: XS
+- Fonte: richiesta utente (T044).
+- Findings: con la sidebar collassata da md in su compaiono due bottoni "Espandi barra laterale" (uno nel rail collassato e uno nella topbar).
+- Criteri di accettazione:
+  - [ ] A viewport ≥ 768 px con sidebar collassata è visibile esattamente un bottone con nome accessibile "Espandi barra laterale", quello del rail `data-sidebar="collapsed"` (`src/features/history/components/ChatSidebar.tsx:85-92`; e2e Playwright con conteggio elementi).
+  - [ ] A viewport < 768 px con sidebar chiusa resta un modo visibile e accessibile da tastiera per riaprirla (il bottone della topbar in `src/features/chat/components/ChatHeader.tsx:26-34` rimane solo sotto il breakpoint di viewport `md` (768 px), lo stesso del rail `hidden md:flex`; non usare la container query `@md` dell'header; e2e a 375 px).
+  - [ ] Test esistenti di sidebar, layout, responsive, keyboard rimangono verdi.
+  - [ ] Gate typecheck, lint, test exit 0.
+- Nota: decisione di rimozione limitata a md in su per non lasciare il mobile senza comando di apertura della sidebar.
+- Stato: todo
 
 ---
 

@@ -8,6 +8,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Docs (T044)
+- `docs/ROADMAP.md`: aggiunti tre nuovi item `todo` di UX e microcopy: P1-16 (hint del composer senza dettagli implementativi NDJSON) e P1-17 (empty state della nuova chat con testi placeholder semplici, senza riferimenti alla specifica) con stima P1-16: XS e P1-17: S, dipendenza P1-15 per entrambi; P1-18 (sidebar collassata: un solo bottone per riaprirla) con stima XS e dipendenza P1-13, per evitare il duplicato del bottone "Espandi barra laterale" nella topbar a viewport ≥ 768 px. Nota: `src/features/auth/components/LoginForm.tsx:52` e `app/layout.tsx:6,9,15` contengono ancora riferimenti a "NDJSON" e metadata, fuori dal perimetro della richiesta.
+
 ### Added (T043, P2-13)
 - Viewer PDF a scroll continuo con rendering lazy: pagine in colonna con segnaposto a misura esatta (`usePdfPageSizes.ts`, `PdfPageSlot.tsx`, `lib/pageLayout.ts`), disegnate solo entro un'altezza del contenitore sopra e sotto la vista; pagina corrente sotto il centro del contenitore; navigazione alle citazioni anche su pagine lontane, zoom che mantiene il punto al centro, proxy pdf.js condiviso con le thumbnail.
 - Text layer attivo (testo selezionabile e copiabile), box sopra di esso con `pointer-events` solo sui box; annotation layer spento.
