@@ -11,6 +11,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 ### Docs (T044)
 - `docs/ROADMAP.md`: aggiunti tre nuovi item `todo` di UX e microcopy: P1-16 (hint del composer senza dettagli implementativi NDJSON) e P1-17 (empty state della nuova chat con testi placeholder semplici, senza riferimenti alla specifica) con stima P1-16: XS e P1-17: S, dipendenza P1-15 per entrambi; P1-18 (sidebar collassata: un solo bottone per riaprirla) con stima XS e dipendenza P1-13, per evitare il duplicato del bottone "Espandi barra laterale" nella topbar a viewport ≥ 768 px. Nota: `src/features/auth/components/LoginForm.tsx:52` e `app/layout.tsx:6,9,15` contengono ancora riferimenti a "NDJSON" e metadata, fuori dal perimetro della richiesta.
 
+### Changed (T047, P1-18)
+- Bottone "Espandi barra laterale" della topbar: nascosto a viewport ≥ 768 px con classe Tailwind `md:hidden` (breakpoint di viewport, non container query), lasciando visibile il solo bottone del rail collassato. A < 768 px il bottone resta visibile e accessibile per mobile. Test: `e2e/sidebar-single-expand.spec.ts` (4 test a 1280, 768 e 375 px); run con keyboard, focus, layout e responsive 18 passed; 7 spec mirati (incl. dark-theme e a11y) 26 passed; gate typecheck, lint, test exit 0 (295 test).
+- Finding (low, non bloccante): il focus ring del bottone topbar non è visibile dopo focus() programmatico su mobile; l'attivazione da tastiera è funzionante e coperta dall'e2e.
+- Docs: `docs/ROADMAP.md` P1-18 aggiornato a `done` (T047), tabella dei criteri aggiornata con P1-16, P1-17, P1-18.
+
 ### Changed (T046, P1-17)
 - WelcomePanel: testi placeholder semplici in italiano senza riferimenti alla specifica o dettagli implementativi. Sottotitolo: "Fai una domanda sui tuoi documenti PDF: le risposte riportano le fonti e mostrano il punto esatto nel documento." (righe 24). Card 1: "Carica i PDF su cui vuoi fare domande." (riga 39). Card 3: "Controlla le fonti" / "Apri una citazione per vedere il passaggio evidenziato nella pagina del PDF." (righe 60, 63), `<code>` rimosso.
 - Test: `tests/integration/p1-17-welcome-panel.test.tsx` verifica che non compaia gergo tecnico (ndjson, multipart, form-data, bounding, rects_in, streaming); suite completa con gate typecheck, lint, test exit 0 (295 test). e2e `dark-theme.spec.ts` verde con 0 violazioni color-contrast.
