@@ -2,7 +2,7 @@
  * Local persistence of the logged-in user id (UI convenience only: the real session
  * is the HttpOnly `user_id` cookie set by the backend, which JS cannot read).
  */
-const AUTH_USER_KEY = 'docfact_auth_user_id';
+export const AUTH_USER_KEY = 'docfact_auth_user_id';
 
 export function getStoredUserId(): string | null {
   if (typeof window === 'undefined') return null;
@@ -29,4 +29,19 @@ export function clearStoredUserId(): void {
   } catch {
     // ignore storage errors
   }
+}
+
+/**
+ * Subscribes to identity changes made by other tabs (the `storage` event only fires in the
+ * other documents). `null` means the user id was removed (`key === null` is `localStorage.clear()`).
+ * Returns the cleanup function.
+ */
+export function subscribeToStoredUserId(callback: (userId: string | null) => void): () => void {
+  if (typeof window === 'undefined') return () => undefined;
+  const handler = (event: StorageEvent) => {
+    if (event.key !== null && event.key !== AUTH_USER_KEY) return;
+    callback(event.key === null ? null : event.newValue);
+  };
+  window.addEventListener('storage', handler);
+  return () => window.removeEventListener('storage', handler);
 }

@@ -8,6 +8,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T057, P1-22)
+- Identità coerente tra tab: `subscribeToStoredUserId` in `src/features/auth/lib/session-storage.ts` ascolta l'evento `storage` sulla chiave `docfact_auth_user_id` (`key === null` = `localStorage.clear` = logout), con cleanup; `AUTH_USER_KEY` è ora esportata.
+- `useSession.ts`: logout in un'altra tab → anonymous con avviso `signed_out_elsewhere` ("Sei uscito da un'altra scheda. Accedi di nuovo.", `src/api/errorMessages.ts`); utente diverso → `resetUnauthorizedGuard` e nuovo `userId` authenticated; stesso utente → nessun effetto.
+- `app/page.tsx`: `<QueryProvider key={userId}>` rimonta cache e `ChatWorkspace` al cambio utente, quindi storico e documenti vengono ricaricati.
+- Test: `tests/integration/p1-22-cross-tab-session.test.tsx` (prima del fix 2 failed su 2, exit 1; dopo exit 0) ed `e2e/p1-22-multitab.spec.ts` (2 test). Gate typecheck, lint, test exit 0 (49 file, 310 test).
+- e2e: `npm run e2e` 50 passed. Senza reload: x1=0, x2=1, conversazione di x1 non visibile, storico 0 voci, nuova domanda → `GET /api/chat/` 200 con user_id x2; logout in un'altra tab → login con avviso; login/logout nella stessa pagina invariati.
+- Docs: `docs/ROADMAP.md` P1-22 aggiornato a `done` (T057); resta aperto solo P2-14.
+
 ### Fixed (T056, P1-21)
 - Orari dello storico nel fuso locale: il backend restituisce `created_at` in UTC senza offset (es. `2026-10-06T13:03:46.422580`) e `new Date()` lo leggeva come ora locale (in Europe/Rome indietro di 2 ore). Nuova funzione condivisa `parseApiDate` in `src/api/dates.ts`: aggiunge `Z` ai timestamp ISO senza offset, lascia invariati quelli con `Z` o `±HH:MM`/`±HHMM`, stringhe invalide → NaN.
 - `ChatSidebar.tsx` (`formatEntryDate` e `<time dateTime>`), `ChatMessageItem.tsx`, `useChatList.ts` (ordinamento) e `findSavedChatId.ts` usano `parseApiDate`. Grep `new Date(` / `Date.parse` in `src`: restano solo `useChatStream.ts:131,138` (`new Date().toISOString()`, messaggi live) e `src/api/dates.ts:10-11`.

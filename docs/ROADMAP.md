@@ -5,13 +5,13 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T056)
+## Stato attuale (aggiornato a T057)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050) P1-20 (T055) e P1-21 (T056). Restano aperti P1-22 e P2-14 (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050), P1-20 (T055), P1-21 (T056) e P1-22 (T057). Resta aperto solo P2-14 (stato `todo`, proveniente dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
-| 1. Login mock + cookie | ✅ | `src/api/client.ts` (proxy same-origin, credentials: 'same-origin'); `e2e/proxy-cookie.spec.ts` | P0-03 |
+| 1. Login mock + cookie | ✅ | `src/api/client.ts` (proxy same-origin, credentials: 'same-origin'); `e2e/proxy-cookie.spec.ts`; sincronizzazione tra tab con evento `storage` (`subscribeToStoredUserId` in `src/features/auth/lib/session-storage.ts`, `tests/integration/p1-22-cross-tab-session.test.tsx`, `e2e/p1-22-multitab.spec.ts`) | P0-03, P1-22 |
 | 1. Validazione `user_id` (vuoto / caratteri / lunghezza) | ✅ | `src/api/auth.ts` (USER_ID_MAX_LENGTH = 100); `tests/unit/auth-service.test.ts`; `tests/integration/LoginForm.test.tsx` | P0-06 |
 | 2. Upload multiplo, stato, errori | ✅ | `src/features/documents/components/DocumentUploadDropzone.tsx`; `src/api/errorMessages.ts`; `e2e/upload-errors.spec.ts`; annullamento con "Annulla" (`useDocumentUpload.ts`, `tests/integration/document-upload-cancel.test.tsx`) | P1-04, P2-05 |
 | 2. Lista documenti | ✅ | `src/features/documents/hooks/useDocuments.ts`; `tests/integration/history-documents-query.test.tsx`; paginazione letterale a 20 con "Carica altri" (`src/api/pagination.ts`, ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P2-04 |
@@ -439,11 +439,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: report T053 (B4).
 - Findings: l'identità mostrata viene da localStorage (`src/features/auth/hooks/useSession.ts`), mentre il cookie `user_id` è condiviso tra le tab. Passi: tab 1 login come x1; tab 2 "Esci" e login come x2; tab 1 continua a mostrare x1, ma le chat inviate da tab 1 vengono salvate dal backend come x2.
 - Criteri di accettazione:
-  - [ ] Se in un'altra tab l'utente esce, la tab corrente torna al login senza reload manuale (integration: evento `storage` o `BroadcastChannel` simulato).
-  - [ ] Se in un'altra tab entra un utente diverso, la tab corrente mostra il nuovo utente, azzera la conversazione aperta e ricarica storico e documenti del nuovo utente (integration).
-  - [ ] e2e con due pagine nello stesso browser context: dopo il login di x2 nella pagina 2, la pagina 1 non mostra più x1.
-  - [ ] Gate typecheck, lint, test exit 0; e2e di sessione (`e2e/session.spec.ts`) verdi.
-- Stato: todo
+  - [x] Se in un'altra tab l'utente esce, la tab corrente torna al login senza reload manuale (integration: evento `storage` o `BroadcastChannel` simulato). Evidenza: `src/features/auth/lib/session-storage.ts` (`subscribeToStoredUserId` ascolta l'evento `storage` sulla chiave `docfact_auth_user_id`; `key === null` = `localStorage.clear` = logout; con cleanup); `useSession.ts` con `newValue` null passa ad anonymous con avviso `signed_out_elsewhere` ("Sei uscito da un'altra scheda. Accedi di nuovo.", `src/api/errorMessages.ts`); `tests/integration/p1-22-cross-tab-session.test.tsx` (prima del fix 2 failed su 2, exit 1; dopo exit 0); e2e tester (`.claude/reports/T057/p1-22-logout-p1.png`): la pagina 1 mostra il login con l'avviso.
+  - [x] Se in un'altra tab entra un utente diverso, la tab corrente mostra il nuovo utente, azzera la conversazione aperta e ricarica storico e documenti del nuovo utente (integration). Evidenza: `useSession.ts` (altro utente: `resetUnauthorizedGuard` e nuovo `userId` authenticated; stesso utente: nessun effetto); `app/page.tsx` (`<QueryProvider key={userId}>` rimonta cache e `ChatWorkspace` al cambio utente); `tests/integration/p1-22-cross-tab-session.test.tsx` (x2 non mostrato prima del fix, exit 0 dopo); e2e tester: senza reload x1=0, x2=1, conversazione di x1 non visibile, storico 0 voci; nuova domanda → `GET /api/chat/` 200 con user_id x2 (`.claude/reports/T057/p1-22-cambio-utente-p1.png`).
+  - [x] e2e con due pagine nello stesso browser context: dopo il login di x2 nella pagina 2, la pagina 1 non mostra più x1. Evidenza: `e2e/p1-22-multitab.spec.ts` (2 test: login x2 in tab 2 → tab 1 non mostra x1; logout in tab 2 → tab 1 mostra il login); `npm run e2e` exit 0, 50 passed (1.6m) (`.claude/reports/T057/e2e.log`); stessa tab invariata, nessun avviso "altra scheda" (`.claude/reports/T057/p1-22-stessa-tab.png`).
+  - [x] Gate typecheck, lint, test exit 0; e2e di sessione (`e2e/session.spec.ts`) verdi. Evidenza: orchestratore gate `typecheck: 0, lint: 0, test: 0` (49 file, 310 test); `npm run e2e` exit 0 con `e2e/session.spec.ts` (2 test) tra i 50 passed.
+- Stato: done (T057)
 
 ---
 

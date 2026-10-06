@@ -36,9 +36,10 @@ export default function HomePage() {
     return <LoginForm onLoginSuccess={signIn} notice={notice} />;
   }
 
-  // QueryProvider is mounted only while authenticated: a new login always gets a fresh cache.
+  // QueryProvider is mounted only while authenticated and keyed by user: a new login or a user
+  // switch from another tab remounts it, so cache and open conversation start fresh.
   return (
-    <QueryProvider>
+    <QueryProvider key={userId}>
       <AuthenticatedApp userId={userId} onSignOut={signOut} />
     </QueryProvider>
   );
