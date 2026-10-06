@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { parseApiDate } from '@/src/api';
 import type { ChatRecord } from '../types';
 import {
   MessageSquare,
@@ -44,9 +45,15 @@ interface ChatSidebarProps {
  * day are distinguishable and the newest-first order is visible (ADR 0004).
  */
 function formatEntryDate(createdAt: string): string {
-  const date = new Date(createdAt);
+  const date = parseApiDate(createdAt);
   if (Number.isNaN(date.getTime())) return 'Sessione';
   return date.toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+/** Normalized instant for `<time dateTime>`; the raw string when it is not a valid date. */
+function toDateTimeAttr(createdAt: string): string {
+  const date = parseApiDate(createdAt);
+  return Number.isNaN(date.getTime()) ? createdAt : date.toISOString();
 }
 
 /**
@@ -237,7 +244,7 @@ export function ChatSidebar({
                     <p className="truncate leading-snug">{chat.query}</p>
                     <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
                       {chat.created_at ? (
-                        <time dateTime={chat.created_at}>{formatEntryDate(chat.created_at)}</time>
+                        <time dateTime={toDateTimeAttr(chat.created_at)}>{formatEntryDate(chat.created_at)}</time>
                       ) : (
                         <span>Sessione</span>
                       )}

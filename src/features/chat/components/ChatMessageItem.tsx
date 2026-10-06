@@ -1,6 +1,6 @@
 'use client';
 
-import { ERROR_MESSAGES } from '@/src/api';
+import { ERROR_MESSAGES, parseApiDate } from '@/src/api';
 import React from 'react';
 import { MarkdownRenderer } from '@/src/components/ui/MarkdownRenderer';
 import { RelatedDocumentsSection } from '@/src/features/factcheck/components/RelatedDocumentsSection';
@@ -60,7 +60,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
             </span>
             {message.created_at && (
               <span className="text-[11px] text-slate-600 dark:text-slate-400">
-                {new Date(message.created_at).toLocaleTimeString("it-IT", {
+                {parseApiDate(message.created_at).toLocaleTimeString("it-IT", {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}

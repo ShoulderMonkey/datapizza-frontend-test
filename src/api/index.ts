@@ -34,3 +34,4 @@ export { authService, validateUserId, USER_ID_MAX_LENGTH, USER_ID_INVALID_MESSAG
 export { documentService, isPdfFile } from './documents';
 export { chatService } from './chat';
 export type * from './types';
+export { parseApiDate } from './dates';

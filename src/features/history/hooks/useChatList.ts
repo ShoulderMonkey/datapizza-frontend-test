@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { chatService, logError, nextOffset, toUserMessage } from '@/src/api';
+import { chatService, logError, nextOffset, parseApiDate, toUserMessage } from '@/src/api';
 import { queryKeys } from '../../queryKeys';
 import type { ChatRecord } from '../types';
 
 
 /** Newest first. Pure: returns a copy, the cached array is never mutated. */
 export function sortChatsByCreatedAtDesc(chats: ChatRecord[]): ChatRecord[] {
-  return [...chats].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  return [...chats].sort((a, b) => parseApiDate(b.created_at).getTime() - parseApiDate(a.created_at).getTime());
 }
 
 /**

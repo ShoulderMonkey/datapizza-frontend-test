@@ -1,3 +1,4 @@
+import { parseApiDate } from '@/src/api';
 import type { ChatRecord } from '../types';
 
 /**
@@ -18,7 +19,7 @@ export function findSavedChatId(
   let bestTime = Number.NEGATIVE_INFINITY;
   for (const chat of chats) {
     if (knownIds.has(chat.id) || chat.query !== query) continue;
-    const time = Date.parse(chat.created_at);
+    const time = parseApiDate(chat.created_at).getTime();
     const comparable = Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
     if (best === null || comparable > bestTime) {
       best = chat;

@@ -8,6 +8,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (T056, P1-21)
+- Orari dello storico nel fuso locale: il backend restituisce `created_at` in UTC senza offset (es. `2026-10-06T13:03:46.422580`) e `new Date()` lo leggeva come ora locale (in Europe/Rome indietro di 2 ore). Nuova funzione condivisa `parseApiDate` in `src/api/dates.ts`: aggiunge `Z` ai timestamp ISO senza offset, lascia invariati quelli con `Z` o `±HH:MM`/`±HHMM`, stringhe invalide → NaN.
+- `ChatSidebar.tsx` (`formatEntryDate` e `<time dateTime>`), `ChatMessageItem.tsx`, `useChatList.ts` (ordinamento) e `findSavedChatId.ts` usano `parseApiDate`. Grep `new Date(` / `Date.parse` in `src`: restano solo `useChatStream.ts:131,138` (`new Date().toISOString()`, messaggi live) e `src/api/dates.ts:10-11`.
+- Test: `tests/unit/parse-api-date.test.ts` e `tests/integration/p1-21-history-timezone.test.tsx`; `vitest.config.ts` fissa `process.env.TZ = 'Europe/Rome'`. Prima del fix 6 failed | 1 passed (sidebar e messaggi 13:03 invece di 15:03), dopo il fix exit 0. Gate typecheck, lint, test exit 0 (48 file, 307 test).
+- e2e: 48 passed. In Europe/Rome storico 15:45 con `<time dateTime>` `2026-10-06T13:45:09.921Z`; in America/New_York sidebar 6 ott, 09:45 e messaggi 09:45 per lo stesso istante.
+- Docs: `docs/ROADMAP.md` P1-21 aggiornato a `done` (T056); restano aperti P1-22 e P2-14.
+
 ### Changed (T055, P1-20)
 - Messaggi dell'utente resi come testo letterale: no Markdown, no HTML inline, no `MarkdownRenderer`. Ramo `isUser` in `ChatMessageItem.tsx:80-87` mostra `<p className="whitespace-pre-wrap break-words ...">{message.content}</p>` con a-capo preservati e parole lunghe spezzate senza overflow orizzontale.
 - Input pericolosi (`<img src=x onerror=alert>`, `**bold**`, `[link](javascript:...)`) sono resi come testo letterale: nessun elemento `img`, `strong`, `a` o attributi nel DOM (img=0, strong=0, a=0), il testo visibile coincide all'input.

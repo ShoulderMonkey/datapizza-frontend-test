@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T055)
+## Stato attuale (aggiornato a T056)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050) e P1-20 (T055). I tre item P1-21, P1-22 e P2-14 sono aperti (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050) P1-20 (T055) e P1-21 (T056). Restano aperti P1-22 e P2-14 (stato `todo`, provenienti dal report T053). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | 3. Markdown + HTML inline sicuro | ✅ | `src/components/ui/MarkdownRenderer.tsx` (rehype-raw + rehype-sanitize, nessun dangerouslySetInnerHTML); messaggi utente testo letterale (`ChatMessageItem.tsx:80-87`, `whitespace-pre-wrap break-words`, `tests/integration/p1-20-user-message-literal.test.tsx`) | P0-04, P1-20 |
 | 4. Documenti correlati (filename, pagina, quote) | ✅ | `src/features/factcheck/components/RelatedDocumentsSection.tsx`; mini-thumbnail lazy con regioni (`CitationThumbnail.tsx`, `CitationThumbnailPage.tsx`) e cache per `document_id` (`useDocumentFile.ts`); `tests/integration/CitationThumbnail.test.tsx`, `e2e/thumbnails.spec.ts` | P2-02 |
 | 4. Bounding box sul PDF | ✅ | `src/features/factcheck/components/BoundingBoxOverlay.tsx`; worker locale `src/features/factcheck/lib/pdfWorker.ts`; scroll alla regione in `PdfPageView.tsx`; `e2e/pdf-viewer.spec.ts`, `e2e/layout.spec.ts` | P1-08, P1-09 |
-| 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`) | P1-06, P1-07, P2-04 |
+| 5. Storico chat lista + dettaglio | ✅ | `src/features/history/components/ChatSidebar.tsx`; `src/api/chat.ts`; ADR `docs/adr/0004-modello-storico.md`; `e2e/history.spec.ts`; paginazione letterale a 20 con "Carica altre" (ADR `docs/adr/0005-paginazione-letterale.md`); `src/api/dates.ts` (`parseApiDate`: `created_at` UTC senza offset), `tests/integration/p1-21-history-timezone.test.tsx` | P1-06, P1-07, P2-04, P1-21 |
 | Qualità: struttura / TS / separazione API-UI | ✅ | struttura per feature (`docs/adr/0002-struttura-per-feature.md`); `ChatWorkspace.tsx` 186 righe (prima 559); tipi richiesta da `src/api/schema.d.ts`; `tests/unit/eslint-no-fetch.test.ts`; BackendConfigModal rimosso da P0-03 (T007) | P1-01, P1-02, P1-11 |
 | UX: loading, errori comprensibili, layout | ✅ | `src/api/errorMessages.ts`; viewer affiancato ≥1024 px e dialog sotto (`FactCheckPanel.tsx`, `e2e/layout.spec.ts`); flusso da tastiera (`e2e/keyboard.spec.ts`); microcopy e limite del composer in `ChatComposer.tsx` (P1-15) | P1-04, P1-06, P1-09, P1-10, P1-15, P1-16, P1-17, P1-18, P1-19 |
 | Uso backend: cookie, metodi, header, body | ✅ | proxy same-origin (P0-03); gestione 401 unica in `src/api/session.ts` (`tests/integration/session-401.test.tsx`, P1-05); body di `POST /api/chat/` con solo `query`/`history` (`tests/unit/api-contract.test.ts`, P1-02); modello storico (P1-07) | P0-03, P1-02, P1-05, P1-07 |
@@ -425,11 +425,11 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Fonte: report T053 (B2).
 - Findings: il backend restituisce `created_at` in UTC senza offset (es. `2026-10-06T13:03:46.422580`). `new Date(created_at)` lo legge come ora locale: in Europe/Rome sidebar e messaggi caricati dallo storico sono indietro di 2 ore rispetto al messaggio live. Punti: `src/features/history/components/ChatSidebar.tsx:47`, `src/features/chat/components/ChatMessageItem.tsx:63`.
 - Criteri di accettazione:
-  - [ ] Un'unica funzione condivisa interpreta come UTC i timestamp senza offset (`YYYY-MM-DDTHH:mm:ss[.frazione]`) e lascia invariati quelli con `Z` o con offset `±HH:MM` (unit, con TZ fissata a Europe/Rome: `2026-10-06T13:03:46.422580` → ore 15:03).
-  - [ ] Sidebar dello storico e orario del messaggio usano quella funzione; in `src/` non resta alcun `new Date(<created_at>)` diretto (verifica con grep riportata nell'evidenza).
-  - [ ] Un messaggio caricato dallo storico mostra lo stesso orario dello stesso messaggio visto live (integration con MSW e TZ fissata).
-  - [ ] Gate typecheck, lint, test exit 0.
-- Stato: todo
+  - [x] Un'unica funzione condivisa interpreta come UTC i timestamp senza offset (`YYYY-MM-DDTHH:mm:ss[.frazione]`) e lascia invariati quelli con `Z` o con offset `±HH:MM` (unit, con TZ fissata a Europe/Rome: `2026-10-06T13:03:46.422580` → ore 15:03). Evidenza: `src/api/dates.ts` (`parseApiDate` aggiunge `Z` ai timestamp ISO senza offset, lascia invariati quelli con `Z` o `±HH:MM`/`±HHMM`, stringhe invalide → NaN); `tests/unit/parse-api-date.test.ts`; `vitest.config.ts` fissa `process.env.TZ = 'Europe/Rome'`. Prima del fix 6 failed | 1 passed (exit 1), dopo il fix exit 0.
+  - [x] Sidebar dello storico e orario del messaggio usano quella funzione; in `src/` non resta alcun `new Date(<created_at>)` diretto (verifica con grep riportata nell'evidenza). Evidenza: `ChatSidebar.tsx` (`formatEntryDate` e `<time dateTime>`), `ChatMessageItem.tsx`, `useChatList.ts` (ordinamento), `findSavedChatId.ts` usano `parseApiDate`; grep dell'orchestratore `grep -rn -e 'new Date(' -e 'Date.parse' src` → solo `useChatStream.ts:131,138` (`new Date().toISOString()`, messaggi live) e `src/api/dates.ts:10-11`.
+  - [x] Un messaggio caricato dallo storico mostra lo stesso orario dello stesso messaggio visto live (integration con MSW e TZ fissata). Evidenza: `tests/integration/p1-21-history-timezone.test.tsx` (prima del fix sidebar e messaggi mostravano 13:03 invece di 15:03; dopo exit 0); e2e tester in Europe/Rome: `created_at` grezzo `2026-10-06T13:45:09.921`, `<time dateTime>` `2026-10-06T13:45:09.921Z`, storico 15:45, live 15:44/15:45 (cambio di minuto durante lo stream) (`.claude/reports/T056/p1-21-live.png`, `p1-21-storico.png`); America/New_York: sidebar 6 ott, 09:45 e messaggi 09:45 (`.claude/reports/T056/p1-21-new-york.png`).
+  - [x] Gate typecheck, lint, test exit 0. Evidenza: orchestratore gate `typecheck: 0, lint: 0, test: 0` (48 file, 307 test); `npm run e2e` exit 0 (48 passed, 1.7m, `.claude/reports/T056/e2e.log`).
+- Stato: done (T056)
 
 ### P1-22 — Identità coerente tra tab
 - Criterio della specifica: "Login mock + cookie", "Uso corretto del backend".
