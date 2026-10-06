@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T047)
+## Stato attuale (aggiornato a T049)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046) e P1-18 (T047). Tutti gli item della roadmap sono `done`; nessuna riga della tabella è ⚠️. I findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046) e P1-18 (T047). P1-19 (T049) è `todo`. Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -368,7 +368,7 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] Titolo, sottotitolo e le tre card hanno testi placeholder semplici in italiano, e le due card cliccabili mantengono il comportamento (apre documenti / invia `SUGGESTED_QUESTION`; test esistenti verdi). Evidenza: `src/features/chat/components/WelcomePanel.tsx` (testi in righe 24, 39, 60, 63), comportamento invariato, test verdi.
   - [x] `e2e/dark-theme.spec.ts` resta verde con 0 violazioni axe `color-contrast` sull'empty state (adeguato se il `<code>` viene rimosso). Evidenza: `e2e/dark-theme.spec.ts` 0 violazioni color-contrast (report frontend-tester), `<code>` rimosso da `WelcomePanel.tsx:63`.
   - [x] Gate typecheck, lint, test exit 0. Evidenza: `npm run typecheck`, `npm run lint`, `npm run test` exit 0 (frontend-developer).
-- Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON"), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
+- Nota: alcuni percorsi fuori dal perimetro contengono riferimenti a "NDJSON" e metadata: `src/features/auth/components/LoginForm.tsx:52` (microcopy "streaming NDJSON") → P1-19 (T049), `app/layout.tsx:6,9,15` (metadata description). Decidere con l'utente se includerli in task future.
 - Finding (low, non bloccante): la card 2 "Fai una domanda" mostra il testo "Quali sono i punti principali trattati nei documenti?" mentre invia il `SUGGESTED_QUESTION` "…nei documenti caricati?". Rinviato.
 - Stato: done (T046)
 
@@ -387,6 +387,21 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 - Nota: decisione di rimozione limitata a md in su per non lasciare il mobile senza comando di apertura della sidebar.
 - Finding (low, non bloccante, tester T047): nello screenshot a 375 px il focus ring del bottone topbar non è visibile dopo focus() programmatico (focus-visible); l'attivazione da tastiera è coperta dall'e2e.
 - Stato: done (T047)
+
+### P1-19 — Login: sottotitolo senza dettagli implementativi
+- Criterio della specifica: "UX e micro-interazioni".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-17
+- Stima: XS
+- Fonte: richiesta utente (T049).
+- Findings: il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) espone dettagli implementativi ("grounded", "streaming NDJSON").
+- Criteri di accettazione:
+  - [ ] Il sottotitolo del login (`src/features/auth/components/LoginForm.tsx:51-53`) non contiene (case-insensitive) "ndjson", "streaming", "grounded"; è un testo semplice in italiano rivolto all'utente (unit/integration RTL).
+  - [ ] Test esistenti del login (validazione `user_id`, sessione) verdi.
+  - [ ] e2e che fanno login (smoke, session) verdi.
+  - [ ] Gate typecheck, lint, test exit 0.
+- Nota: `app/layout.tsx:6,9,15` (metadata description) contiene ancora "NDJSON" ed è fuori perimetro (non richiesto dall'utente).
+- Stato: todo
 
 ---
 

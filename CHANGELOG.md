@@ -8,6 +8,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
 ## [Unreleased]
 
+### Docs (T049)
+- `docs/ROADMAP.md`: nuovo item P1-19 `todo` di UX e microcopy (login: sottotitolo senza dettagli implementativi) con stima XS e dipendenza P1-17. Nota di P1-17 aggiornata per puntare a P1-19. Nota: `app/layout.tsx:6,9,15` contiene ancora "NDJSON" nel metadata description, fuori dal perimetro della richiesta. Stato attuale aggiornato a T049.
+
 ### Docs (T044)
 - `docs/ROADMAP.md`: aggiunti tre nuovi item `todo` di UX e microcopy: P1-16 (hint del composer senza dettagli implementativi NDJSON) e P1-17 (empty state della nuova chat con testi placeholder semplici, senza riferimenti alla specifica) con stima P1-16: XS e P1-17: S, dipendenza P1-15 per entrambi; P1-18 (sidebar collassata: un solo bottone per riaprirla) con stima XS e dipendenza P1-13, per evitare il duplicato del bottone "Espandi barra laterale" nella topbar a viewport ≥ 768 px. Nota: `src/features/auth/components/LoginForm.tsx:52` e `app/layout.tsx:6,9,15` contengono ancora riferimenti a "NDJSON" e metadata, fuori dal perimetro della richiesta.
 
