@@ -11,3 +11,6 @@ test-results/
 
 .claude/state/
 .claude/reports/
+# Documento locale di preparazione al colloquio (T051), non versionato
+docs/interview/
+.claude/scripts/
