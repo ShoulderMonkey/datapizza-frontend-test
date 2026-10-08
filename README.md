@@ -5,19 +5,6 @@ Le risposte arrivano in Markdown con HTML inline sanitizzato. Ogni citazione si 
 
 ![Schermata dell'app: conversazione, citazioni e viewer PDF](docs/images/app.png)
 
-## Funzionalità
-
-| Requisito della specifica | Stato | Dove si trova |
-|---|---|---|
-| Autenticazione mock (login, cookie, errori di validazione) | Implementato | `src/features/auth/`, `src/api/auth.ts` |
-| Upload multiplo di PDF, stato ed errori, lista documenti | Implementato | `src/features/documents/`, `src/api/documents.ts` |
-| Chat con streaming NDJSON, Markdown e HTML sicuro | Implementato | `src/features/chat/`, `src/api/ndjson.ts`, `src/components/ui/MarkdownRenderer.tsx` |
-| Fact-checking: documenti correlati e bounding box sul PDF | Implementato | `src/features/factcheck/` |
-| Lista chat e dettaglio coerente con la UI | Implementato | `src/features/history/`, `src/api/chat.ts` |
-| Dockerfile e docker-compose | Presenti | `Dockerfile`, `docker-compose.yml` |
-
-La mappa completa dei criteri è nella sezione "Stato attuale" di [`docs/ROADMAP.md`](docs/ROADMAP.md).
-
 ## Stack
 
 - Next.js 15 (App Router), React 19, TypeScript 5.9
@@ -119,8 +106,8 @@ Lo stato del server è in TanStack Query; lo stato dello stream è un `useReduce
 
 ## Test
 
-- Unit: `tests/unit/` (22 file). Integration: `tests/integration/` (23 file). Eseguiti con `npm run test`.
-- e2e: `e2e/` (20 spec Playwright), con `npm run e2e`.
+- Unit: `tests/unit/` (23 file). Integration: `tests/integration/` (26 file). Eseguiti con `npm run test`.
+- e2e: `e2e/` (21 spec Playwright), con `npm run e2e`.
 - Controlli statici: `npm run typecheck` e `npm run lint`.
 - Se i browser Playwright non sono installati: `npx playwright install`.
 - Gli e2e richiedono il backend attivo su `localhost:8000`.
@@ -133,6 +120,7 @@ Lo stato del server è in TanStack Query; lo stato dello stream è un `useReduce
 | Struttura per feature con un solo livello `src/api/` | Più cartelle; `chat` è l'unica feature che ne importa altre | [ADR 0002](docs/adr/0002-struttura-per-feature.md) |
 | Invio disabilitato durante lo stream | Un clic in più (o "Interrompi"), nessuna race sullo storico | [ADR 0003](docs/adr/0003-invio-durante-stream.md) |
 | Una voce di storico è una coppia domanda/risposta | Il contesto multi-turno si perde al ricarico (limite del backend) | [ADR 0004](docs/adr/0004-modello-storico.md) |
+| Multi-turno solo nel client; `history` inviato per compatibilità con lo schema, ma ignorato dal backend | La UI non promette che la risposta tenga conto del contesto; se il backend lo usasse, funzionerebbe senza modifiche | [ADR 0004](docs/adr/0004-modello-storico.md) |
 | Paginazione letterale a 20 elementi | Chat recenti visibili solo dopo "Carica altre" | [ADR 0005](docs/adr/0005-paginazione-letterale.md) |
 | Override di `postcss` per le vulnerabilità | Restano 5 avvisi high solo nelle dipendenze di sviluppo | [ADR 0006](docs/adr/0006-gestione-vulnerabilita-dipendenze.md) |
 | Feedback esplicito sulla voce salvata nello storico | Con più di 20 chat la voce può non essere tra le pagine caricate | [ADR 0007](docs/adr/0007-feedback-storico.md) |
@@ -144,7 +132,8 @@ Lo stato del server è in TanStack Query; lo stato dello stream è un `useReduce
 ## Limiti noti
 
 - **Backend** ([`docs/AUDIT.md`](docs/AUDIT.md), Assunzioni 9–10 e §2): `text_quote` è sempre la stessa frase placeholder, quindi la UI evidenzia solo le bounding box.
-- **Backend:** documenti globali e non per utente; `page_count` sempre 5; una chat è una sola coppia domanda/risposta.
+- **Backend:** documenti globali e non per utente; `page_count` sempre 5.
+- **Backend:** ignora `history` e salva ogni chat come una sola coppia domanda/risposta. Il contesto multi-turno esiste solo nel browser, in memoria, nella sessione attiva. Si perde ricaricando la pagina, selezionando un'altra voce dello storico o iniziando una nuova conversazione ([ADR 0004](docs/adr/0004-modello-storico.md)). `localStorage` conserva solo lo `user_id`.
 - **Backend:** OpenAPI senza schemi di risposta (tipi scritti a mano in `src/api/types.ts`); nessun endpoint di logout.
 - **Frontend:** il logout cancella solo lo stato client; il cookie `HttpOnly` resta.
 - **Frontend:** "Annulla" sull'upload interrompe la richiesta, ma il file può risultare già salvato.
@@ -152,11 +141,14 @@ Lo stato del server è in TanStack Query; lo stato dello stream è un `useReduce
 
 ## Con più tempo
 
-- Correggere il troncamento del nome file nell'header del viewer ([finding T043](docs/ROADMAP.md)).
-- Rendere raggiungibile con meno Tab la regione "Pagina PDF" ([finding T032](docs/ROADMAP.md)).
-- Chiudere i 5 avvisi high solo-dev quando `eslint-config-next` avrà un fix ([ADR 0006](docs/adr/0006-gestione-vulnerabilita-dipendenze.md)).
-- Evidenziare il `text_quote` nel text layer, se il backend restituirà testo reale ([idee scartate](docs/ROADMAP.md)).
-- Un endpoint di logout nel backend permetterebbe di cancellare il cookie ([findings](docs/ROADMAP.md)).
+Dettagli negli item aperti e nei findings di [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+- **Chat e navigazione:** autoscroll all'invio quando il log è scorso in alto, avviso se un cambio di chat scarta una domanda in corso, stato nell'URL per "indietro" e ricarico, togliere il testo tecnico "multipart/form-data" dal tab di upload.
+- **Viewer PDF:** nome file troncato nell'header a 1280 px, "Ripristina 100%" che oggi porta lo zoom al 120%, avviso per pagina citata fuori range, meno Tab per la regione "Pagina PDF".
+- **Rendering delle risposte:** bloccare le immagini esterne ammesse dalla sanitizzazione, togliere l'attributo `node` dai `<code>` inline.
+- **Test:** e2e indipendenti dal numero di documenti nel backend e da `PLAYWRIGHT_BASE_URL` su un dev server.
+- **Dipendenze:** chiudere i 5 avvisi high solo-dev quando `eslint-config-next` avrà un fix ([ADR 0006](docs/adr/0006-gestione-vulnerabilita-dipendenze.md)).
+- **Con un backend aggiornato:** endpoint di logout per cancellare il cookie; evidenziare il `text_quote` nel text layer se il backend restituirà testo reale.
 
 ## Metodo di sviluppo
 
@@ -164,7 +156,7 @@ Il progetto è stato sviluppato con l'assistenza di modelli AI, in un processo p
 
 **Fase 1: scaffolding.** Un meta-prompt, cioè un prompt che genera prompt strutturati con ruoli, vincoli e criteri di validazione espliciti e una revisione critica prima della consegna, ha prodotto il prompt per Google AI Studio Build. Da quel prompt è nata la prima versione dell'app. Si è usato uno strumento dedicato per risparmiare token nell'impalcatura iniziale.
 
-**Fase 2: sistema di subagenti.** Un secondo meta-prompt ha generato il prompt con cui Claude Code ha configurato il sistema in [`CLAUDE.md`](CLAUDE.md) e [`.claude/`](.claude/), con attenzione a ruoli e flusso di validazione. Lo sviluppo è proseguito per iterazioni guidate da [`docs/ROADMAP.md`](docs/ROADMAP.md): 41 item, 53 commit.
+**Fase 2: sistema di subagenti.** Un secondo meta-prompt ha generato il prompt con cui Claude Code ha configurato il sistema in [`CLAUDE.md`](CLAUDE.md) e [`.claude/`](.claude/), con attenzione a ruoli e flusso di validazione. Lo sviluppo è proseguito per iterazioni guidate da [`docs/ROADMAP.md`](docs/ROADMAP.md): 45 item, tutti `done`.
 
 | Agente | Modello | Ruolo |
 |---|---|---|
@@ -193,10 +185,11 @@ flowchart TD
   G -- sì --> C[Commit]
 ```
 
-**Ruolo dell'autore.** <!-- DA COMPILARE: cosa hai deciso, rivisto o corretto tu -->
+**Ruolo dell'autore.** Ho progettato il processo: i due meta-prompt, i ruoli degli agenti, la scelta del modello per ruolo e le regole di validazione in [`CLAUDE.md`](CLAUDE.md). Durante lo sviluppo ho scelto le priorità della roadmap e quali findings trasformare in item e quali rinviare, per esempio dopo le verifiche esplorative con Playwright, e ho rivisto la UI chiedendo correzioni di UX e microcopy (empty state, hint del composer, sottotitolo del login, sidebar collassata).
 
 **Limiti del metodo.**
 - Il controllo dei comandi Bash in `guard-orchestrator.mjs` è best-effort: non copre ogni scrittura.
 - Il quality gate non esegue gli e2e.
+- La roadmap è un unico file Markdown ([`docs/ROADMAP.md`](docs/ROADMAP.md)), scelta voluta per questioni di tempo; in un sistema di produzione si userebbe uno strumento più mantenibile, per esempio un issue tracker con un item per issue.
 - Dopo 2 blocchi consecutivi il validatore lascia decidere l'orchestratore.
 - `.claude/state/` e `.claude/reports/` non sono versionati: piani e report non sono consultabili dal clone.
