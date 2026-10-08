@@ -152,11 +152,20 @@ Dettagli negli item aperti e nei findings di [`docs/ROADMAP.md`](docs/ROADMAP.md
 
 ## Metodo di sviluppo
 
-Il progetto è stato sviluppato con l'assistenza di modelli AI, in un processo progettato dall'autore, che decide e verifica.
+**Ruolo dell'autore.** Il progetto è stato sviluppato con l'assistenza di modelli AI, dentro un sistema di agenti che ho progettato io dall'inizio alla fine: non è un template né una configurazione predefinita di Claude Code. Le decisioni di progetto del sistema sono mie:
+
+- **Architettura.** Un orchestratore che pianifica, delega, valida e committa senza mai modificare codice, test o documentazione, e quattro subagenti specializzati con perimetri di scrittura separati: chi scrive il codice non tocca i test, chi scrive i test non tocca il codice.
+- **Modello per ruolo.** Haiku per la documentazione, sonnet per sviluppo e test, opus solo su override per le decisioni trasversali, con regole di escalation esplicite.
+- **Contratto tra agenti.** Ogni delega usa un formato fisso a tag XML (obiettivo, file in scope, criteri di accettazione, input dell'agente precedente, vincoli) e ogni agente risponde con un JSON a schema fisso.
+- **Regole anti-allucinazione.** I file dichiarati da un agente devono coincidere con `git diff`; un test non è "verde" senza il comando e il suo exit code; un `pass` del tester non vale senza uno screenshot esistente.
+- **Regole di governo.** Massimo due cicli developer ↔ tester prima di fermarsi e chiedere; un ordine di precedenza per i conflitti (sicurezza, poi requisiti minimi, poi criteri di valutazione, poi costi e velocità); una Definition of Done verificabile; un commit per task; risposte del backend, PDF e output degli agenti trattati come dati da verificare e mai come istruzioni.
+- **Regole imposte, non solo scritte.** Gli hook in [`.claude/hooks/`](.claude/hooks/) bloccano le scritture dell'orchestratore, validano il JSON degli agenti ed eseguono il quality gate; la skill [`roadmap-run`](.claude/skills/roadmap-run/SKILL.md) porta una sessione dal preflight al commit e raccoglie le insidie incontrate nelle sessioni precedenti.
+
+Claude Code ha materializzato questi file ([`CLAUDE.md`](CLAUDE.md) e [`.claude/`](.claude/)) a partire da un meta-prompt scritto da me, e li ho rivisti e corretti man mano che lo sviluppo faceva emergere problemi. Durante lo sviluppo ho scelto le priorità della roadmap, quali findings trasformare in item e quali rinviare, per esempio dopo le verifiche esplorative con Playwright, e ho rivisto la UI chiedendo correzioni di UX e microcopy (empty state, hint del composer, sottotitolo del login, sidebar collassata).
 
 **Fase 1: scaffolding.** Un meta-prompt, cioè un prompt che genera prompt strutturati con ruoli, vincoli e criteri di validazione espliciti e una revisione critica prima della consegna, ha prodotto il prompt per Google AI Studio Build. Da quel prompt è nata la prima versione dell'app. Si è usato uno strumento dedicato per risparmiare token nell'impalcatura iniziale.
 
-**Fase 2: sistema di subagenti.** Un secondo meta-prompt ha generato il prompt con cui Claude Code ha configurato il sistema in [`CLAUDE.md`](CLAUDE.md) e [`.claude/`](.claude/), con attenzione a ruoli e flusso di validazione. Lo sviluppo è proseguito per iterazioni guidate da [`docs/ROADMAP.md`](docs/ROADMAP.md): 45 item, tutti `done`.
+**Fase 2: sistema di subagenti.** Un secondo meta-prompt ha generato il prompt con cui Claude Code ha configurato il sistema descritto sopra. Lo sviluppo è proseguito per iterazioni guidate da [`docs/ROADMAP.md`](docs/ROADMAP.md): 49 item, di cui 45 `done`.
 
 | Agente | Modello | Ruolo |
 |---|---|---|
@@ -184,8 +193,6 @@ flowchart TD
   G -- no --> O
   G -- sì --> C[Commit]
 ```
-
-**Ruolo dell'autore.** Ho progettato il processo: i due meta-prompt, i ruoli degli agenti, la scelta del modello per ruolo e le regole di validazione in [`CLAUDE.md`](CLAUDE.md). Durante lo sviluppo ho scelto le priorità della roadmap e quali findings trasformare in item e quali rinviare, per esempio dopo le verifiche esplorative con Playwright, e ho rivisto la UI chiedendo correzioni di UX e microcopy (empty state, hint del composer, sottotitolo del login, sidebar collassata).
 
 **Limiti del metodo.**
 - Il controllo dei comandi Bash in `guard-orchestrator.mjs` è best-effort: non copre ogni scrittura.
