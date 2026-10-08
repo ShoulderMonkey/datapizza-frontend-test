@@ -5,7 +5,7 @@ import { LoginForm } from '@/src/features/auth/components/LoginForm';
 describe('LoginForm subtitle (P1-19)', () => {
   it('shows a plain Italian subtitle right after the heading', () => {
     render(<LoginForm onLoginSuccess={vi.fn()} />);
-    const heading = screen.getByRole('heading', { name: 'DocFact Assistant' });
+    const heading = screen.getByRole('heading', { name: 'Datapizza Frontend Test' });
     const subtitle = heading.nextElementSibling;
     expect(subtitle?.tagName).toBe('P');
     expect(subtitle?.textContent?.trim()).toBe(

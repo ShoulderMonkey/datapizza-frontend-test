@@ -47,7 +47,7 @@ export function LoginForm({ onLoginSuccess, notice }: LoginFormProps) {
           <div className="inline-flex p-3 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/20">
             <FileCheck2 className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">DocFact Assistant</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Datapizza Frontend Test</h1>
           <p className="text-sm text-slate-400 mt-1.5 max-w-xs mx-auto">
             Fai domande sui tuoi PDF e verifica le risposte sulle fonti.
           </p>

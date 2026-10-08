@@ -133,11 +133,11 @@ export function ChatSidebar({
         <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 bg-indigo-600 text-white rounded-lg font-bold text-xs shadow-xs">
-              DF
+              DP
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white tracking-tight">DocFact Chat</h1>
-              <span className="text-[10px] text-slate-400 block -mt-0.5">Frontend Tech Test</span>
+              <h1 className="text-sm font-bold text-white tracking-tight">Datapizza</h1>
+              <span className="text-[10px] text-slate-400 block -mt-0.5">Test tecnico Frontend</span>
             </div>
           </div>
           <button

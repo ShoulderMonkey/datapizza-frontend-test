@@ -1,4 +1,4 @@
-# DocFact Chat & Citations
+# Datapizza — Test tecnico Frontend
 
 Interfaccia web per fare domande a un backend che risponde in streaming sui documenti PDF caricati.
 Le risposte arrivano in Markdown con HTML inline sanitizzato. Ogni citazione si apre in un viewer PDF con le regioni evidenziate.

@@ -18,7 +18,7 @@ export function WelcomePanel({ onOpenDocuments, onAskQuestion }: WelcomePanelPro
         <Sparkles className="w-8 h-8" />
       </div>
       <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-        Benvenuto in DocFact Assistant
+        Benvenuto in Datapizza Frontend Test
       </h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
         Fai una domanda sui tuoi documenti PDF: le risposte riportano le fonti e mostrano il punto esatto nel documento.
