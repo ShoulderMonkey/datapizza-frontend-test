@@ -5,9 +5,9 @@
 > Lo stato di ogni item è aggiornato **solo** da `documentation-writer`.
 > Convenzione per i test: "unit" e "integration" = Vitest + RTL + MSW (`npm run test`); "e2e" = Playwright contro il backend reale (`npm run e2e`).
 
-## Stato attuale (aggiornato a T058)
+## Stato attuale (aggiornato a T060)
 
-Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050), P1-20 (T055), P1-21 (T056), P1-22 (T057) e P2-14 (T058). Tutti gli item della roadmap sono `done` (45/45). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
+Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, come P0-09 (T031), P1-12 (T032), P1-13 (T033), P1-14 (T034), P1-15 (T036), P2-08 (T037), P2-09 (T038), P2-10 (T039), P2-11 (T041), P2-12 (T042), P2-13 (T043), P1-16 (T045), P1-17 (T046), P1-18 (T047), P1-19 (T050), P1-20 (T055), P1-21 (T056), P1-22 (T057) e P2-14 (T058). Degli item della roadmap 45 sono `done`, 4 sono `todo` (P1-23, P2-15, P2-16, P2-17, aperti da T060). Nessuna riga della tabella è ⚠️; i findings non trasformati in item sono nella sezione "Findings non trasformati in item (con motivo)".
 
 | Criterio della specifica | Stato | Evidenza | Item |
 |---|---|---|---|
@@ -445,6 +445,20 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] Gate typecheck, lint, test exit 0; e2e di sessione (`e2e/session.spec.ts`) verdi. Evidenza: orchestratore gate `typecheck: 0, lint: 0, test: 0` (49 file, 310 test); `npm run e2e` exit 0 con `e2e/session.spec.ts` (2 test) tra i 50 passed.
 - Stato: done (T057)
 
+### P1-23 — Autoscroll all'invio con la chat scrollata in alto
+- Criterio della specifica: "UX e micro-interazioni", "Aggiornamento incrementale della UI".
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-03
+- Stima: S
+- Fonte: report T059 (A/B1, severità medium).
+- Findings: `src/features/chat/hooks/useAutoScroll.ts:22-25` imposta `shouldAutoScrollRef` a false quando l'utente non è entro 120 px dal fondo, e l'invio di una nuova domanda non lo riattiva. Passi: 2 o più domande con citazioni, scorrere il log in alto (`scrollTop=0`), inviare una domanda. Osservato: lo scroll resta fermo, la distanza dal fondo cresce da 3321 a 3653 px durante lo stream, né la domanda né la risposta sono visibili e nessun indicatore segnala i nuovi messaggi. Succede anche in uso normale dopo aver aperto "Verifica nel PDF" e chiuso il viewer.
+- Criteri di accettazione:
+  - [ ] All'invio di una domanda il log scorre in fondo anche se l'utente era scrollato in alto: la domanda inviata e l'inizio della risposta sono visibili (integration).
+  - [ ] Se durante lo stream l'utente scorre in alto, l'autoscroll resta sospeso (comportamento attuale) e compare un controllo accessibile da tastiera per tornare in fondo, che sparisce quando il log è di nuovo in fondo (integration).
+  - [ ] Scenario del tester con backend reale: 2+ domande, `scrollTop=0`, invio → domanda e risposta in streaming visibili, con screenshot.
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
 ---
 
 ## P2 — Differenzianti
@@ -610,6 +624,45 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
   - [x] Gate typecheck, lint, test exit 0. Evidenza: orchestratore `typecheck: 0, lint: 0, test: 0` (49 file, 310 test); `npm run e2e` exit 0, 50 passed (`.claude/reports/T058/e2e.log`).
 - Stato: done (T058)
 
+### P2-15 — Avviso quando una domanda interrotta non viene salvata
+- Criterio della specifica: "UX e micro-interazioni", "Gestione degli stati" (errori e interruzioni).
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P1-03, P1-22
+- Stima: S
+- Fonte: report T059 (a/B3: `.claude/reports/T059/a/report.md:68-69`; b/B2: `.claude/reports/T059/b/report.md:68`).
+- Findings: `replaceMessages` (`src/features/chat/hooks/useChatStream.ts:247-251`) chiama `cancel()` e poi `reset`, quindi cambiare chat durante lo stream scarta in silenzio la domanda in corso (a/B3). Interrompi, nuova conversazione o ricarica durante lo stream: la voce non compare mai nello storico, perché il backend salva solo a fine stream (`docs/AUDIT.md` §2) (b/B2). L'abort lato client è in `src/features/chat/hooks/useChatStream.ts:100-106`.
+- Criteri di accettazione:
+  - [ ] Cambiando chat o avviando una nuova conversazione durante uno stream compare un avviso o una conferma prima di scartare la domanda in corso; annullando la conferma lo stream prosegue (integration).
+  - [ ] Dopo Interrompi, o dopo l'abbandono confermato, un messaggio spiega che una risposta interrotta non viene salvata nello storico (integration).
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
+### P2-16 — Immagini esterne nelle risposte del bot
+- Criterio della specifica: "Sicurezza" (sanitizzazione dell'HTML del backend).
+- Owner: `frontend-developer` (test: `frontend-test-writer`)
+- Dipendenze: P0-04
+- Stima: XS
+- Fonte: report T059 (b/B6: `.claude/reports/T059/b/report.md:72`).
+- Findings: `src/components/ui/MarkdownRenderer.tsx:7` e `:24` usano `rehypeSanitize` con `defaultSchema`, che ammette `<img src>` con URL arbitrario. Nessuna esecuzione di script, ma il browser effettua richieste esterne (es. tracking pixel) alla sola visualizzazione della risposta.
+- Criteri di accettazione:
+  - [ ] Un `<img>` con `src` esterno nella risposta del bot non genera richieste di rete (integration).
+  - [ ] Il resto della sanitizzazione è invariato: i test XSS esistenti restano verdi.
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
+### P2-17 — e2e indipendenti dal numero di documenti nel backend
+- Criterio della specifica: "Qualità del codice" (affidabilità dei test).
+- Owner: `frontend-test-writer`
+- Dipendenze: P0-01
+- Stima: S
+- Fonte: report T059 (b, sezione e2e: `.claude/reports/T059/b/report.md:76-80`).
+- Findings: run 1 con 6 fallimenti con backend vuoto o con 1 documento (`e2e/citation-occurrence.spec.ts:6`, `e2e/a11y.spec.ts:25`, `e2e/dark-theme.spec.ts:32`, `e2e/focus.spec.ts:84`, `e2e/related-1024.spec.ts:9` x2); run 2 verde con 3 documenti. Esempio: `e2e/citation-occurrence.spec.ts:14-18` pretende almeno due documenti già presenti.
+- Criteri di accettazione:
+  - [ ] Gli spec che richiedono documenti li preparano da soli (upload dei PDF ammessi del backend in setup) oppure fanno skip esplicito con motivo (e2e).
+  - [ ] `npm run e2e` verde con backend appena avviato (e2e, exit 0).
+  - [ ] Gate typecheck, lint, test exit 0.
+- Stato: todo
+
 ---
 
 ## Idee scartate (con motivo)
@@ -643,6 +696,12 @@ Gli item originali (P0-01…P0-08, P1-01…P1-11, P2-01…P2-07) sono `done`, co
 | Nessuno stato nell'URL, quindi "indietro" esce dall'app e la chat aperta si perde al reload | T053 (B8) | Non richiesto dall'utente in T054, severità low. |
 | Il tab upload mostra "multipart/form-data, campo files"; il nome del documento nell'header del viewer si riduce a una lettera accanto al badge | T053 (B10) | Non richiesto dall'utente in T054, severità low. |
 | `e2e/hygiene.spec.ts:8` considera produzione qualsiasi `PLAYWRIGHT_BASE_URL`, quindi fallisce contro un dev server esterno | T053 (T1) | Non richiesto dall'utente in T054, severità low. |
+| Testo del composer bloccato durante lo stream (il report T059 diceva "disabled") | T059 (a/B2) | Scelta documentata: la textarea è `readOnly` con `aria-disabled`, non `disabled`, per non perdere il focus da tastiera (`src/features/chat/components/ChatComposer.tsx:35,53-54,113-116`, ADR 0003). Il report era impreciso. |
+| Titolo dell'header "Nuova sessione" anche dopo la prima domanda | T059 (a/B4) | Severità low: rinviato a fine consegna. |
+| `console.error` su errore di upload atteso, concordanza "1 file disponibili", contatore "Documenti (0)" non aggiornato dopo Annulla | T059 (a/N1) | Severità low: rinviato. |
+| Una riga NDJSON malformata interrompe l'intera risposta (`src/api/ndjson.ts:18-20`, `NDJSONParseError`) | T059 (b/B1) | Severità low: il comportamento attuale è un errore esplicito; il parsing tollerante è rinviato. |
+| Pagina citata fuori range non segnalata (`page_number` 99 su PDF di 9 pagine) | T059 (b/B3) | Severità low: il backend reale non produce pagine fuori range. |
+| Rettangoli anomali (y=1e9) e testi lunghi senza spazi tagliati | T059 (b/B4, b/B5) | Severità low: dati irrealistici, non si verificano con il backend reale. |
 
 ## Checklist di consegna manuale (utente)
 
